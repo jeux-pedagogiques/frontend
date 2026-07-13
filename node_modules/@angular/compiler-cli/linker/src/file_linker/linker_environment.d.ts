@@ -12,14 +12,14 @@ import { AstFactory } from '../../../src/ngtsc/translator';
 import { AstHost } from '../ast/ast_host';
 import { LinkerOptions } from './linker_options';
 import { Translator } from './translator';
-export declare class LinkerEnvironment<TStatement, TExpression, TType> {
+export declare class LinkerEnvironment<TStatement, TExpression> {
     readonly fileSystem: ReadonlyFileSystem;
     readonly logger: Logger;
     readonly host: AstHost<TExpression>;
-    readonly factory: AstFactory<TStatement, TExpression, TType>;
+    readonly factory: AstFactory<TStatement, TExpression>;
     readonly options: LinkerOptions;
-    readonly translator: Translator<TStatement, TExpression, TType>;
+    readonly translator: Translator<TStatement, TExpression>;
     readonly sourceFileLoader: SourceFileLoader | null;
     private constructor();
-    static create<TStatement, TExpression, TType>(fileSystem: ReadonlyFileSystem, logger: Logger, host: AstHost<TExpression>, factory: AstFactory<TStatement, TExpression, TType>, options: Partial<LinkerOptions>): LinkerEnvironment<TStatement, TExpression, TType>;
+    static create<TStatement, TExpression>(fileSystem: ReadonlyFileSystem, logger: Logger, host: AstHost<TExpression>, factory: AstFactory<TStatement, TExpression>, options: Partial<LinkerOptions>): LinkerEnvironment<TStatement, TExpression>;
 }
