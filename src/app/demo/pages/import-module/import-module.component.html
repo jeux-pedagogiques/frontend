@@ -1,263 +1,240 @@
-<div class="row">
-  <!-- Page Header -->
-  <div class="col-12 mb-4">
-    <div class="page-header-card">
-      <div class="d-flex align-items-center">
-        <div class="page-header-icon">
-          <i class="feather icon-upload-cloud" *ngIf="pageState() === 'import'"></i>
-          <i class="feather icon-cpu" *ngIf="pageState() === 'analyzing'"></i>
-          <i class="feather icon-check-circle" *ngIf="pageState() === 'validation'"></i>
-        </div>
-        <div>
-          <h3 class="mb-1" *ngIf="pageState() === 'import'">Import de Fiche Module</h3>
-          <h3 class="mb-1" *ngIf="pageState() === 'analyzing'">Analyse IA en cours...</h3>
-          <h3 class="mb-1" *ngIf="pageState() === 'validation'">Validation de l'analyse</h3>
-          <p class="text-muted mb-0" *ngIf="pageState() === 'import'">Importez votre fiche module via fichier, saisie directe ou copier-coller</p>
-          <p class="text-muted mb-0" *ngIf="pageState() === 'analyzing'">Gemini analyse votre fiche module...</p>
-          <p class="text-muted mb-0" *ngIf="pageState() === 'validation'">Vérifiez et corrigez les résultats avant de lancer la génération</p>
-        </div>
-      </div>
-      <!-- Step indicators -->
-      <div class="step-indicators mt-3">
-        <div class="step" [class.active]="pageState() === 'import'" [class.done]="pageState() !== 'import'">
-          <span class="step-num">1</span><span class="step-label">Import</span>
-        </div>
-        <div class="step-line" [class.active]="pageState() !== 'import'"></div>
-        <div class="step" [class.active]="pageState() === 'analyzing'" [class.done]="pageState() === 'validation'">
-          <span class="step-num">2</span><span class="step-label">Analyse IA</span>
-        </div>
-        <div class="step-line" [class.active]="pageState() === 'validation'"></div>
-        <div class="step" [class.active]="pageState() === 'validation'">
-          <span class="step-num">3</span><span class="step-label">Validation</span>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="scan-page">
 
   <!-- Messages -->
-  <div class="col-12" *ngIf="successMessage()">
-    <div class="alert alert-success alert-dismissible border-0 shadow-sm mb-4" role="alert"
-         style="background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%); color: #0f5132; border-radius: 10px; padding: 15px 20px;">
-      <i class="feather icon-check-circle me-2"></i> {{ successMessage() }}
-      <button type="button" class="btn-close" (click)="clearMessages()"></button>
-    </div>
+  <div class="scan-alert success" *ngIf="successMessage()">
+    <i class="feather icon-check-circle"></i>
+    <span>{{ successMessage() }}</span>
+    <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
   </div>
-  <div class="col-12" *ngIf="errorMessage()">
-    <div class="alert alert-danger alert-dismissible border-0 shadow-sm mb-4" role="alert"
-         style="background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%); color: #842029; border-radius: 10px; padding: 15px 20px;">
-      <i class="feather icon-alert-triangle me-2"></i> {{ errorMessage() }}
-      <button type="button" class="btn-close" (click)="clearMessages()"></button>
-    </div>
+  <div class="scan-alert error" *ngIf="errorMessage()">
+    <i class="feather icon-alert-triangle"></i>
+    <span>{{ errorMessage() }}</span>
+    <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- STATE 1: IMPORT                                                       -->
+  <!-- STATE 1: IMPORT (Scan Configuration Layout)                           -->
   <!-- ===================================================================== -->
-  <div class="col-12" *ngIf="pageState() === 'import'">
-    <div class="card import-card">
-      <div class="card-body p-0">
+  <div *ngIf="pageState() === 'import'" class="scan-config-wrapper">
 
-        <!-- Tab Navigation -->
-        <div class="import-tabs">
-          <button class="import-tab" [class.active]="activeTab() === 'upload'" (click)="setActiveTab('upload')">
-            <i class="feather icon-upload me-2"></i> Télécharger un fichier
+    <!-- Top Section: Two Column Layout -->
+    <div class="scan-top-row">
+
+      <!-- LEFT: Scan Configuration -->
+      <div class="scan-config-panel">
+        <div class="panel-header">
+          <i class="feather icon-cpu"></i>
+          <div>
+            <h5 class="panel-title">Configuration d'Import</h5>
+            <p class="panel-subtitle">Sélectionnez la source du document et définissez les paramètres d'analyse.</p>
+          </div>
+        </div>
+
+        <!-- Source Tabs -->
+        <div class="source-tabs">
+          <button class="source-tab" [class.active]="activeTab() === 'upload'" (click)="setActiveTab('upload')">
+            <i class="feather icon-upload"></i> Télécharger un fichier
           </button>
-          <button class="import-tab" [class.active]="activeTab() === 'editor'" (click)="setActiveTab('editor')">
-            <i class="feather icon-edit-3 me-2"></i> Saisie directe
-          </button>
-          <button class="import-tab" [class.active]="activeTab() === 'paste'" (click)="setActiveTab('paste')">
-            <i class="feather icon-clipboard me-2"></i> Copier-coller
-          </button>
-          <button class="import-tab" [class.active]="activeTab() === 'history'" (click)="setActiveTab('history')">
-            <i class="feather icon-clock me-2"></i> Historique
+          <button class="source-tab" [class.active]="activeTab() === 'editor'" (click)="setActiveTab('editor')">
+            <i class="feather icon-edit-3"></i> Saisie directe
           </button>
         </div>
 
-        <div class="tab-content-area">
-
-          <!-- FILE UPLOAD TAB -->
-          <div *ngIf="activeTab() === 'upload'" class="tab-pane-content">
-            <div class="drop-zone" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
-                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
-              <input #fileInput type="file" (change)="onFileSelected($event)"
-                     accept=".pdf,.docx,.txt" style="display: none;">
-              <div *ngIf="!selectedFile" class="drop-zone-empty">
-                <div class="drop-icon"><i class="feather icon-upload-cloud"></i></div>
-                <h5 class="mt-3 mb-2">Glissez-déposez votre fichier ici</h5>
-                <p class="text-muted mb-3">ou cliquez pour parcourir vos fichiers</p>
-                <div class="supported-formats">
-                  <span class="format-badge pdf"><i class="feather icon-file-text me-1"></i> PDF</span>
-                  <span class="format-badge docx"><i class="feather icon-file me-1"></i> DOCX</span>
-                  <span class="format-badge txt"><i class="feather icon-align-left me-1"></i> TXT</span>
-                </div>
-                <small class="text-muted d-block mt-2">Taille maximale : 10 MB</small>
-              </div>
-              <div *ngIf="selectedFile" class="selected-file-info" (click)="$event.stopPropagation()">
-                <div class="file-icon-wrapper"><i [class]="getFileIcon()"></i></div>
-                <div class="file-details">
-                  <h6 class="mb-1">{{ selectedFile.name }}</h6>
-                  <small class="text-muted">{{ getFileSize() }}</small>
-                </div>
-                <button class="btn btn-outline-danger btn-sm remove-file-btn" (click)="removeFile(); $event.stopPropagation()">
-                  <i class="feather icon-x"></i>
-                </button>
-              </div>
+        <!-- FILE UPLOAD -->
+        <div *ngIf="activeTab() === 'upload'" class="source-content">
+          <div class="drop-zone" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
+               (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
+            <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" style="display: none;">
+            <div *ngIf="!selectedFile" class="drop-zone-empty">
+              <i class="feather icon-upload-cloud"></i>
+              <p class="drop-text">Cliquez ou glissez un fichier ici</p>
+              <span class="drop-formats">FORMATS SUPPORTÉS : PDF, DOCX, TXT (MAX 10MB)</span>
             </div>
-            <div class="text-center mt-4" *ngIf="selectedFile">
-              <button class="btn btn-primary btn-lg import-btn" (click)="uploadFile()" [disabled]="isLoading()">
-                <span *ngIf="!isLoading()"><i class="feather icon-upload me-2"></i> Importer et analyser</span>
-                <span *ngIf="isLoading()"><span class="spinner-border spinner-border-sm me-2"></span> Extraction en cours...</span>
+            <div *ngIf="selectedFile" class="selected-file-info" (click)="$event.stopPropagation()">
+              <div class="file-icon"><i [class]="getFileIcon()"></i></div>
+              <div class="file-details">
+                <span class="file-name">{{ selectedFile.name }}</span>
+                <span class="file-size">{{ getFileSize() }}</span>
+              </div>
+              <button class="file-remove" (click)="removeFile(); $event.stopPropagation()">
+                <i class="feather icon-x"></i>
               </button>
             </div>
           </div>
+        </div>
 
-          <!-- EDITOR TAB -->
-          <div *ngIf="activeTab() === 'editor'" class="tab-pane-content">
-            <div class="editor-section">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Titre du module <span class="text-muted fw-normal">(optionnel)</span></label>
-                <input type="text" class="form-control form-control-lg title-input" [(ngModel)]="editorTitle" name="editorTitle"
-                       placeholder="Ex: Introduction à l'Intelligence Artificielle">
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Contenu de la fiche module</label>
-                <div class="editor-toolbar">
-                  <span class="toolbar-label"><i class="feather icon-edit-3 me-1"></i> Éditeur de texte</span>
-                </div>
-                <textarea class="form-control editor-textarea" [(ngModel)]="editorContent" name="editorContent" rows="14"
-                          placeholder="Saisissez ici le contenu de votre fiche module..."></textarea>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">{{ editorContent.length }} caractères</small>
-                <button class="btn btn-primary btn-lg import-btn" (click)="submitEditorContent()" [disabled]="isLoading() || !editorContent.trim()">
-                  <span *ngIf="!isLoading()"><i class="feather icon-cpu me-2"></i> Analyser avec l'IA</span>
-                  <span *ngIf="isLoading()"><span class="spinner-border spinner-border-sm me-2"></span> Importation...</span>
-                </button>
-              </div>
+        <!-- RAW CONTENT / EDITOR -->
+        <div *ngIf="activeTab() === 'editor'" class="source-content">
+          <div class="editor-field">
+            <label class="field-label">Titre du module <span class="optional">(optionnel)</span></label>
+            <input type="text" class="scan-input" [(ngModel)]="editorTitle" name="editorTitle"
+                   placeholder="Ex: Introduction à l'Intelligence Artificielle">
+          </div>
+          <div class="editor-field">
+            <label class="field-label">Contenu de la fiche module</label>
+            <textarea class="scan-textarea" [(ngModel)]="editorContent" name="editorContent" rows="8"
+                      placeholder="Saisissez ou collez ici le contenu de votre fiche module..."></textarea>
+            <span class="char-count">{{ editorContent.length }} caractères</span>
+          </div>
+        </div>
+
+        <!-- Analysis Parameters -->
+        <div class="params-section">
+          <div class="params-header">
+            <i class="feather icon-sliders"></i>
+            <span>PARAMÈTRES D'ANALYSE</span>
+          </div>
+          <div class="params-row">
+            <div class="param-field">
+              <label class="field-label">PRÉCISION</label>
+              <select class="scan-select" [(ngModel)]="sensitivity" name="sensitivity">
+                <option value="standard">Précision Standard</option>
+                <option value="high">Haute Précision</option>
+                <option value="deep">Analyse Profonde</option>
+              </select>
+            </div>
+            <div class="param-field">
+              <label class="field-label">FORMAT DE SORTIE</label>
+              <select class="scan-select" [(ngModel)]="outputFormat" name="outputFormat">
+                <option value="json">JSON Dataset</option>
+                <option value="structured">Structuré</option>
+                <option value="detailed">Rapport Détaillé</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          <!-- PASTE TAB -->
-          <div *ngIf="activeTab() === 'paste'" class="tab-pane-content">
-            <div class="paste-section">
-              <div class="paste-header mb-4">
-                <div class="paste-icon-wrapper"><i class="feather icon-clipboard"></i></div>
-                <div>
-                  <h5 class="mb-1">Coller depuis n'importe quelle source</h5>
-                  <p class="text-muted mb-0">Utilisez <kbd>Ctrl+V</kbd> ou <kbd>⌘+V</kbd> pour coller votre contenu</p>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Titre du module <span class="text-muted fw-normal">(optionnel)</span></label>
-                <input type="text" class="form-control form-control-lg title-input" [(ngModel)]="pasteTitle" name="pasteTitle"
-                       placeholder="Ex: Mathématiques Appliquées">
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Collez votre contenu ci-dessous</label>
-                <textarea class="form-control paste-textarea" [(ngModel)]="pasteContent" name="pasteContent" rows="12"
-                          placeholder="Collez ici le contenu de votre fiche module (Ctrl+V / ⌘+V)..."></textarea>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">{{ pasteContent.length }} caractères</small>
-                <button class="btn btn-primary btn-lg import-btn" (click)="submitPasteContent()" [disabled]="isLoading() || !pasteContent.trim()">
-                  <span *ngIf="!isLoading()"><i class="feather icon-cpu me-2"></i> Analyser avec l'IA</span>
-                  <span *ngIf="isLoading()"><span class="spinner-border spinner-border-sm me-2"></span> Importation...</span>
-                </button>
-              </div>
-            </div>
+        <!-- Execute Button -->
+        <button class="execute-btn" (click)="activeTab() === 'upload' ? uploadFile() : submitEditorContent()"
+                [disabled]="isLoading() || (activeTab() === 'upload' && !selectedFile) || (activeTab() === 'editor' && !editorContent.trim())">
+          <span *ngIf="!isLoading()"><i class="feather icon-cpu"></i> Lancer l'analyse IA</span>
+          <span *ngIf="isLoading()"><span class="spinner-border spinner-border-sm me-2"></span> Extraction en cours...</span>
+        </button>
+
+        <!-- Pro Tip -->
+        <div class="pro-tip">
+          <i class="feather icon-info"></i>
+          <div>
+            <strong>Astuce : Import multi-formats</strong>
+            <p>Vous pouvez importer des fichiers PDF, Word ou texte brut. L'IA analyse automatiquement le contenu et extrait les acquis d'apprentissage selon la taxonomie de Bloom.</p>
           </div>
+        </div>
+      </div>
 
-          <!-- HISTORY TAB -->
-          <div *ngIf="activeTab() === 'history'" class="tab-pane-content">
-            <div class="history-section">
-              <div class="history-header mb-4 d-flex justify-content-between align-items-center">
-                <div>
-                  <h5 class="mb-1">Fiches modules sauvegardées</h5>
-                  <p class="text-muted mb-0">Retrouvez ici toutes vos fiches importées et validées.</p>
-                </div>
-                <button class="btn btn-outline-secondary btn-sm" (click)="loadHistory()" [disabled]="isLoading() && historyList().length > 0">
-                  <i class="feather icon-refresh-cw me-1"></i> Actualiser
-                </button>
-              </div>
-
-              <!-- Loading spinner -->
-              <div class="text-center py-5" *ngIf="isLoading() && historyList().length === 0">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Chargement...</span>
-                </div>
-              </div>
-
-              <!-- Empty state -->
-              <div class="text-center py-5 empty-history" *ngIf="!isLoading() && historyList().length === 0">
-                <div class="empty-icon mb-3" style="font-size: 2.5rem;">📁</div>
-                <h6>Aucun historique disponible</h6>
-                <p class="text-muted">Importez et confirmez une fiche module pour commencer.</p>
-              </div>
-
-              <!-- History list -->
-              <div class="history-list" *ngIf="historyList().length > 0">
-                <div class="history-item card mb-3 border shadow-sm" *ngFor="let item of historyList()">
-                  <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div class="history-details flex-grow-1">
-                      <div class="d-flex align-items-center gap-2 mb-1">
-                        <h6 class="mb-0 fw-bold">{{ item.module_title }}</h6>
-                        <span class="badge bg-light text-dark">{{ item.learning_outcomes.length }} AA</span>
-                      </div>
-                      <p class="text-muted mb-2 summary-preview" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.875rem;">
-                        {{ item.module_summary || 'Aucun résumé généré.' }}
-                      </p>
-                      <div class="history-meta d-flex gap-3 text-muted" style="font-size: 0.775rem;">
-                        <span><i class="feather icon-calendar me-1"></i> {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
-                        <span *ngIf="item.estimated_duration"><i class="feather icon-clock me-1"></i> {{ item.estimated_duration }}</span>
-                        <span *ngIf="item.target_audience"><i class="feather icon-users me-1"></i> {{ item.target_audience }}</span>
-                      </div>
-                    </div>
-                    <div class="history-actions d-flex gap-2">
-                      <button class="btn btn-outline-primary btn-sm" (click)="loadResultFromHistory(item)">
-                        <i class="feather icon-folder-open me-1"></i> Charger
-                      </button>
-                      <button class="btn btn-outline-danger btn-sm" (click)="deleteHistory(item.id, $event)">
-                        <i class="feather icon-trash-2"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <!-- RIGHT: Results Preview -->
+      <div class="scan-results-panel">
+        <div class="results-empty" *ngIf="!analysisResult()">
+          <div class="empty-illustration">
+            <i class="feather icon-search"></i>
           </div>
+          <h5>Aucun résultat à afficher</h5>
+          <p>Téléchargez votre fichier PDF, Word ou texte et cliquez sur « Lancer l'analyse IA » pour commencer. Les résultats détaillés apparaîtront ici une fois l'analyse terminée.</p>
+          <i class="feather icon-search empty-search-icon"></i>
+        </div>
+      </div>
 
+    </div>
+
+    <!-- Bottom Section: Scan History Table -->
+    <div class="scan-history-section">
+      <div class="history-header-row">
+        <div>
+          <h4 class="history-title">Historique des Analyses</h4>
+          <p class="history-subtitle">Consultez et gérez vos précédentes analyses de fiches module.</p>
+        </div>
+        <div class="history-controls">
+          <div class="search-box">
+            <i class="feather icon-search"></i>
+            <input type="text" placeholder="Rechercher..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" name="searchQuery">
+          </div>
+          <button class="filter-btn" (click)="loadHistory()">
+            <i class="feather icon-refresh-cw"></i> Actualiser
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="scan-table-container">
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>DATE</th>
+              <th>NOM DU MODULE</th>
+              <th>ACQUIS</th>
+              <th>STATUT</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="paginatedHistoryList().length === 0 && !isLoading()">
+              <td colspan="6" class="empty-row">
+                <div class="empty-table-state">
+                  <i class="feather icon-inbox"></i>
+                  <p>Aucun historique disponible. Importez et confirmez une fiche module pour commencer.</p>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="isLoading() && historyList().length === 0">
+              <td colspan="6" class="empty-row">
+                <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                <span class="ms-2">Chargement...</span>
+              </td>
+            </tr>
+            <tr *ngFor="let item of paginatedHistoryList()" (click)="loadResultFromHistory(item)" class="clickable-row">
+              <td><span class="scan-id">SCN-{{ item.id }}</span></td>
+              <td class="timestamp">{{ item.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+              <td>
+                <div class="file-name-cell">
+                  <i class="feather icon-file-text file-dot"></i>
+                  <span class="module-title-link">{{ item.module_title }}</span>
+                </div>
+              </td>
+              <td><span class="format-tag">{{ item.learning_outcomes?.length || 0 }} AA</span></td>
+              <td><span class="status-badge completed"><i class="feather icon-check-circle"></i> Complété</span></td>
+              <td class="actions-cell" (click)="$event.stopPropagation()">
+                <button class="action-btn load" (click)="loadResultFromHistory(item); $event.stopPropagation()" title="Ouvrir le module & Générer Quiz">
+                  <i class="feather icon-eye"></i>
+                </button>
+                <button class="action-btn delete" (click)="deleteHistory(item.id, $event); $event.stopPropagation()" title="Supprimer">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="table-footer">
+        <span class="record-count">Affichage de {{ paginatedHistoryList().length }} sur {{ filteredHistoryList().length }} enregistrements</span>
+        <div class="pagination-controls">
+          <button class="page-btn" [disabled]="currentPage() <= 1" (click)="prevPage()">Précédent</button>
+          <button class="page-btn active-page" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Suivant</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- STATE 2: ANALYZING (Loading)                                          -->
+  <!-- STATE 2: ANALYZING                                                    -->
   <!-- ===================================================================== -->
-  <div class="col-12" *ngIf="pageState() === 'analyzing'">
-    <div class="card analyzing-card">
-      <div class="card-body text-center py-5">
-        <div class="analyzing-animation">
-          <div class="pulse-ring"></div>
-          <div class="pulse-ring delay-1"></div>
-          <div class="pulse-ring delay-2"></div>
-          <div class="brain-icon">🧠</div>
+  <div *ngIf="pageState() === 'analyzing'" class="scan-analyzing">
+    <div class="analyzing-card">
+      <div class="analyzing-animation">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring delay-1"></div>
+        <div class="pulse-ring delay-2"></div>
+        <div class="brain-icon">🧠</div>
+      </div>
+      <h4>Analyse de la fiche module par l'IA</h4>
+      <p class="text-muted">L'IA extrait le contenu et effectue une auto-correction pour garantir la qualité...</p>
+      <div class="analysis-steps">
+        <div class="analysis-step active">
+          <span class="spinner-border spinner-border-sm me-2"></span> Lecture et extraction des données
         </div>
-        <h4 class="mt-4 mb-2">Gemini analyse votre fiche module</h4>
-        <p class="text-muted mb-4">Extraction des acquis d'apprentissage, niveaux Bloom, concepts clés...</p>
-        <div class="analysis-steps">
-          <div class="analysis-step active">
-            <span class="spinner-border spinner-border-sm me-2"></span> Extraction des acquis d'apprentissage
-          </div>
-          <div class="analysis-step">
-            <i class="feather icon-clock me-2"></i> Détection des niveaux Bloom
-          </div>
-          <div class="analysis-step">
-            <i class="feather icon-clock me-2"></i> Identification des concepts clés
-          </div>
-          <div class="analysis-step">
-            <i class="feather icon-clock me-2"></i> Analyse des métadonnées
-          </div>
+        <div class="analysis-step active mt-2">
+          <span class="spinner-border spinner-border-sm me-2"></span> Analyse et correction automatique des acquis
         </div>
       </div>
     </div>
@@ -267,53 +244,44 @@
   <!-- STATE 3: VALIDATION                                                   -->
   <!-- ===================================================================== -->
   <ng-container *ngIf="pageState() === 'validation' && analysisResult()">
+    <div class="scan-validation">
 
-    <!-- Module Summary Card -->
-    <div class="col-12 mb-4">
-      <div class="card validation-card">
-        <div class="card-header validation-header">
-          <div class="d-flex align-items-center">
-            <div class="validation-icon me-3"><i class="feather icon-book-open"></i></div>
-            <div class="flex-grow-1">
-              <input type="text" class="form-control form-control-lg title-edit-input"
-                     [(ngModel)]="analysisResult()!.module_title" name="moduleTitle"
-                     placeholder="Titre du module">
-            </div>
-          </div>
+      <!-- Module Summary Card -->
+      <div class="validation-card">
+        <div class="validation-card-header">
+          <div class="val-icon"><i class="feather icon-book-open"></i></div>
+          <input type="text" class="title-edit-input" [(ngModel)]="analysisResult()!.module_title" name="moduleTitle" placeholder="Titre du module">
         </div>
-        <div class="card-body" *ngIf="analysisResult()!.module_summary">
-          <label class="form-label fw-bold text-muted mb-2"><i class="feather icon-align-left me-1"></i> Résumé du module</label>
+        <div class="validation-card-body" *ngIf="analysisResult()!.module_summary">
+          <label class="field-label"><i class="feather icon-align-left me-1"></i> Résumé du module</label>
           <p class="summary-text">{{ analysisResult()!.module_summary }}</p>
-          <div class="d-flex gap-3 flex-wrap mt-3">
+          <div class="info-pills">
             <div class="info-pill" *ngIf="analysisResult()!.target_audience">
-              <i class="feather icon-users me-1"></i>
+              <i class="feather icon-users"></i>
               <strong>Public cible :</strong> {{ analysisResult()!.target_audience }}
             </div>
             <div class="info-pill" *ngIf="analysisResult()!.estimated_duration">
-              <i class="feather icon-clock me-1"></i>
+              <i class="feather icon-clock"></i>
               <strong>Durée :</strong> {{ analysisResult()!.estimated_duration }}
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Learning Outcomes -->
-    <div class="col-12 mb-4">
-      <div class="card validation-card">
-        <div class="card-header">
-          <div class="d-flex justify-content-between align-items-center">
+      <!-- Learning Outcomes -->
+      <div class="validation-card">
+        <div class="validation-card-header">
+          <div class="d-flex justify-content-between align-items-center w-100">
             <h5 class="mb-0"><i class="feather icon-target me-2"></i> Acquis d'apprentissage (AA)</h5>
-            <span class="badge bg-primary rounded-pill">{{ analysisResult()!.learning_outcomes.length }} AA détectés</span>
+            <span class="count-badge">{{ analysisResult()!.learning_outcomes.length }} AA détectés</span>
           </div>
         </div>
-        <div class="card-body p-0">
+        <div class="outcomes-list">
           <div class="outcome-item" *ngFor="let outcome of analysisResult()!.learning_outcomes; let i = index">
             <div class="outcome-number">AA{{ outcome.id }}</div>
-            <div class="outcome-content flex-grow-1">
-              <textarea class="form-control outcome-textarea" [(ngModel)]="outcome.description" [name]="'outcome_' + i"
-                        rows="2"></textarea>
-              <div class="outcome-meta mt-2">
+            <div class="outcome-content">
+              <textarea class="scan-textarea outcome-textarea" [(ngModel)]="outcome.description" [name]="'outcome_' + i" rows="2"></textarea>
+              <div class="outcome-meta">
                 <div class="bloom-badge" [style.background]="getBloomInfo(outcome.bloom_level).color + '15'"
                      [style.color]="getBloomInfo(outcome.bloom_level).color"
                      [style.border-color]="getBloomInfo(outcome.bloom_level).color + '30'">
@@ -333,67 +301,196 @@
                 </span>
               </div>
             </div>
-            <button class="btn btn-sm btn-outline-danger outcome-remove" (click)="removeOutcome(i)" title="Supprimer">
+            <button class="action-btn delete" (click)="removeOutcome(i)" title="Supprimer">
               <i class="feather icon-trash-2"></i>
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Key Concepts & Keywords -->
-    <div class="col-lg-6 col-md-12 mb-4">
-      <div class="card validation-card h-100">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="feather icon-book me-2"></i> Concepts clés</h5>
+      <!-- Key Concepts & Keywords -->
+      <div class="tags-row">
+        <div class="validation-card half">
+          <div class="validation-card-header">
+            <h5 class="mb-0"><i class="feather icon-book me-2"></i> Concepts clés</h5>
+          </div>
+          <div class="validation-card-body">
+            <div class="tags-container">
+              <div class="editable-tag concept-tag" *ngFor="let concept of analysisResult()!.key_concepts; let i = index">
+                <span>{{ concept }}</span>
+                <button class="tag-remove" (click)="removeConcept(i)"><i class="feather icon-x"></i></button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="tags-container">
-            <div class="editable-tag concept-tag" *ngFor="let concept of analysisResult()!.key_concepts; let i = index">
-              <span>{{ concept }}</span>
-              <button class="tag-remove" (click)="removeConcept(i)"><i class="feather icon-x"></i></button>
+        <div class="validation-card half">
+          <div class="validation-card-header">
+            <h5 class="mb-0"><i class="feather icon-hash me-2"></i> Mots-clés</h5>
+          </div>
+          <div class="validation-card-body">
+            <div class="tags-container">
+              <div class="editable-tag keyword-tag" *ngFor="let keyword of analysisResult()!.keywords; let i = index">
+                <span>{{ keyword }}</span>
+                <button class="tag-remove" (click)="removeKeyword(i)"><i class="feather icon-x"></i></button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-lg-6 col-md-12 mb-4">
-      <div class="card validation-card h-100">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="feather icon-hash me-2"></i> Mots-clés</h5>
+      <!-- Quiz Generator -->
+      <div class="validation-card" id="quiz-generator-card" *ngIf="analysisResult()">
+        <div class="validation-card-header">
+          <h5 class="mb-0"><i class="feather icon-play me-2"></i> Générer un Jeu : Quiz chronométré</h5>
         </div>
-        <div class="card-body">
-          <div class="tags-container">
-            <div class="editable-tag keyword-tag" *ngFor="let keyword of analysisResult()!.keywords; let i = index">
-              <span>{{ keyword }}</span>
-              <button class="tag-remove" (click)="removeKeyword(i)"><i class="feather icon-x"></i></button>
+        <div class="validation-card-body">
+          <div class="quiz-params">
+            <div class="param-field">
+              <label class="field-label">Nombre de questions</label>
+              <select class="scan-select" [(ngModel)]="quizQuestionsCount" name="quizQuestionsCount">
+                <option [value]="3">3 questions</option>
+                <option [value]="5">5 questions</option>
+                <option [value]="10">10 questions</option>
+                <option [value]="15">15 questions</option>
+              </select>
+            </div>
+            <div class="param-field">
+              <label class="field-label">Durée par question</label>
+              <select class="scan-select" [(ngModel)]="quizDurationPerQuestion" name="quizDurationPerQuestion">
+                <option [value]="15">15 secondes</option>
+                <option [value]="30">30 secondes</option>
+                <option [value]="45">45 secondes</option>
+                <option [value]="60">60 secondes</option>
+              </select>
+            </div>
+            <div class="param-field">
+              <label class="field-label">Mode de jeu</label>
+              <select class="scan-select" [(ngModel)]="quizMode" name="quizMode">
+                <option value="formatif">Formatif (apprentissage)</option>
+                <option value="competitif">Compétitif (défi)</option>
+                <option value="collaboratif">Collaboratif (équipe)</option>
+              </select>
+            </div>
+            <div class="param-field">
+              <label class="field-label">Types de questions</label>
+              <div class="checkbox-group">
+                <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.qcm" name="typeQcm"> QCM</label>
+                <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.vrai_faux" name="typeVraiFaux"> Vrai / Faux</label>
+                <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.question_ouverte" name="typeOuverte"> Question ouverte</label>
+                <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.association" name="typeAssociation"> Association</label>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-secondary btn-lg" (click)="backToImport()">
-              <i class="feather icon-arrow-left me-2"></i> Nouvel import
+          <div class="text-end mt-3">
+            <button class="execute-btn inline" (click)="generateQuiz()" [disabled]="isGeneratingQuiz()">
+              <span *ngIf="!isGeneratingQuiz()"><i class="feather icon-cpu"></i> Générer le Quiz</span>
+              <span *ngIf="isGeneratingQuiz()"><span class="spinner-border spinner-border-sm me-2"></span> Génération par l'IA en cours...</span>
             </button>
-            <div class="d-flex gap-3">
-              <button class="btn btn-outline-primary btn-lg" (click)="retryAnalysis()">
-                <i class="feather icon-refresh-cw me-2"></i> Ré-analyser
-              </button>
-              <button class="btn btn-primary btn-lg confirm-btn" (click)="confirmAnalysis()">
-                <i class="feather icon-check me-2"></i> Confirmer et continuer
-              </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Loading -->
+      <div class="validation-card" *ngIf="isGeneratingQuiz()">
+        <div class="validation-card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+          <h5 class="mt-4">Ludification en cours...</h5>
+          <p class="text-muted">L'IA crée des questions sur-mesure alignées avec vos acquis d'apprentissage.</p>
+        </div>
+      </div>
+
+      <!-- Quiz Results -->
+      <div class="validation-card" id="quiz-results-container" *ngIf="generatedQuiz() && !isGeneratingQuiz()">
+        <div class="quiz-results-header">
+          <div>
+            <span class="quiz-badge">QUIZ CHRONOMÉTRÉ</span>
+            <h4>{{ generatedQuiz().titre_quiz }}</h4>
+          </div>
+          <span class="count-badge">{{ generatedQuiz().questions.length }} Questions</span>
+        </div>
+
+        <!-- Quiz Sub-tabs -->
+        <div class="quiz-tabs">
+          <button class="quiz-tab" [class.active]="quizActiveTab() === 'questions'" (click)="quizActiveTab.set('questions')">
+            <i class="feather icon-list me-1"></i> Questions
+          </button>
+          <button class="quiz-tab" [class.active]="quizActiveTab() === 'animateur'" (click)="quizActiveTab.set('animateur')">
+            <i class="feather icon-user me-1"></i> Fiche Animateur
+          </button>
+          <button class="quiz-tab" [class.active]="quizActiveTab() === 'participant'" (click)="quizActiveTab.set('participant')">
+            <i class="feather icon-users me-1"></i> Fiche Participant
+          </button>
+          <button class="quiz-tab" [class.active]="quizActiveTab() === 'debriefing'" (click)="quizActiveTab.set('debriefing')">
+            <i class="feather icon-check-square me-1"></i> Débriefing
+          </button>
+        </div>
+
+        <div class="quiz-tab-content">
+          <!-- QUESTIONS TAB -->
+          <div *ngIf="quizActiveTab() === 'questions'">
+            <div class="question-card" *ngFor="let q of generatedQuiz().questions; let i = index">
+              <div class="question-header">
+                <span class="count-badge">Question {{ i + 1 }}</span>
+                <div class="question-tags">
+                  <span class="format-tag">Bloom {{ q.niveau_bloom }}</span>
+                  <span class="format-tag info">{{ q.type | uppercase }}</span>
+                  <span class="format-tag warn"><i class="feather icon-clock me-1"></i>{{ q.duree_secondes }}s</span>
+                  <span class="format-tag primary">{{ q.aa_source }}</span>
+                </div>
+              </div>
+              <h5 class="question-text">{{ q.enonce }}</h5>
+              <div class="options-grid" *ngIf="q.options && q.options.length > 0">
+                <div class="option-item" *ngFor="let opt of q.options" [class.correct]="opt === q.bonne_reponse">
+                  <span class="correct-mark" *ngIf="opt === q.bonne_reponse">✅</span>
+                  {{ opt }}
+                </div>
+              </div>
+              <div class="answer-box">
+                <div><strong>Réponse attendue :</strong> <span class="correct-answer">{{ q.bonne_reponse }}</span></div>
+                <div class="explanation"><strong>Explication :</strong> {{ q.explication }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ANIMATEUR TAB -->
+          <div *ngIf="quizActiveTab() === 'animateur'">
+            <div class="fiche-content">{{ generatedQuiz().fiche_animateur }}</div>
+          </div>
+
+          <!-- PARTICIPANT TAB -->
+          <div *ngIf="quizActiveTab() === 'participant'">
+            <div class="fiche-content">{{ generatedQuiz().fiche_participant }}</div>
+          </div>
+
+          <!-- DEBRIEFING TAB -->
+          <div *ngIf="quizActiveTab() === 'debriefing'">
+            <h5 class="debrief-title"><i class="feather icon-award me-2"></i>Critères de débriefing final</h5>
+            <div class="debrief-list">
+              <div class="debrief-item" *ngFor="let critere of generatedQuiz().grille_debriefing.criteres; let i = index">
+                <span class="debrief-num">{{ i + 1 }}</span>
+                {{ critere }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- Action Buttons -->
+      <div class="validation-actions">
+        <button class="action-secondary" (click)="backToImport()">
+          <i class="feather icon-arrow-left me-2"></i> Nouvel import
+        </button>
+        <div class="d-flex gap-3">
+          <button class="action-secondary" (click)="retryAnalysis()">
+            <i class="feather icon-refresh-cw me-2"></i> Ré-analyser
+          </button>
+          <button class="execute-btn inline" (click)="confirmAnalysis()">
+            <i class="feather icon-check me-2"></i> Confirmer et continuer
+          </button>
+        </div>
+      </div>
+
+    </div>
   </ng-container>
+
 </div>

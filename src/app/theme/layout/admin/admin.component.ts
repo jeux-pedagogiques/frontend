@@ -27,13 +27,14 @@ export class AdminComponent {
 
   // public props
   navCollapsed!: boolean;
-  navCollapsedMob: boolean;
+  get navCollapsedMob(): boolean {
+    return this.layoutState.navCollapsedMob();
+  }
   windowWidth: number;
 
   // constructor
   constructor() {
     this.windowWidth = window.innerWidth;
-    this.navCollapsedMob = false;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -70,8 +71,6 @@ export class AdminComponent {
   }
 
   closeMenu() {
-    if (document.querySelector('app-navigation.pcoded-navbar')?.classList.contains('mob-open')) {
-      document.querySelector('app-navigation.pcoded-navbar')?.classList.remove('mob-open');
-    }
+    this.layoutState.closeNavCollapsedMob();
   }
 }

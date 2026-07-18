@@ -107,6 +107,38 @@ export const NavigationItems: NavigationItem[] = [
         url: '/live-session',
         icon: 'feather icon-video',
         classes: 'nav-item'
+      },
+      {
+        id: 'escape-room',
+        title: 'Escape Room',
+        type: 'item',
+        url: '/escape-room',
+        icon: 'feather icon-lock',
+        classes: 'nav-item'
+      },
+      {
+        id: 'prof-dashboard',
+        title: 'Tableau de Bord',
+        type: 'item',
+        url: '/prof-dashboard',
+        icon: 'feather icon-bar-chart-2',
+        classes: 'nav-item'
+      },
+      {
+        id: 'pitching-challenge',
+        title: 'Pitching Challenge',
+        type: 'item',
+        url: '/pitching-challenge',
+        icon: 'feather icon-mic',
+        classes: 'nav-item'
+      },
+      {
+        id: 'flashcards',
+        title: 'Flashcards',
+        type: 'item',
+        url: '/flashcards',
+        icon: 'feather icon-layers',
+        classes: 'nav-item'
       }
     ]
   },

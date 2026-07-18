@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -37,7 +37,7 @@ interface AnalysisResult {
   templateUrl: './import-module.component.html',
   styleUrls: ['./import-module.component.scss']
 })
-export class ImportModuleComponent {
+export class ImportModuleComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
 
@@ -45,16 +45,31 @@ export class ImportModuleComponent {
   pageState = signal<'import' | 'analyzing' | 'validation'>('import');
 
   // State signals
-  activeTab = signal<'upload' | 'editor' | 'paste' | 'history'>('upload');
+  activeTab = signal<'upload' | 'editor'>('upload');
   isLoading = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
   importResult = signal<ImportResult | null>(null);
   historyList = signal<any[]>([]);
 
+  // Search & Pagination for Scan History
+  searchQuery = signal('');
+  currentPage = signal(1);
+  pageSize = 5;
+
   // AI Analysis
   analysisResult = signal<AnalysisResult | null>(null);
   analysisError = signal('');
+
+  // Quiz states
+  loadedAnalysisId = signal<number | null>(null);
+  quizQuestionsCount = 5;
+  quizDurationPerQuestion = 30;
+  quizMode = 'formatif';
+  quizQuestionTypes = { qcm: true, vrai_faux: true, question_ouverte: false, association: false };
+  isGeneratingQuiz = signal(false);
+  generatedQuiz = signal<any | null>(null);
+  quizActiveTab = signal<'questions' | 'animateur' | 'participant' | 'debriefing'>('questions');
 
   // File upload state
   selectedFile: File | null = null;
@@ -64,9 +79,9 @@ export class ImportModuleComponent {
   editorContent = '';
   editorTitle = '';
 
-  // Paste content
-  pasteContent = '';
-  pasteTitle = '';
+  // Analysis Parameters
+  sensitivity = 'standard';
+  outputFormat = 'json';
 
   private apiUrl = `${environment.apiUrl}/api/modules`;
 
@@ -80,17 +95,52 @@ export class ImportModuleComponent {
     'creer': { label: 'Créer', color: '#8b5cf6', icon: '🎨' }
   };
 
-  setActiveTab(tab: 'upload' | 'editor' | 'paste' | 'history'): void {
+  ngOnInit(): void {
+    this.loadHistory();
+  }
+
+  setActiveTab(tab: 'upload' | 'editor'): void {
     this.activeTab.set(tab);
     this.clearMessages();
-    if (tab === 'history') {
-      this.loadHistory();
-    }
   }
 
   clearMessages(): void {
     this.successMessage.set('');
     this.errorMessage.set('');
+  }
+
+  // Filtered & Paginated History helpers
+  filteredHistoryList(): any[] {
+    const query = this.searchQuery().toLowerCase().trim();
+    const list = this.historyList();
+    if (!query) return list;
+    return list.filter(item => 
+      item.module_title?.toLowerCase().includes(query) ||
+      item.id?.toString().includes(query) ||
+      (item.module_summary && item.module_summary.toLowerCase().includes(query))
+    );
+  }
+
+  paginatedHistoryList(): any[] {
+    const list = this.filteredHistoryList();
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return list.slice(start, start + this.pageSize);
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.filteredHistoryList().length / this.pageSize);
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage() > 1) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
   }
 
   // ========== FILE UPLOAD ==========
@@ -226,35 +276,7 @@ export class ImportModuleComponent {
     });
   }
 
-  // ========== PASTE INPUT ==========
 
-  submitPasteContent(): void {
-    if (!this.pasteContent.trim()) {
-      this.errorMessage.set('Veuillez coller du contenu.');
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.clearMessages();
-
-    const payload = { content: this.pasteContent, title: this.pasteTitle || null };
-
-    this.http.post<ImportResult>(`${this.apiUrl}/import/text`, payload).subscribe({
-      next: (result) => {
-        setTimeout(() => {
-          this.importResult.set(result);
-          this.isLoading.set(false);
-          this.cd.detectChanges();
-          this.startAnalysis(result.content, result.title);
-        });
-      },
-      error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Erreur lors de l\'importation du contenu collé.');
-        this.isLoading.set(false);
-        this.cd.detectChanges();
-      }
-    });
-  }
 
   // ========== AI ANALYSIS ==========
 
@@ -373,6 +395,8 @@ export class ImportModuleComponent {
   }
 
   loadResultFromHistory(item: any): void {
+    this.loadedAnalysisId.set(item.id);
+    this.generatedQuiz.set(item.quiz_data || null);
     this.importResult.set({
       title: item.module_title,
       content: item.original_content || '',
@@ -390,7 +414,9 @@ export class ImportModuleComponent {
       module_summary: item.module_summary
     });
     this.pageState.set('validation');
+    this.clearMessages();
     this.cd.detectChanges();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   confirmAnalysis(): void {
@@ -413,11 +439,17 @@ export class ImportModuleComponent {
       module_summary: result.module_summary
     };
 
-    this.http.post(`${this.apiUrl}/history`, payload).subscribe({
-      next: () => {
+    this.http.post<any>(`${this.apiUrl}/history`, payload).subscribe({
+      next: (savedEntry: any) => {
         this.isLoading.set(false);
-        this.successMessage.set('Analyse confirmée et sauvegardée dans l\'historique ! Prêt pour la génération du jeu.');
+        this.loadedAnalysisId.set(savedEntry.id);
+        this.successMessage.set('Analyse confirmée et sauvegardée dans l\'historique ! Vous pouvez maintenant générer votre quiz ci-dessous.');
+        this.loadHistory();
         this.cd.detectChanges();
+        setTimeout(() => {
+          const el = document.getElementById('quiz-generator-card');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -427,15 +459,105 @@ export class ImportModuleComponent {
     });
   }
 
+  async generateQuiz(): Promise<void> {
+    let id = this.loadedAnalysisId();
+    if (!id && this.analysisResult()) {
+      try {
+        id = await this.autoSaveAnalysis();
+      } catch (e) {
+        return;
+      }
+    }
+
+    if (!id) {
+      this.errorMessage.set("Veuillez d'abord enregistrer ou charger une fiche module.");
+      return;
+    }
+
+    this.isGeneratingQuiz.set(true);
+    this.generatedQuiz.set(null);
+    this.clearMessages();
+
+    const types: string[] = [];
+    if (this.quizQuestionTypes.qcm) types.push('qcm');
+    if (this.quizQuestionTypes.vrai_faux) types.push('vrai_faux');
+    if (this.quizQuestionTypes.question_ouverte) types.push('question_ouverte');
+    if (this.quizQuestionTypes.association) types.push('association');
+
+    if (types.length === 0) {
+      this.errorMessage.set("Veuillez sélectionner au moins un type de question.");
+      this.isGeneratingQuiz.set(false);
+      return;
+    }
+
+    const payload = {
+      nb_questions: this.quizQuestionsCount,
+      duree_par_question: this.quizDurationPerQuestion,
+      mode: this.quizMode,
+      question_types: types,
+      force: true
+    };
+
+    this.http.post<any>(`${this.apiUrl}/history/${id}/quiz`, payload).subscribe({
+      next: (quiz) => {
+        this.generatedQuiz.set(quiz);
+        this.isGeneratingQuiz.set(false);
+        this.successMessage.set("Quiz généré avec succès !");
+        this.cd.detectChanges();
+        setTimeout(() => {
+          const el = document.getElementById('quiz-results-container');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || "Erreur lors de la génération du quiz.");
+        this.isGeneratingQuiz.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  private autoSaveAnalysis(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const result = this.analysisResult();
+      const importRes = this.importResult();
+      if (!result) return reject('No analysis result');
+
+      const payload = {
+        module_title: result.module_title,
+        original_content: importRes?.content || '',
+        learning_outcomes: result.learning_outcomes,
+        key_concepts: result.key_concepts,
+        keywords: result.keywords,
+        central_notions: result.central_notions,
+        estimated_duration: result.estimated_duration,
+        target_audience: result.target_audience,
+        module_summary: result.module_summary
+      };
+
+      this.http.post<any>(`${this.apiUrl}/history`, payload).subscribe({
+        next: (saved: any) => {
+          this.loadedAnalysisId.set(saved.id);
+          this.loadHistory();
+          resolve(saved.id);
+        },
+        error: (err) => {
+          this.errorMessage.set(err.error?.detail || 'Erreur lors de la sauvegarde de l\'analyse.');
+          reject(err);
+        }
+      });
+    });
+  }
+
   backToImport(): void {
     this.pageState.set('import');
     this.importResult.set(null);
     this.analysisResult.set(null);
+    this.loadedAnalysisId.set(null);
+    this.generatedQuiz.set(null);
     this.selectedFile = null;
     this.editorContent = '';
     this.editorTitle = '';
-    this.pasteContent = '';
-    this.pasteTitle = '';
     this.clearMessages();
   }
 }

@@ -1,0 +1,259 @@
+<div class="pitching-page">
+
+  <!-- Error -->
+  <div class="pc-alert error" *ngIf="errorMessage()">
+    <i class="feather icon-alert-triangle"></i>
+    <span>{{ errorMessage() }}</span>
+    <button class="alert-close" (click)="errorMessage.set('')"><i class="feather icon-x"></i></button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading() && pageState() === 'generating'" class="generating-state">
+    <div class="spinner-large"></div>
+    <p>Generation du pitching challenge en cours...</p>
+    <span class="generating-sub">L'IA prepare les sujets, criteres et grilles de feedback</span>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- SELECT MODULE                                                       -->
+  <!-- ================================================================== -->
+  <div *ngIf="pageState() === 'select'" class="select-section">
+
+    <div class="section-header">
+      <div class="header-icon">
+        <i class="feather icon-mic"></i>
+      </div>
+      <div>
+        <h1>Pitching Challenge</h1>
+        <p class="subtitle">Generez un sujet de pitch et des grilles d'evaluation a partir de vos acquis d'apprentissage.</p>
+      </div>
+    </div>
+
+    <!-- Selected module + params -->
+    <div class="gen-panel" *ngIf="selectedAnalysis()">
+      <div class="gen-panel-header">
+        <div class="gen-panel-info">
+          <h3>{{ selectedAnalysis()!.module_title }}</h3>
+          <span class="aa-count">{{ selectedAnalysis()!.learning_outcomes.length }} AA</span>
+        </div>
+        <button class="btn-change" (click)="selectedAnalysis.set(null)">
+          <i class="feather icon-x"></i> Changer
+        </button>
+      </div>
+
+      <div class="gen-params">
+        <div class="param-group">
+          <label>Nombre d'equipes</label>
+          <input type="number" [(ngModel)]="nbEquipes" min="2" max="12" class="param-input">
+        </div>
+        <div class="param-group">
+          <label>Preparation (min)</label>
+          <input type="number" [(ngModel)]="dureePreparation" min="5" max="30" class="param-input">
+        </div>
+        <div class="param-group">
+          <label>Pitch (min)</label>
+          <input type="number" [(ngModel)]="dureePitch" min="1" max="10" class="param-input">
+        </div>
+        <div class="param-group">
+          <label>Feedback (min)</label>
+          <input type="number" [(ngModel)]="dureeFeedback" min="2" max="15" class="param-input">
+        </div>
+      </div>
+
+      <button class="btn-generate" (click)="generateChallenge()" [disabled]="isLoading()">
+        <i class="feather icon-zap"></i> Generer le Challenge
+      </button>
+    </div>
+
+    <!-- Module list -->
+    <div class="module-grid" *ngIf="!selectedAnalysis()">
+      <div *ngFor="let a of analyses()" class="module-card" (click)="selectAnalysis(a)">
+        <div class="module-card-header">
+          <div class="module-icon">
+            <i class="feather icon-mic"></i>
+          </div>
+          <button class="btn-eye" (click)="openOverlay(a); $event.stopPropagation()">
+            <i class="feather icon-eye"></i>
+          </button>
+        </div>
+        <h4 class="module-title">{{ a.module_title }}</h4>
+        <div class="module-meta">
+          <span>{{ a.learning_outcomes.length }} AA</span>
+          <span>{{ a.key_concepts.length }} concepts</span>
+        </div>
+        <div class="bloom-tags">
+          <span *ngFor="let lo of a.learning_outcomes.slice(0, 4)" class="bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
+            {{ getBloomLabel(lo.bloom_level) }}
+          </span>
+          <span *ngIf="a.learning_outcomes.length > 4" class="bloom-tag more">+{{ a.learning_outcomes.length - 4 }}</span>
+        </div>
+      </div>
+      <div *ngIf="analyses().length === 0 && !isLoading()" class="empty-state">
+        <i class="feather icon-inbox"></i>
+        <p>Aucun module analyse. Importez une fiche module d'abord.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- RESULT                                                              -->
+  <!-- ================================================================== -->
+  <div *ngIf="pageState() === 'result' && pitchingResult()" class="result-section">
+
+    <div class="section-header">
+      <div class="header-icon">
+        <i class="feather icon-mic"></i>
+      </div>
+      <div>
+        <h1>{{ pitchingResult()!.titre_challenge }}</h1>
+        <p class="subtitle">{{ moduleTitle() }}</p>
+      </div>
+      <button class="btn-back" (click)="backToSelect()">
+        <i class="feather icon-arrow-left"></i> Retour
+      </button>
+    </div>
+
+    <!-- AA Cibles -->
+    <div class="aa-strip">
+      <span class="aa-strip-label">AA cibles :</span>
+      <span *ngFor="let aa of pitchingResult()!.aa_cibles" class="aa-pill">{{ aa }}</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="result-tabs">
+      <button [class.active]="activeTab() === 'sujet'" (click)="activeTab.set('sujet')">
+        <i class="feather icon-lightbulb"></i> Sujet
+      </button>
+      <button [class.active]="activeTab() === 'criteres'" (click)="activeTab.set('criteres')">
+        <i class="feather icon-star"></i> Criteres
+      </button>
+      <button [class.active]="activeTab() === 'feedback'" (click)="activeTab.set('feedback')">
+        <i class="feather icon-message-circle"></i> Feedback
+      </button>
+      <button [class.active]="activeTab() === 'debriefing'" (click)="activeTab.set('debriefing')">
+        <i class="feather icon-help-circle"></i> Debriefing
+      </button>
+      <button [class.active]="activeTab() === 'fiches'" (click)="activeTab.set('fiches')">
+        <i class="feather icon-file-text"></i> Fiches
+      </button>
+    </div>
+
+    <!-- Tab: Sujet -->
+    <div *ngIf="activeTab() === 'sujet'" class="tab-content">
+      <div class="sujet-card">
+        <h3>Sujet principal</h3>
+        <p class="sujet-text">{{ pitchingResult()!.sujet_principal }}</p>
+      </div>
+
+      <div *ngIf="pitchingResult()!.sujets_par_equipe && pitchingResult()!.sujets_par_equipe!.length > 0" class="sujets-equipe-section">
+        <h3>Sujets par equipe</h3>
+        <div class="sujets-grid">
+          <div *ngFor="let sujet of pitchingResult()!.sujets_par_equipe; let i = index" class="sujet-equipe-card">
+            <span class="equipe-num">Equipe {{ i + 1 }}</span>
+            <p>{{ sujet }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Criteres -->
+    <div *ngIf="activeTab() === 'criteres'" class="tab-content">
+      <div class="criteres-grid">
+        <div *ngFor="let c of pitchingResult()!.criteres_vote" class="critere-card">
+          <div class="critere-icon"><i class="feather icon-check"></i></div>
+          <div class="critere-body">
+            <h4>{{ c.critere }}</h4>
+            <p>{{ c.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Feedback -->
+    <div *ngIf="activeTab() === 'feedback'" class="tab-content">
+      <div class="feedback-grid">
+        <div class="feedback-block positive">
+          <h4><i class="feather icon-thumbs-up"></i> Points positifs</h4>
+          <p>{{ pitchingResult()!.grille_feedback.points_positifs }}</p>
+        </div>
+        <div class="feedback-block improve">
+          <h4><i class="feather icon-alert-circle"></i> Axes d'amelioration</h4>
+          <p>{{ pitchingResult()!.grille_feedback.axes_amelioration }}</p>
+        </div>
+        <div class="feedback-block note">
+          <h4><i class="feather icon-award"></i> Note de synthese</h4>
+          <p>{{ pitchingResult()!.grille_feedback.note_synthese }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Debriefing -->
+    <div *ngIf="activeTab() === 'debriefing'" class="tab-content">
+      <div class="debriefing-list">
+        <div *ngFor="let q of pitchingResult()!.questions_debriefing; let i = index" class="debriefing-item">
+          <span class="debrief-num">{{ i + 1 }}</span>
+          <p>{{ q }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Fiches -->
+    <div *ngIf="activeTab() === 'fiches'" class="tab-content">
+      <div class="fiches-grid">
+        <div class="fiche-card">
+          <h4><i class="feather icon-user"></i> Fiche Animateur</h4>
+          <div class="fiche-content">{{ pitchingResult()!.fiche_animateur }}</div>
+        </div>
+        <div class="fiche-card">
+          <h4><i class="feather icon-users"></i> Fiche Participant</h4>
+          <div class="fiche-content">{{ pitchingResult()!.fiche_participant }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- ANALYSIS OVERLAY                                                    -->
+  <!-- ================================================================== -->
+  <div class="overlay-backdrop" *ngIf="viewingAnalysis()" (click)="closeOverlay()">
+    <div class="overlay-panel" (click)="$event.stopPropagation()">
+      <div class="overlay-header">
+        <h2>{{ viewingAnalysis()!.module_title }}</h2>
+        <button class="btn-close" (click)="closeOverlay()"><i class="feather icon-x"></i></button>
+      </div>
+
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <h4>Acquis d'apprentissage</h4>
+          <div *ngFor="let lo of viewingAnalysis()!.learning_outcomes" class="lo-row">
+            <span class="bloom-badge" [style.background]="getBloomColor(lo.bloom_level)">
+              {{ getBloomLabel(lo.bloom_level) }}
+            </span>
+            <span class="lo-desc">AA{{ lo.id }}: {{ lo.description }}</span>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h4>Concepts cles</h4>
+          <div class="tag-list">
+            <span *ngFor="let c of viewingAnalysis()!.key_concepts" class="concept-tag">{{ c }}</span>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h4>Mots-cles</h4>
+          <div class="tag-list">
+            <span *ngFor="let k of viewingAnalysis()!.keywords" class="keyword-tag">{{ k }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay-footer">
+        <button class="btn-use" (click)="useAnalysisFromOverlay()">
+          <i class="feather icon-check"></i> Utiliser cette fiche
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

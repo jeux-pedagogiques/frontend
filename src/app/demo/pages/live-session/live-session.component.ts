@@ -8,6 +8,7 @@ import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { AuthService } from 'src/app/theme/shared/service/auth.service';
 import { SrcObjectDirective } from './src-object.directive';
 import { environment } from 'src/environments/environment';
+import { io, Socket } from 'socket.io-client';
 
 interface PeerDetail {
   id: string;
@@ -16,6 +17,7 @@ interface PeerDetail {
   isHandRaised?: boolean;
   isCameraOn?: boolean;
   isMicOn?: boolean;
+  isProf?: boolean;
 }
 
 @Component({
@@ -57,12 +59,20 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       isHandRaised?: boolean;
       isCameraOn?: boolean;
       isMicOn?: boolean;
+      isProf?: boolean;
     }
   >();
   peerList = signal<PeerDetail[]>([]);
 
   // Unique client ID for signaling
-  clientId = 'user_' + Math.random().toString(36).substring(2, 9);
+  clientId = (() => {
+    let id = sessionStorage.getItem('live_session_client_id');
+    if (!id) {
+      id = 'user_' + Math.random().toString(36).substring(2, 9);
+      sessionStorage.setItem('live_session_client_id', id);
+    }
+    return id;
+  })();
   private ws: WebSocket | null = null;
 
   // RTC configuration with public STUN servers
@@ -115,6 +125,34 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   private confirmCallback: (() => void) | null = null;
   private warningTimeout: any = null;
 
+  // Quiz & Game Session properties
+  private socket: Socket | null = null;
+  socketSessionId: number | null = null;
+  showQuizPanel = signal(false);
+  quizActiveTab = signal<'questions' | 'leaderboard' | 'debriefing'>('questions');
+  modulesList = signal<any[]>([]);
+  selectedModuleId: number | null = null;
+  currentQuiz: any = null;
+  quizState = signal<'inactive' | 'waiting' | 'active_question' | 'leaderboard' | 'ended'>('inactive');
+  quizParticipants = signal<any[]>([]);
+  activeQuestion = signal<any | null>(null);
+  quizTimer = signal<number>(0);
+  quizTimerInterval: any = null;
+  selectedAnswer = signal<string | null>(null);
+  hasSubmittedAnswer = signal(false);
+  answerResult = signal<any | null>(null);
+  quizLeaderboard = signal<any[]>([]);
+  quizDebriefing = signal<string[]>([]);
+  quizAnimateur = signal<string>('');
+  quizParticipantRules = signal<string>('');
+  quizTitle = signal<string>('');
+  activeQuestionIndex = signal<number>(0);
+  isGeneratingQuiz = signal(false);
+
+  pendingAnswerResult = signal<any | null>(null);
+  private autoProgressionTimeout1: any = null;
+  private autoProgressionTimeout2: any = null;
+
   constructor() {
     const user = this.authService.getCurrentUser();
     if (user) {
@@ -153,33 +191,52 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     // Check if joining via a shared link (?room=xxx)
     this.route.queryParams.subscribe(params => {
       const roomFromUrl = params['room'];
-      if (roomFromUrl && this.sessionState() === 'lobby') {
-        this.roomId.set(roomFromUrl);
-        // Check if user is logged in
-        if (this.authService.isLoggedIn()) {
-          this.joinSession(roomFromUrl);
-        } else {
-          // Show display name prompt for guests
-          this.showGuestNamePrompt.set(true);
+      const savedSession = localStorage.getItem('active_live_session');
+      let activeRoomId = '';
+      if (savedSession) {
+        activeRoomId = JSON.parse(savedSession).roomId;
+      }
+
+      if (roomFromUrl) {
+        // If the URL room is different from the saved session, clear/override the saved session
+        if (roomFromUrl !== activeRoomId) {
+          localStorage.removeItem('active_live_session');
+          this.cleanupSession();
+          this.sessionState.set('lobby');
         }
-        return;
+
+        this.roomId.set(roomFromUrl);
+        if (this.sessionState() === 'lobby') {
+          // Check if user is logged in
+          if (this.authService.isLoggedIn()) {
+            this.joinSession(roomFromUrl);
+          } else {
+            // Show display name prompt for guests, unless they are refreshing/reconnecting the same session
+            if (this.displayName && this.displayName.trim() && roomFromUrl === activeRoomId) {
+              this.showGuestNamePrompt.set(false);
+              this.joinSession(roomFromUrl);
+            } else {
+              this.showGuestNamePrompt.set(true);
+            }
+          }
+        }
+      } else {
+        // No room in URL, try to restore saved session
+        if (savedSession) {
+          const session = JSON.parse(savedSession);
+          this.roomId.set(session.roomId);
+          this.sessionName = session.name;
+          this.shareLink.set(this.buildShareLink(session.roomId));
+          
+          // Auto-start restored session media & signaling
+          this.initializeWebRTCSession();
+        }
       }
     });
 
-    // Restore session if active
-    const savedSession = localStorage.getItem('active_live_session');
-    if (savedSession) {
-      const session = JSON.parse(savedSession);
-      this.roomId.set(session.roomId);
-      this.sessionName = session.name;
-      this.shareLink.set(this.buildShareLink(session.roomId));
-      
-      // Auto-start restored session media & signaling
-      this.initializeWebRTCSession();
-    }
-
     if (this.authService.isLoggedIn()) {
       this.loadScheduledMeetings();
+      this.loadModulesList();
     }
   }
 
@@ -365,8 +422,9 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         // Send introduction packet
         this.sendSignalingMessage('introduce', null, { 
           displayName: this.displayName || 'Invité',
-          isCameraOn: this.enableVideo,
-          isMicOn: this.enableAudio
+          isCameraOn: this.enableVideo || this.isScreenSharing,
+          isMicOn: this.enableAudio,
+          isProf: this.isProf()
         });
       };
 
@@ -516,8 +574,9 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
               screenShareRestricted: this.screenShareRestricted,
               cameraRestricted: this.cameraRestricted,
               micRestricted: this.micRestricted,
-              isCameraOn: this.enableVideo,
-              isMicOn: this.enableAudio
+              isCameraOn: this.enableVideo || this.isScreenSharing,
+              isMicOn: this.enableAudio,
+              isProf: this.isProf()
             });
             // Initiator setup (smaller ID initiates to resolve glare)
             if (this.clientId < senderId) {
@@ -534,6 +593,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
                 peer.isHandRaised = payload.isHandRaised || false;
                 peer.isCameraOn = payload.isCameraOn !== false;
                 peer.isMicOn = payload.isMicOn !== false;
+                peer.isProf = payload.isProf || false;
                 this.updatePeerListSignal();
               } else {
                 // Pre-register peer entry with a MediaStream to show in list immediately
@@ -543,7 +603,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
                   displayName: payload.displayName,
                   isHandRaised: payload.isHandRaised || false,
                   isCameraOn: payload.isCameraOn !== false,
-                  isMicOn: payload.isMicOn !== false
+                  isMicOn: payload.isMicOn !== false,
+                  isProf: payload.isProf || false
                 });
                 this.updatePeerListSignal();
               }
@@ -625,6 +686,9 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         console.log('Signaling WebSocket closed.');
       };
 
+      // 3. Connect to Socket.io Quiz Server
+      this.initializeSocketIoConnection();
+
     } catch (err) {
       console.error('Failed to acquire media devices or connect to websocket:', err);
       this.cleanupSession();
@@ -688,8 +752,6 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   }
 
   private async handleOfferMessage(peerId: string, sdpOffer: RTCSessionDescriptionInit): Promise<void> {
-    const peerConnection = new RTCPeerConnection(this.rtcConfig);
-
     // Reuse existing stream if pre-registered to keep video element bindings intact
     const existing = this.peers.get(peerId);
     const peerStream = existing && existing.stream ? existing.stream : new MediaStream();
@@ -697,6 +759,31 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     const isHandRaised = existing ? existing.isHandRaised : false;
     const isCameraOn = existing ? existing.isCameraOn : true;
     const isMicOn = existing ? existing.isMicOn : true;
+
+    // Reuse existing connection for renegotiation, create new one only if needed
+    let peerConnection: RTCPeerConnection;
+    if (existing && existing.connection && existing.connection.signalingState !== 'closed') {
+      peerConnection = existing.connection;
+    } else {
+      peerConnection = new RTCPeerConnection(this.rtcConfig);
+
+      // Add local tracks only for new connections
+      this.addLocalTracksToConnection(peerConnection);
+
+      // Receive remote tracks
+      peerConnection.ontrack = (event) => {
+        if (!peerStream.getTracks().includes(event.track)) {
+          peerStream.addTrack(event.track);
+        }
+        this.updatePeerListSignal();
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.sendSignalingMessage('ice-candidate', peerId, event.candidate);
+        }
+      };
+    }
 
     this.peers.set(peerId, {
       connection: peerConnection,
@@ -706,23 +793,6 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       isCameraOn,
       isMicOn
     });
-
-    // Add local tracks
-    this.addLocalTracksToConnection(peerConnection);
-
-    // Receive remote tracks
-    peerConnection.ontrack = (event) => {
-      if (!peerStream.getTracks().includes(event.track)) {
-        peerStream.addTrack(event.track);
-      }
-      this.updatePeerListSignal();
-    };
-
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.sendSignalingMessage('ice-candidate', peerId, event.candidate);
-      }
-    };
 
     // Set remote offer & generate answer
     await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpOffer));
@@ -751,21 +821,44 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     }
   }
 
+  private createDummyVideoTrack(): MediaStreamTrack {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    const stream = (canvas as any).captureStream ? (canvas as any).captureStream(1) : null;
+    if (stream && stream.getVideoTracks().length > 0) {
+      const track = stream.getVideoTracks()[0];
+      track.enabled = false;
+      return track;
+    }
+    return null as any;
+  }
+
   private addLocalTracksToConnection(peerConnection: RTCPeerConnection): void {
-    if (!this.localStream) return;
+    const audioTrack = this.localStream ? this.localStream.getAudioTracks()[0] : null;
+    const cameraVideoTrack = this.localStream ? this.localStream.getVideoTracks()[0] : null;
 
-    const audioTrack = this.localStream.getAudioTracks()[0];
-    const cameraVideoTrack = this.localStream.getVideoTracks()[0];
-
-    const videoTrack = this.isScreenSharing && this.screenStream
+    let videoTrack = this.isScreenSharing && this.screenStream
       ? this.screenStream.getVideoTracks()[0]
       : cameraVideoTrack;
 
+    if (!videoTrack) {
+      videoTrack = this.createDummyVideoTrack();
+    }
+
+    // Always use a placeholder stream for addTrack if localStream is null
+    const refStream = this.localStream || new MediaStream();
+
     if (audioTrack) {
-      peerConnection.addTrack(audioTrack, this.localStream);
+      peerConnection.addTrack(audioTrack, refStream);
     }
     if (videoTrack) {
-      peerConnection.addTrack(videoTrack, this.localStream);
+      peerConnection.addTrack(videoTrack, refStream);
     }
   }
 
@@ -789,7 +882,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         stream: val.stream,
         isHandRaised: val.isHandRaised,
         isCameraOn: val.isCameraOn,
-        isMicOn: val.isMicOn
+        isMicOn: val.isMicOn,
+        isProf: val.isProf
       });
     });
     this.peerList.set(list);
@@ -803,37 +897,161 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   }
 
   broadcastMediaState(): void {
-    this.sendSignalingMessage('track-toggle', null, { video: this.enableVideo, audio: this.enableAudio });
+    this.sendSignalingMessage('track-toggle', null, { 
+      video: this.enableVideo || this.isScreenSharing, 
+      audio: this.enableAudio 
+    });
   }
 
-  toggleMic(): void {
+  async toggleMic(): Promise<void> {
     if (this.micRestricted && !this.enableAudio && !this.isProf()) {
       this.mediaWarning.set("Le microphone a été bloqué par l'organisateur.");
       this.cd.detectChanges();
       return;
     }
-    this.enableAudio = !this.enableAudio;
-    if (this.localStream) {
-      this.localStream.getAudioTracks().forEach(track => {
-        track.enabled = this.enableAudio;
-      });
+    
+    const targetState = !this.enableAudio;
+    
+    if (targetState) {
+      let audioTrack = this.localStream ? this.localStream.getAudioTracks()[0] : null;
+      
+      if (!audioTrack || audioTrack.readyState === 'ended') {
+        try {
+          const userMedia = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const newTrack = userMedia.getAudioTracks()[0];
+          
+          if (!this.localStream) {
+            this.localStream = new MediaStream();
+          }
+          
+          this.localStream.getAudioTracks().forEach(t => this.localStream!.removeTrack(t));
+          this.localStream.addTrack(newTrack);
+          audioTrack = newTrack;
+        } catch (err) {
+          console.error("Failed to acquire microphone:", err);
+          this.mediaWarning.set("Impossible d'accéder au microphone. Veuillez vérifier les permissions.");
+          this.cd.detectChanges();
+          return;
+        }
+      }
+      
+      if (audioTrack) {
+        audioTrack.enabled = true;
+        
+        // Replace the audio track on all peer connections so remote peers hear the mic
+        for (const [peerId, peer] of this.peers.entries()) {
+          if (peer.connection) {
+            const senders = peer.connection.getSenders();
+            let audioSender = senders.find(s => s.track && s.track.kind === 'audio');
+            if (!audioSender) {
+              audioSender = senders.find(s => !s.track);
+            }
+            if (audioSender) {
+              await audioSender.replaceTrack(audioTrack);
+            } else {
+              // No audio sender exists — add the track and renegotiate
+              peer.connection.addTrack(audioTrack, this.localStream!);
+              try {
+                const offer = await peer.connection.createOffer();
+                await peer.connection.setLocalDescription(offer);
+                this.sendSignalingMessage('offer', peerId, offer);
+              } catch (e) {
+                console.error('Renegotiation failed after adding audio track:', e);
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (this.localStream) {
+        this.localStream.getAudioTracks().forEach(track => {
+          track.enabled = false;
+        });
+      }
     }
+    
+    this.enableAudio = targetState;
     this.broadcastMediaState();
+    this.cd.detectChanges();
   }
 
-  toggleVideo(): void {
+  async toggleVideo(): Promise<void> {
     if (this.cameraRestricted && !this.enableVideo && !this.isProf()) {
       this.mediaWarning.set("La caméra a été bloquée par l'organisateur.");
       this.cd.detectChanges();
       return;
     }
-    this.enableVideo = !this.enableVideo;
-    if (this.localStream) {
-      this.localStream.getVideoTracks().forEach(track => {
-        track.enabled = this.enableVideo;
-      });
+    
+    const targetState = !this.enableVideo;
+    
+    if (targetState) {
+      let cameraTrack = this.localStream ? this.localStream.getVideoTracks()[0] : null;
+      
+      if (!cameraTrack || cameraTrack.readyState === 'ended') {
+        try {
+          const userMedia = await navigator.mediaDevices.getUserMedia({ video: true });
+          const newTrack = userMedia.getVideoTracks()[0];
+          
+          if (!this.localStream) {
+            this.localStream = new MediaStream();
+          }
+          
+          this.localStream.getVideoTracks().forEach(t => this.localStream!.removeTrack(t));
+          this.localStream.addTrack(newTrack);
+          cameraTrack = newTrack;
+          
+          const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;
+          if (localVideoElement) {
+            localVideoElement.srcObject = this.localStream;
+          }
+        } catch (err) {
+          console.error("Failed to acquire camera:", err);
+          this.mediaWarning.set("Impossible d'accéder à la caméra. Veuillez vérifier les permissions.");
+          this.cd.detectChanges();
+          return;
+        }
+      }
+      
+      if (cameraTrack) {
+        cameraTrack.enabled = true;
+        
+        // Replace the video track on all peer connections so remote peers see the camera
+        for (const [peerId, peer] of this.peers.entries()) {
+          if (peer.connection) {
+            const senders = peer.connection.getSenders();
+            let videoSender = senders.find(s => s.track && s.track.kind === 'video');
+            if (!videoSender) {
+              // Also check for senders with no track (dummy placeholder)
+              videoSender = senders.find(s => !s.track);
+            }
+            if (videoSender) {
+              await videoSender.replaceTrack(cameraTrack);
+            } else {
+              // No video sender exists at all — add the track and renegotiate
+              // so the remote peer learns about the new video track
+              peer.connection.addTrack(cameraTrack, this.localStream!);
+              try {
+                const offer = await peer.connection.createOffer();
+                await peer.connection.setLocalDescription(offer);
+                this.sendSignalingMessage('offer', peerId, offer);
+              } catch (e) {
+                console.error('Renegotiation failed after adding video track:', e);
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (this.localStream) {
+        this.localStream.getVideoTracks().forEach(track => {
+          track.enabled = false;
+        });
+      }
     }
+    
+    this.enableVideo = targetState;
     this.broadcastMediaState();
+    this.cd.detectChanges();
   }
 
   async toggleScreenShare(): Promise<void> {
@@ -871,9 +1089,16 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       this.peers.forEach(peer => {
         if (peer.connection) {
           const senders = peer.connection.getSenders();
-          const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+          // Find video sender: check track kind, or fall back to sender without a track
+          let videoSender = senders.find(s => s.track && s.track.kind === 'video');
+          if (!videoSender) {
+            videoSender = senders.find(s => !s.track);
+          }
           if (videoSender) {
             videoSender.replaceTrack(screenTrack);
+          } else {
+            // No sender at all — add the track directly
+            peer.connection.addTrack(screenTrack);
           }
         }
       });
@@ -914,7 +1139,10 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     this.peers.forEach(peer => {
       if (peer.connection) {
         const senders = peer.connection.getSenders();
-        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+        let videoSender = senders.find(s => s.track && s.track.kind === 'video');
+        if (!videoSender) {
+          videoSender = senders.find(s => !s.track);
+        }
         if (videoSender) {
           videoSender.replaceTrack(cameraTrack);
         }
@@ -971,6 +1199,13 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       this.ws.close();
       this.ws = null;
     }
+
+    // Close Socket.io connection
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+    this.resetQuizStateCompletely();
   }
 
   endSession(): void {
@@ -1293,5 +1528,321 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     this.showConfirmModal = false;
     this.confirmCallback = null;
     this.cd.detectChanges();
+  }
+
+  // ==========================================
+  // REAL-TIME QUIZ GAMEPLAY METHODS
+  // ==========================================
+
+  toggleQuizPanel(): void {
+    this.showQuizPanel.set(!this.showQuizPanel());
+    this.cd.detectChanges();
+  }
+
+  loadModulesList(): void {
+    this.http.get<any[]>(`${environment.apiUrl}/api/modules/history`).subscribe({
+      next: (list) => {
+        this.modulesList.set(list);
+        this.cd.detectChanges();
+      },
+      error: (err) => console.error('Failed to load modules:', err)
+    });
+  }
+
+  private initializeSocketIoConnection(): void {
+    this.resetQuizStateCompletely();
+    const currentUser = this.authService.getCurrentUser();
+    const isProf = currentUser?.role === 'prof';
+
+    this.socket = io(environment.apiUrl, {
+      path: '/socket.io',
+      transports: ['websocket']
+    });
+
+    this.socket.on('connect', () => {
+      console.log('Socket.io connected:', this.socket?.id);
+      
+      if (isProf) {
+        this.socket?.emit('session:create', {
+          prof_id: currentUser.id,
+          module_id: this.selectedModuleId,
+          mode: 'competitif',
+          code_session: this.roomId()
+        }, (res: any) => {
+          if (res.status === 'success') {
+            this.socketSessionId = res.session_id;
+            console.log('Quiz session registered on socket.io:', res);
+          }
+        });
+      } else {
+        const pseudo = this.displayName || 'Étudiant_' + Math.floor(Math.random() * 100);
+        this.socket?.emit('session:join', {
+          code_session: this.roomId(),
+          pseudo: pseudo
+        }, (res: any) => {
+          if (res.status === 'success') {
+            console.log('Joined quiz session successfully:', res);
+          } else {
+            console.error('Failed to join quiz session:', res.message);
+          }
+        });
+      }
+    });
+
+    this.socket.on('session:participants_list', (list: any[]) => {
+      this.quizParticipants.set(list);
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('session:module_updated', (data: any) => {
+      this.selectedModuleId = data.module_id;
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('quiz:launched', (data: any) => {
+      this.quizState.set('waiting');
+      this.showQuizPanel.set(true);
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('quiz:question', (data: any) => {
+      if (this.quizTimerInterval) clearInterval(this.quizTimerInterval);
+
+      this.quizState.set('active_question');
+      this.showQuizPanel.set(true);
+
+      // Fallback to Vrai/Faux for True/False questions or empty options
+      let opts = data.options;
+      if (!opts || opts.length === 0 || data.type === 'vrai_faux') {
+        opts = ['Vrai', 'Faux'];
+      }
+
+      this.activeQuestion.set({
+        ...data,
+        options: opts
+      });
+      this.selectedAnswer.set(null);
+      this.hasSubmittedAnswer.set(false);
+      this.answerResult.set(null);
+      this.pendingAnswerResult.set(null);
+      this.quizTimer.set(data.duree_secondes);
+
+      this.quizTimerInterval = setInterval(() => {
+        const current = this.quizTimer();
+        if (current > 0) {
+          this.quizTimer.set(current - 1);
+        } else {
+          clearInterval(this.quizTimerInterval);
+          if (this.isProf()) {
+            this.onProfessorTimerEnd();
+          } else {
+            this.onStudentTimerEnd();
+          }
+        }
+        this.cd.detectChanges();
+      }, 1000);
+
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('quiz:answer_result', (data: any) => {
+      this.pendingAnswerResult.set(data);
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('participant:score_updated', (data: any) => {
+      const current = this.quizParticipants();
+      const updated = current.map(p => {
+        if (p.id === data.participant_id) {
+          return { ...p, score_total: data.score_total };
+        }
+        return p;
+      });
+      updated.sort((a, b) => b.score_total - a.score_total);
+      this.quizParticipants.set(updated);
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('quiz:leaderboard', (data: any[]) => {
+      this.quizLeaderboard.set(data);
+      this.quizState.set('leaderboard');
+      this.cd.detectChanges();
+    });
+
+    this.socket.on('session:ended', (data: any) => {
+      this.quizState.set('ended');
+      this.cleanupQuizState();
+      this.cd.detectChanges();
+    });
+  }
+
+  private cleanupQuizState(): void {
+    if (this.quizTimerInterval) clearInterval(this.quizTimerInterval);
+    this.quizTimerInterval = null;
+    this.activeQuestion.set(null);
+    this.selectedAnswer.set(null);
+    this.hasSubmittedAnswer.set(false);
+    this.answerResult.set(null);
+    this.pendingAnswerResult.set(null);
+    this.clearAutoProgressionTimeouts();
+  }
+
+  resetQuizStateCompletely(): void {
+    this.cleanupQuizState();
+    this.quizState.set('inactive');
+    this.showQuizPanel.set(false);
+    this.quizParticipants.set([]);
+    this.quizLeaderboard.set([]);
+    this.quizDebriefing.set([]);
+    this.quizAnimateur.set('');
+    this.quizParticipantRules.set('');
+    this.quizTitle.set('');
+    this.activeQuestionIndex.set(0);
+    this.isGeneratingQuiz.set(false);
+  }
+
+  clearAutoProgressionTimeouts(): void {
+    if (this.autoProgressionTimeout1) clearTimeout(this.autoProgressionTimeout1);
+    if (this.autoProgressionTimeout2) clearTimeout(this.autoProgressionTimeout2);
+    this.autoProgressionTimeout1 = null;
+    this.autoProgressionTimeout2 = null;
+  }
+
+  onStudentTimerEnd(): void {
+    // If they didn't submit an answer, submit a blank one
+    if (!this.hasSubmittedAnswer()) {
+      this.hasSubmittedAnswer.set(true);
+      this.socket?.emit('quiz:submit_answer', {
+        question_id: this.activeQuestion()?.question_id,
+        reponse: ''
+      });
+    }
+
+    // Reveal result immediately (don't wait!)
+    if (this.pendingAnswerResult()) {
+      this.answerResult.set(this.pendingAnswerResult());
+    } else {
+      this.answerResult.set({
+        est_correcte: false,
+        points_obtenus: 0,
+        temps_reponse_ms: 0
+      });
+    }
+    this.cd.detectChanges();
+  }
+
+  onProfessorTimerEnd(): void {
+    this.clearAutoProgressionTimeouts();
+
+    // Wait 3 seconds for late answers/grading to complete, then go straight to next question
+    this.autoProgressionTimeout1 = setTimeout(() => {
+      this.sendNextQuestionToRoom();
+    }, 3000);
+  }
+
+  launchQuizForSelectedModule(): void {
+    if (!this.selectedModuleId) return;
+
+    this.isGeneratingQuiz.set(true);
+    this.cd.detectChanges();
+
+    const payload = {
+      nb_questions: 5,
+      duree_par_question: 30,
+      mode: 'competitif',
+      question_types: ['qcm', 'vrai_faux'],
+      force: false
+    };
+
+    this.http.post<any>(`${environment.apiUrl}/api/modules/history/${this.selectedModuleId}/quiz`, payload).subscribe({
+      next: (quiz) => {
+        this.currentQuiz = quiz;
+        this.quizTitle.set(quiz.titre_quiz);
+        this.quizDebriefing.set(quiz.grille_debriefing.criteres);
+        this.quizAnimateur.set(quiz.fiche_animateur);
+        this.quizParticipantRules.set(quiz.fiche_participant);
+        this.activeQuestionIndex.set(0);
+        this.isGeneratingQuiz.set(false);
+
+        if (this.socketSessionId) {
+          this.socket?.emit('quiz:launch', {
+            session_id: this.socketSessionId,
+            quiz_id: this.selectedModuleId
+          }, (res: any) => {
+            if (res.status === 'success') {
+              this.sendNextQuestionToRoom();
+            }
+          });
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Quiz launch failed:', err);
+        this.isGeneratingQuiz.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  sendNextQuestionToRoom(): void {
+    this.clearAutoProgressionTimeouts();
+    if (!this.currentQuiz || !this.socketSessionId) return;
+
+    const questions = this.currentQuiz.questions;
+    const index = this.activeQuestionIndex();
+
+    if (index >= questions.length) {
+      this.quizState.set('ended');
+      this.http.post(`${environment.apiUrl}/api/quiz-sessions/${this.socketSessionId}/end`, {}).subscribe();
+      this.cd.detectChanges();
+      return;
+    }
+
+    const q = questions[index];
+    this.socket?.emit('quiz:next_question', {
+      session_id: this.socketSessionId,
+      question_id: q.id,
+      enonce: q.enonce,
+      options: q.options || [],
+      bonne_reponse: q.bonne_reponse,
+      duree_secondes: q.duree_secondes || 30,
+      type: q.type || 'qcm'
+    }, (res: any) => {
+      if (res.status !== 'success') {
+        console.error('Failed to emit next question:', res.message);
+      }
+    });
+
+    this.activeQuestionIndex.set(index + 1);
+    this.cd.detectChanges();
+  }
+
+  showLeaderboardInRoom(): void {
+    this.clearAutoProgressionTimeouts();
+    if (!this.socketSessionId) return;
+    this.socket?.emit('quiz:show_leaderboard', {
+      session_id: this.socketSessionId
+    });
+  }
+
+  submitAnswer(option: string): void {
+    if (this.hasSubmittedAnswer()) return;
+
+    this.selectedAnswer.set(option);
+    this.hasSubmittedAnswer.set(true);
+
+    const activeQ = this.activeQuestion();
+    if (!activeQ) return;
+
+    this.socket?.emit('quiz:submit_answer', {
+      question_id: activeQ.question_id,
+      reponse: option
+    });
+    this.cd.detectChanges();
+  }
+
+  getSelfScore(): number {
+    const me = this.quizParticipants().find(p => p.pseudo === this.displayName);
+    return me ? me.score_total : 0;
   }
 }

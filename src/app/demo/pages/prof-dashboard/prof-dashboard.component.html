@@ -1,0 +1,430 @@
+<div class="prof-dashboard">
+
+  <!-- Error -->
+  <div class="dash-alert error" *ngIf="errorMessage()">
+    <i class="feather icon-alert-triangle"></i>
+    <span>{{ errorMessage() }}</span>
+    <button (click)="errorMessage.set('')"><i class="feather icon-x"></i></button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="pageState() === 'loading'" class="loading-state">
+    <div class="spinner-large"></div>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- OVERVIEW                                                           -->
+  <!-- ================================================================= -->
+  <div *ngIf="pageState() === 'overview' && overview()" class="overview-section">
+
+    <div class="dash-header">
+      <div>
+        <h1>Tableau de Bord</h1>
+        <p class="subtitle">Vue d'ensemble de vos sessions et jeux pédagogiques.</p>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue"><i class="feather icon-video"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ overview()!.total_sessions }}</span>
+          <span class="kpi-label">Sessions live</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><i class="feather icon-package"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ overview()!.total_games_generated }}</span>
+          <span class="kpi-label">Jeux générés</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i class="feather icon-users"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ overview()!.avg_participation }}</span>
+          <span class="kpi-label">Participation moy.</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon amber"><i class="feather icon-check-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ overview()!.aa_success_rates.length }}</span>
+          <span class="kpi-label">AA suivis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="charts-row">
+      <div class="chart-card half">
+        <h3>Répartition par type de jeu</h3>
+        <div *ngIf="gameTypeChart">
+          <apx-chart
+            [series]="gameTypeChart.series!"
+            [chart]="gameTypeChart.chart!"
+            [labels]="gameTypeChart.labels!"
+            [colors]="gameTypeChart.colors!"
+            [legend]="gameTypeChart.legend!"
+            [dataLabels]="gameTypeChart.dataLabels!"
+            [plotOptions]="gameTypeChart.plotOptions!">
+          </apx-chart>
+        </div>
+      </div>
+      <div class="chart-card half">
+        <h3>Distribution Bloom</h3>
+        <div *ngIf="bloomChart">
+          <apx-chart
+            [series]="bloomChart.series!"
+            [chart]="bloomChart.chart!"
+            [xaxis]="bloomChart.xaxis!"
+            [colors]="bloomChart.colors!"
+            [plotOptions]="bloomChart.plotOptions!"
+            [dataLabels]="bloomChart.dataLabels!"
+            [grid]="bloomChart.grid!">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="charts-row">
+      <div class="chart-card half">
+        <h3>Participants par session</h3>
+        <div *ngIf="participationChart">
+          <apx-chart
+            [series]="participationChart.series!"
+            [chart]="participationChart.chart!"
+            [xaxis]="participationChart.xaxis!"
+            [colors]="participationChart.colors!"
+            [plotOptions]="participationChart.plotOptions!"
+            [dataLabels]="participationChart.dataLabels!"
+            [grid]="participationChart.grid!">
+          </apx-chart>
+        </div>
+      </div>
+      <div class="chart-card half">
+        <h3>Taux de réussite par AA</h3>
+        <div *ngIf="aaSuccessChart">
+          <apx-chart
+            [series]="aaSuccessChart.series!"
+            [chart]="aaSuccessChart.chart!"
+            [xaxis]="aaSuccessChart.xaxis!"
+            [colors]="aaSuccessChart.colors!"
+            [plotOptions]="aaSuccessChart.plotOptions!"
+            [dataLabels]="aaSuccessChart.dataLabels!"
+            [grid]="aaSuccessChart.grid!">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sessions Table -->
+    <div class="table-card">
+      <h3>Sessions récentes</h3>
+      <div class="table-wrapper">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Type</th>
+              <th>Statut</th>
+              <th>Participants</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of overview()!.participation_by_session">
+              <td>
+                <span class="session-code">{{ s.code_session || s.titre || '—' }}</span>
+              </td>
+              <td>
+                <span class="type-badge" [class.quiz]="!s.type" [class.pitching]="s.type === 'pitching'">
+                  {{ s.type === 'pitching' ? 'Pitching' : 'Quiz' }}
+                </span>
+              </td>
+              <td>
+                <span class="statut-badge" [style.color]="getStatutColor(s.statut)">
+                  {{ getStatutLabel(s.statut) }}
+                </span>
+              </td>
+              <td>{{ s.participant_count }}</td>
+              <td>{{ s.created_at ? formatDate(s.created_at) : '—' }}</td>
+              <td>
+                <button class="btn-detail" (click)="loadSessionDetail(s.session_id, s.type || 'quiz')">
+                  <i class="feather icon-eye"></i> Détail
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="overview()!.participation_by_session.length === 0">
+              <td colspan="6" class="empty-row">Aucune session enregistrée.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- SESSION DETAIL                                                     -->
+  <!-- ================================================================= -->
+  <div *ngIf="pageState() === 'detail' && sessionDetail()" class="detail-section">
+
+    <div class="dash-header">
+      <div>
+        <button class="btn-back" (click)="backToOverview()">
+          <i class="feather icon-arrow-left"></i> Retour
+        </button>
+      </div>
+      <div>
+        <h1>{{ sessionDetail()!.module_title || sessionDetail()!.titre || sessionDetail()!.code_session || 'Session' }}</h1>
+        <p class="subtitle">
+          {{ sessionDetail()!.type === 'quiz' ? 'Quiz' : 'Pitching' }}
+          <span *ngIf="sessionDetail()!.code_session"> — {{ sessionDetail()!.code_session }}</span>
+          <span class="statut-inline" [style.color]="getStatutColor(sessionDetail()!.statut)">
+            {{ getStatutLabel(sessionDetail()!.statut) }}
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Session KPIs -->
+    <div class="kpi-grid" *ngIf="sessionDetail()!.type === 'quiz'">
+      <div class="kpi-card">
+        <div class="kpi-icon blue"><i class="feather icon-users"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.total_participants || 0 }}</span>
+          <span class="kpi-label">Participants</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i class="feather icon-check-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.aa_results?.length || 0 }}</span>
+          <span class="kpi-label">AA couverts</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon red"><i class="feather icon-alert-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.hardest_questions?.length || 0 }}</span>
+          <span class="kpi-label">Questions difficiles</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-grid" *ngIf="sessionDetail()!.type === 'pitching'">
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><i class="feather icon-users"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.teams?.length || 0 }}</span>
+          <span class="kpi-label">Équipes</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon amber"><i class="feather icon-star"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.total_votes || 0 }}</span>
+          <span class="kpi-label">Votes</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i class="feather icon-message-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ sessionDetail()!.total_feedbacks || 0 }}</span>
+          <span class="kpi-label">Feedbacks</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Tabs -->
+    <div class="detail-tabs" *ngIf="sessionDetail()!.type === 'quiz'">
+      <button [class.active]="detailTab() === 'aa'" (click)="detailTab.set('aa')">
+        <i class="feather icon-target"></i> Par AA
+      </button>
+      <button [class.active]="detailTab() === 'hardest'" (click)="detailTab.set('hardest')">
+        <i class="feather icon-alert-triangle"></i> Plus difficiles
+      </button>
+      <button [class.active]="detailTab() === 'participants'" (click)="detailTab.set('participants')">
+        <i class="feather icon-users"></i> Participants
+      </button>
+      <button [class.active]="detailTab() === 'comparison'" (click)="detailTab.set('comparison')">
+        <i class="feather icon-bar-chart-2"></i> Évolution
+      </button>
+    </div>
+
+    <div class="detail-tabs" *ngIf="sessionDetail()!.type === 'pitching'">
+      <button [class.active]="detailTab() === 'aa'" (click)="detailTab.set('aa')">
+        <i class="feather icon-star"></i> Classement
+      </button>
+      <button [class.active]="detailTab() === 'feedbacks'" (click)="detailTab.set('feedbacks')">
+        <i class="feather icon-message-circle"></i> Feedbacks
+      </button>
+    </div>
+
+    <!-- Tab: AA Results (Quiz) -->
+    <div *ngIf="detailTab() === 'aa' && sessionDetail()!.type === 'quiz'" class="tab-content">
+      <div class="aa-grid">
+        <div *ngFor="let aa of sessionDetail()!.aa_results" class="aa-card">
+          <div class="aa-header">
+            <span class="aa-name">{{ aa.aa_source }}</span>
+            <span class="aa-rate" [style.color]="getSuccessColor(aa.success_rate)">{{ aa.success_rate }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="aa.success_rate + '%'" [style.background]="getSuccessColor(aa.success_rate)"></div>
+          </div>
+          <div class="aa-meta">
+            <span>{{ aa.correct_count }}/{{ aa.total_attempts }} correct</span>
+          </div>
+        </div>
+        <div *ngIf="!sessionDetail()!.aa_results || sessionDetail()!.aa_results!.length === 0" class="empty-tab">
+          Aucun résultat par AA disponible.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Hardest Questions (Quiz) -->
+    <div *ngIf="detailTab() === 'hardest' && sessionDetail()!.type === 'quiz'" class="tab-content">
+      <div class="hardest-list">
+        <div *ngFor="let q of sessionDetail()!.hardest_questions; let i = index" class="hardest-item">
+          <span class="rank">{{ i + 1 }}</span>
+          <div class="hardest-info">
+            <span class="qid">{{ q.question_id }}</span>
+            <span class="q-aa">{{ q.aa_source }}</span>
+          </div>
+          <div class="hardest-stats">
+            <span class="error-rate" [style.color]="getSuccessColor(100 - q.error_rate)">{{ q.error_rate }}% erreurs</span>
+            <span class="attempts">{{ q.total_attempts }} tentatives</span>
+          </div>
+        </div>
+        <div *ngIf="!sessionDetail()!.hardest_questions || sessionDetail()!.hardest_questions!.length === 0" class="empty-tab">
+          Pas assez de données pour identifier les questions difficiles.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Participants (Quiz) -->
+    <div *ngIf="detailTab() === 'participants' && sessionDetail()!.type === 'quiz'" class="tab-content">
+      <div class="participants-list">
+        <div *ngFor="let p of sessionDetail()!.participants" class="participant-item">
+          <div class="participant-avatar">{{ p.pseudo.charAt(0).toUpperCase() }}</div>
+          <div class="participant-info">
+            <span class="participant-name">{{ p.pseudo }}</span>
+            <span class="participant-meta">{{ p.attempts_count }} réponses</span>
+          </div>
+          <span class="participant-score">{{ p.score_total }} pts</span>
+        </div>
+        <div *ngIf="!sessionDetail()!.participants || sessionDetail()!.participants!.length === 0" class="empty-tab">
+          Aucun participant dans cette session.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Comparison (Quiz) -->
+    <div *ngIf="detailTab() === 'comparison' && sessionDetail()!.type === 'quiz'" class="tab-content">
+      <div *ngIf="comparisonData()" class="comparison-section">
+        <div class="comparison-chart-wrapper" *ngIf="comparisonChart">
+          <h4>Évolution du taux de réussite — {{ comparisonData()!.module_title }}</h4>
+          <apx-chart
+            [series]="comparisonChart.series!"
+            [chart]="comparisonChart.chart!"
+            [xaxis]="comparisonChart.xaxis!"
+            [colors]="comparisonChart.colors!"
+            [stroke]="comparisonChart.stroke!"
+            [markers]="comparisonChart.markers!"
+            [dataLabels]="comparisonChart.dataLabels!"
+            [grid]="comparisonChart.grid!"
+            [yaxis]="comparisonChart.yaxis!">
+          </apx-chart>
+        </div>
+        <div class="comparison-table">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Participants</th>
+                <th>Taux réussite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of comparisonData()!.history"
+                  [class.current]="h.session_id === comparisonData()!.current_session_id">
+                <td>{{ h.code_session }}</td>
+                <td>{{ formatDate(h.created_at) }}</td>
+                <td>{{ h.participant_count }}</td>
+                <td>
+                  <span class="rate-badge" [style.color]="getSuccessColor(h.overall_success_rate)">
+                    {{ h.overall_success_rate }}%
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div *ngIf="!comparisonData()" class="empty-tab">
+        Pas de module associé pour la comparaison.
+      </div>
+    </div>
+
+    <!-- Tab: Pitching Teams -->
+    <div *ngIf="detailTab() === 'aa' && sessionDetail()!.type === 'pitching'" class="tab-content">
+      <div class="pitching-teams">
+        <div *ngFor="let t of sessionDetail()!.teams; let i = index" class="team-card">
+          <div class="team-rank" [class.top3]="i < 3">{{ i + 1 }}</div>
+          <div class="team-info">
+            <span class="team-name">{{ t.nom }}</span>
+            <span class="team-author" *ngIf="t.auteur_username">{{ t.auteur_username }}</span>
+          </div>
+          <div class="team-scores">
+            <div class="score-item">
+              <span class="score-label">Votes</span>
+              <span class="score-value">{{ t.vote_count }}</span>
+            </div>
+            <div class="score-item">
+              <span class="score-label">Moy.</span>
+              <span class="score-value" [style.color]="getSuccessColor(t.avg_score * 20)">{{ t.avg_score }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Criteria averages -->
+      <div *ngIf="getCriteriaEntries().length > 0" class="criteria-section">
+        <h4>Moyennes par critère</h4>
+        <div class="criteria-grid">
+          <div *ngFor="let item of getCriteriaEntries()" class="criteria-bar">
+            <span class="criteria-name">{{ item.key }}</span>
+            <div class="criteria-track">
+              <div class="criteria-fill" [style.width]="(item.value / 5 * 100) + '%'"></div>
+            </div>
+            <span class="criteria-value">{{ item.value }}/5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Feedbacks (Pitching) -->
+    <div *ngIf="detailTab() === 'feedbacks' && sessionDetail()!.type === 'pitching'" class="tab-content">
+      <div class="feedbacks-list">
+        <div *ngFor="let f of sessionDetail()!.feedbacks" class="feedback-card">
+          <div class="feedback-header">
+            <span class="feedback-author">{{ f.author }}</span>
+            <span class="feedback-sentiment" [style.color]="getSentimentColor(f.sentiment)">
+              {{ f.sentiment || 'neutre' }}
+            </span>
+          </div>
+          <p class="feedback-text">{{ f.texte }}</p>
+          <span class="feedback-date">{{ formatDate(f.created_at) }}</span>
+        </div>
+        <div *ngIf="!sessionDetail()!.feedbacks || sessionDetail()!.feedbacks!.length === 0" class="empty-tab">
+          Aucun feedback pour cette session.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

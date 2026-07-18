@@ -74,6 +74,26 @@ const routes: Routes = [
       {
         path: 'live-session',
         loadComponent: () => import('./demo/pages/live-session/live-session.component').then((c) => c.LiveSessionComponent)
+      },
+      {
+        path: 'escape-room',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/escape-room/escape-room.component').then((c) => c.EscapeRoomComponent)
+      },
+      {
+        path: 'prof-dashboard',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/prof-dashboard/prof-dashboard.component').then((c) => c.ProfDashboardComponent)
+      },
+      {
+        path: 'pitching-challenge',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/pitching-challenge/pitching-challenge.component').then((c) => c.PitchingChallengeComponent)
+      },
+      {
+        path: 'flashcards',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/flashcards/flashcards.component').then((c) => c.FlashcardsComponent)
       }
     ]
   }

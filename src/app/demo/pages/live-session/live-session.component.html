@@ -311,11 +311,11 @@
     </div>
 
     <!-- Video Stream grid layout -->
-    <div [class]="showChatPanel() ? 'col-lg-9 col-md-8 col-12 mb-4' : 'col-12 mb-4'">
+    <div [class]="(showChatPanel() && showQuizPanel()) ? 'col-lg-5 col-md-5 col-12 mb-4' : (showChatPanel() ? 'col-lg-9 col-md-8 col-12 mb-4' : (showQuizPanel() ? 'col-lg-8 col-md-8 col-12 mb-4' : 'col-12 mb-4'))">
       <div class="video-grid-container" [class.single-peer]="peerList().length === 0">
         
         <!-- Local User Video stream -->
-        <div class="video-card-wrapper local-stream-card">
+        <div class="video-card-wrapper local-stream-card" [style.order]="isProf() ? 2 : 1">
           <div class="video-card">
             <video id="localVideo" autoplay [muted]="true" playsinline></video>
             <div class="stream-info">
@@ -337,10 +337,10 @@
         </div>
 
         <!-- Remote Participants Video Streams -->
-        <div class="video-card-wrapper remote-stream-card" *ngFor="let peer of peerList()">
+        <div class="video-card-wrapper remote-stream-card" *ngFor="let peer of peerList()" [style.order]="peer.isProf ? 2 : 1">
           <div class="video-card">
             <!-- Bind stream dynamically -->
-            <video [appSrcObject]="peer.stream" autoplay playsinline [style.display]="peer.isCameraOn !== false ? 'block' : 'none'"></video>
+            <video [appSrcObject]="peer.stream" autoplay playsinline></video>
             <div class="stream-info">
               <span class="user-name">{{ peer.displayName }}</span>
             </div>
@@ -406,6 +406,197 @@
       </div>
     </div>
 
+    <!-- Quiz / Game Panel -->
+    <div class="col-lg-4 col-md-4 col-12 mb-4" *ngIf="showQuizPanel()">
+      <div class="card quiz-panel-card border-0 d-flex flex-column h-100 shadow-sm" style="min-height: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 16px; color: #333; border: 1px solid rgba(0,0,0,0.05);">
+        <div class="card-header d-flex align-items-center justify-content-between py-3 px-3" style="border-bottom: 1px solid rgba(0, 0, 0, 0.08); background: transparent;">
+          <h6 class="mb-0 fw-bold text-dark"><i class="feather icon-award me-2 text-success"></i>Quiz en direct</h6>
+          <button type="button" class="btn-close" (click)="toggleQuizPanel()"></button>
+        </div>
+
+        <div class="card-body d-flex flex-column flex-grow-1 overflow-y-auto p-3" style="max-height: 450px;">
+          <!-- PROFESSOR CONTROLS VIEW -->
+          <ng-container *ngIf="isProf()">
+            <!-- Selection State -->
+            <div class="text-center" *ngIf="quizState() === 'inactive'">
+              <h5 class="fw-bold mb-3 text-dark">Lancer une activité</h5>
+              <p class="text-muted small">Choisissez un module pour charger les acquis d'apprentissage et lancer le quiz.</p>
+              
+              <div class="mb-4 text-start">
+                <label class="form-label text-muted small fw-bold">Sélectionner un module</label>
+                <select class="form-select bg-white text-dark border-secondary" [(ngModel)]="selectedModuleId" name="selectedModuleId">
+                  <option [value]="null">-- Passer (Skip) --</option>
+                  <option *ngFor="let item of modulesList()" [value]="item.id">
+                    {{ item.module_title }} {{ item.quiz_data ? '🎮 (Quiz existant)' : '✨ (À générer)' }}
+                  </option>
+                </select>
+              </div>
+
+              <button class="btn btn-success w-100 py-2 fw-bold text-white" [disabled]="!selectedModuleId || isGeneratingQuiz()" (click)="launchQuizForSelectedModule()">
+                <span *ngIf="!isGeneratingQuiz()"><i class="feather icon-zap me-1"></i> Lancer le Quiz</span>
+                <span *ngIf="isGeneratingQuiz()"><span class="spinner-border spinner-border-sm me-1"></span>Génération...</span>
+              </button>
+            </div>
+
+            <!-- Quiz Running: Question State -->
+            <div *ngIf="quizState() === 'active_question' && activeQuestion()">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-secondary">Question {{ activeQuestionIndex() }}</span>
+                <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ quizTimer() }}s</span>
+              </div>
+              <h5 class="fw-bold mb-4 text-dark">{{ activeQuestion().enonce }}</h5>
+
+              <div class="d-flex flex-column gap-2 mb-4">
+                <div class="p-3 border rounded bg-light text-dark-50" style="border-color: rgba(0,0,0,0.08) !important;" *ngFor="let opt of activeQuestion().options">
+                  {{ opt }}
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-info flex-grow-1 py-2 fw-bold text-white" (click)="showLeaderboardInRoom()">
+                  <i class="feather icon-bar-chart-2 me-1"></i> Classement
+                </button>
+                <button class="btn btn-success flex-grow-1 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()">
+                  Suivant <i class="feather icon-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quiz Running: Leaderboard State -->
+            <div *ngIf="quizState() === 'leaderboard'">
+              <h5 class="fw-bold text-center mb-4 text-dark"><i class="feather icon-award text-warning me-2"></i>Classement en direct</h5>
+              
+              <div class="leaderboard-list d-flex flex-column gap-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light border" 
+                     *ngFor="let p of quizParticipants(); let idx = index" 
+                     [style.border-left]="idx === 0 ? '4px solid #eab308' : (idx === 1 ? '4px solid #cbd5e1' : (idx === 2 ? '4px solid #cd7f32' : ''))">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold text-dark" style="width: 20px;">#{{ idx + 1 }}</span>
+                    <span class="text-dark">{{ p.pseudo }}</span>
+                  </div>
+                  <span class="badge bg-primary px-3">{{ p.score_total }} pts</span>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="quizParticipants().length === 0">
+                  Aucun étudiant connecté pour le moment.
+                </div>
+              </div>
+
+              <button class="btn btn-success w-100 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()">
+                Question suivante <i class="feather icon-arrow-right ms-1"></i>
+              </button>
+            </div>
+
+            <!-- Quiz Ended -->
+            <div class="text-center p-3" *ngIf="quizState() === 'ended'">
+              <div class="restricted-icon-wrapper mb-3 bg-success bg-opacity-20 text-success shadow-xs" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center; height: 100%;">
+                <i class="feather icon-check" style="font-size: 32px;"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-2">Quiz Terminé !</h4>
+              <p class="text-muted mb-4">La session de jeu est terminée. Tous les scores ont été validés.</p>
+
+              <h5 class="fw-bold mb-3 text-dark"><i class="feather icon-award text-warning me-2"></i>Podium Final</h5>
+              <div class="leaderboard-list d-flex flex-column gap-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light border" *ngFor="let p of quizParticipants() | slice:0:3; let idx = index">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold text-dark">#{{ idx + 1 }}</span>
+                    <span class="text-dark">{{ p.pseudo }}</span>
+                  </div>
+                  <span class="badge bg-success px-3">{{ p.score_total }} pts</span>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-secondary w-100 py-2" (click)="resetQuizStateCompletely()">
+                <i class="feather icon-refresh-cw me-1"></i> Nouvelle activité
+              </button>
+            </div>
+          </ng-container>
+
+          <!-- STUDENT / PARTICIPANT PLAY VIEW -->
+          <ng-container *ngIf="!isProf()">
+            <!-- Inactive State -->
+            <div class="text-center p-4" *ngIf="quizState() === 'inactive'">
+              <div class="restricted-icon-wrapper mb-3 bg-light text-muted border" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <i class="feather icon-clock" style="font-size: 28px;"></i>
+              </div>
+              <h5 class="text-dark">Aucune activité en cours</h5>
+              <p class="text-muted small">Le professeur n'a pas encore lancé de quiz pour cette séance.</p>
+            </div>
+
+            <!-- Waiting State -->
+            <div class="text-center p-4" *ngIf="quizState() === 'waiting'">
+              <div class="spinner-border text-success mb-3" role="status"></div>
+              <h5 class="text-dark">Préparez-vous !</h5>
+              <p class="text-muted small">Le quiz va démarrer d'un instant à l'autre...</p>
+            </div>
+
+            <!-- Active Question Gameplay -->
+            <div *ngIf="quizState() === 'active_question' && activeQuestion()">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-secondary">Chrono</span>
+                <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ quizTimer() }}s</span>
+              </div>
+              <h5 class="fw-bold mb-4 text-dark">{{ activeQuestion().enonce }}</h5>
+
+              <!-- Clickable Options -->
+              <div class="d-flex flex-column gap-2 mb-4" *ngIf="!hasSubmittedAnswer()">
+                <button class="btn btn-outline-dark text-start py-3 px-3 fw-medium" 
+                        *ngFor="let opt of activeQuestion().options" 
+                        (click)="submitAnswer(opt)">
+                  {{ opt }}
+                </button>
+              </div>
+
+              <!-- Locked state after submission -->
+              <div class="p-4 border rounded bg-light text-center" *ngIf="hasSubmittedAnswer() && !answerResult()">
+                <div class="spinner-grow text-primary mb-3" role="status"></div>
+                <h6 class="text-dark mb-1">Réponse envoyée !</h6>
+                <p class="text-muted small mb-0">Votre réponse : <strong>{{ selectedAnswer() }}</strong></p>
+                <p class="text-muted small mt-2">En attente de la fin du chrono...</p>
+              </div>
+
+              <!-- Answer Results -->
+              <div class="p-4 border rounded text-center" 
+                   *ngIf="answerResult()" 
+                   [style.background-color]="answerResult().est_correcte ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'"
+                   [style.border-color]="answerResult().est_correcte ? '#22c55e' : '#ef4444'">
+                <div class="mb-3" style="font-size: 32px;">{{ answerResult().est_correcte ? '🎉' : '❌' }}</div>
+                <h4 class="fw-bold mb-2" [class.text-success]="answerResult().est_correcte" [class.text-danger]="!answerResult().est_correcte">
+                  {{ answerResult().est_correcte ? 'Bonne réponse !' : 'Mauvaise réponse !' }}
+                </h4>
+                <p class="text-dark mb-2">Points gagnés : <strong>+{{ answerResult().points_obtenus }}</strong></p>
+                <p class="text-muted small mb-0">Temps de réponse : {{ (answerResult().temps_reponse_ms / 1000) | number:'1.1-2' }}s</p>
+              </div>
+            </div>
+
+            <!-- Leaderboard (between questions) -->
+            <div *ngIf="quizState() === 'leaderboard'" class="text-center py-5">
+              <div class="spinner-grow text-success mb-4" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <h5 class="fw-bold text-dark mb-2">Préparez-vous pour la question suivante !</h5>
+              <p class="text-muted small mb-0">Le quiz continue d'un instant à l'autre...</p>
+            </div>
+
+            <!-- Ended View -->
+            <div class="text-center p-3" *ngIf="quizState() === 'ended'">
+              <div class="restricted-icon-wrapper mb-3 bg-success bg-opacity-10 text-success border border-success" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <i class="feather icon-award" style="font-size: 32px;"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-2">Quiz Terminé !</h4>
+              <p class="text-muted mb-4">Félicitations pour votre participation.</p>
+
+              <h5 class="fw-bold mb-3 text-dark">Votre score final</h5>
+              <div class="p-3 border rounded bg-light mb-4 text-center">
+                <h3 class="fw-bold text-success mb-0">
+                  {{ getSelfScore() }} pts
+                </h3>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
     <!-- Centered Floating Controls Bar -->
     <div class="col-12 text-center mt-2">
       <div class="floating-controls-bar">
@@ -427,6 +618,9 @@
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" *ngIf="unreadChatCount() > 0" style="font-size: 10px; padding: 4px 6px;">
             {{ unreadChatCount() }}
           </span>
+        </button>
+        <button class="control-btn" [class.active-share]="showQuizPanel()" (click)="toggleQuizPanel()" title="Jeu & Quiz en direct">
+          <i class="feather icon-play"></i>
         </button>
         <button class="control-btn" [class.active-share]="isHandRaised" (click)="toggleHandRaise()" title="Lever/Baisser la main" *ngIf="!isProf()">
           <span style="font-size: 18px;">🖐️</span>
