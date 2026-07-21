@@ -1,0 +1,11 @@
+<ng-scrollbar (clickOutside)="navMob()" style="height: calc(100vh - 60px)">
+  <div class="navbar-content">
+    <ul class="nav pcoded-inner-navbar" (clickOutside)="fireOutClick()">
+      @for (items of navigation; track items) {
+        @if (items.type === 'group') {
+          <app-nav-group [item]="items" />
+        }
+      }
+    </ul>
+  </div>
+</ng-scrollbar>

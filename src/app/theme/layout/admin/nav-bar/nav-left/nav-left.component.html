@@ -1,0 +1,21 @@
+<ul class="navbar-nav me-auto d-flex align-items-center flex-wrap gap-1 top-horizontal-menu">
+  <li class="nav-item me-2">
+    <app-nav-search />
+  </li>
+  @for (group of navigationItems; track group.id) {
+    @for (item of group.children; track item.id) {
+      <li class="nav-item">
+        <a 
+          [routerLink]="[item.url]" 
+          routerLinkActive="active" 
+          class="nav-link horizontal-nav-link d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3"
+        >
+          @if (item.icon) {
+            <i [class]="item.icon"></i>
+          }
+          <span class="nav-text fw-medium">{{ item.title }}</span>
+        </a>
+      </li>
+    }
+  }
+</ul>

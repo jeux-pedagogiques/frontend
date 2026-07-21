@@ -1,0 +1,752 @@
+<div class="row">
+
+  <!-- Floating Toast Notification System (Appended at the bottom of file) -->
+
+  <!-- ===================================================================== -->
+  <!-- LOBBY STATE                                                           -->
+  <!-- ===================================================================== -->
+  <ng-container *ngIf="sessionState() === 'lobby' && !showGuestNamePrompt()">
+
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+      <div class="page-header-card">
+        <div class="d-flex align-items-center">
+          <div class="page-header-icon">
+            <i class="feather icon-video"></i>
+          </div>
+          <div>
+            <h3 class="mb-1">Séance en direct</h3>
+            <p class="text-muted mb-0">Lancez une séance vidéo interactive et autonome avec vos étudiants</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start a Session -->
+    <div class="col-lg-7 col-md-12 mb-4">
+      <div class="card session-card h-100" *ngIf="isProf()">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="feather icon-play-circle me-2"></i> Nouvelle séance</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nom de la séance</label>
+            <input type="text" class="form-control form-control-lg session-input"
+                   [(ngModel)]="sessionName" name="sessionName"
+                   placeholder="Ex: Cours d'Introduction à l'IA">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Votre nom d'affichage</label>
+            <input type="text" class="form-control session-input"
+                   [(ngModel)]="displayName" name="displayName"
+                   placeholder="Ex: Prof. Dupont">
+          </div>
+
+          <!-- Audio/Video Toggles -->
+          <div class="d-flex gap-4 mb-4">
+            <div class="toggle-option" [class.active]="enableAudio" (click)="enableAudio = !enableAudio">
+              <div class="toggle-icon">
+                <i class="feather" [class.icon-mic]="enableAudio" [class.icon-mic-off]="!enableAudio"></i>
+              </div>
+              <span>Microphone {{ enableAudio ? 'ON' : 'OFF' }}</span>
+            </div>
+            <div class="toggle-option" [class.active]="enableVideo" (click)="enableVideo = !enableVideo">
+              <div class="toggle-icon">
+                <i class="feather" [class.icon-video]="enableVideo" [class.icon-video-off]="!enableVideo"></i>
+              </div>
+              <span>Caméra {{ enableVideo ? 'ON' : 'OFF' }}</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg start-btn w-100" (click)="startSession()">
+            <i class="feather icon-video me-2"></i> Lancer la séance
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Restriction Card -->
+      <div class="card session-card h-100 student-restricted-card" *ngIf="!isProf()">
+        <div class="card-body text-center py-5">
+          <div class="restricted-icon-wrapper mb-4">
+            <i class="feather icon-shield"></i>
+          </div>
+          <h4 class="mb-3 fw-bold text-dark">Espace Enseignant</h4>
+          <p class="text-muted mb-4 px-3" style="font-size: 15px; line-height: 1.6;">
+            Seuls les membres du corps enseignant (les professeurs) sont autorisés à initier et à configurer des séances de visioconférence en direct. Les étudiants peuvent rejoindre une séance en cours à l'aide de l'identifiant ci-contre.
+          </p>
+          <div class="badge bg-light-warning text-warning px-3 py-2" style="font-size: 13px; border-radius: 20px; background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
+            <i class="feather icon-alert-triangle me-1"></i> Accès limité aux professeurs
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join a Session -->
+    <div class="col-lg-5 col-md-12 mb-4">
+      <div class="card session-card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="feather icon-log-in me-2"></i> Rejoindre une séance</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted mb-3">Saisissez l'identifiant de séance fourni par le professeur :</p>
+          <div class="input-group">
+            <input type="text" class="form-control session-input"
+                   [(ngModel)]="joinRoomId" name="joinRoomId"
+                   placeholder="Ex: abc-defg-hij">
+            <button class="btn btn-outline-primary animate-btn" (click)="joinExistingSession()" [disabled]="!joinRoomId.trim()">
+              <i class="feather icon-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Sessions -->
+      <div class="card session-card" *ngIf="recentSessions.length > 0">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="feather icon-clock me-2"></i> Séances récentes</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="recent-item" *ngFor="let session of recentSessions" (click)="joinSession(session.roomId)">
+            <div class="recent-icon">
+              <i class="feather icon-video"></i>
+            </div>
+            <div class="recent-details">
+              <h6 class="mb-0">{{ session.name }}</h6>
+              <small class="text-muted">{{ getTimeAgo(session.date) }}</small>
+            </div>
+            <i class="feather icon-chevron-right text-muted"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scheduled Meetings Section -->
+    <div class="col-12 mb-4">
+      <div class="card session-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0"><i class="feather icon-calendar me-2"></i> Séances planifiées</h5>
+          <button class="btn btn-sm btn-outline-primary" *ngIf="isProf()" (click)="showScheduleForm.set(!showScheduleForm())">
+            <i class="feather" [class.icon-plus]="!showScheduleForm()" [class.icon-minus]="showScheduleForm()"></i>
+            {{ showScheduleForm() ? 'Masquer le formulaire' : 'Planifier une séance' }}
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Schedule Form (Prof only) -->
+          <div class="schedule-form-container mb-4 p-3 border rounded-3 bg-light" *ngIf="isProf() && showScheduleForm()">
+            <h6 class="fw-bold mb-3"><i class="feather icon-edit-1 me-1 text-primary"></i> Planifier une nouvelle séance</h6>
+            <div class="row g-3">
+              <div class="col-md-5">
+                <label class="form-label fw-bold">Sujet de la séance</label>
+                <input type="text" class="form-control" [(ngModel)]="newMeetingTitle" name="newMeetingTitle" placeholder="Ex: TP d'Algorithmique">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Date & Heure de début</label>
+                <input type="datetime-local" class="form-control" [(ngModel)]="newMeetingTime" name="newMeetingTime">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label fw-bold">Durée (minutes)</label>
+                <select class="form-select" [(ngModel)]="newMeetingDuration" name="newMeetingDuration">
+                  <option [value]="30">30 minutes</option>
+                  <option [value]="60">1 heure</option>
+                  <option [value]="90">1h30</option>
+                  <option [value]="120">2 heures</option>
+                </select>
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-primary w-100" (click)="scheduleMeeting()">
+                  <i class="feather icon-check me-1"></i> Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scheduled Meetings List -->
+          <div class="table-responsive" *ngIf="scheduledMeetings.length > 0; else noMeetings">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Sujet</th>
+                  <th>Date & Heure</th>
+                  <th>Durée</th>
+                  <th>Organisé par</th>
+                  <th>Identifiant</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let meeting of scheduledMeetings">
+                  <td>
+                    <span class="fw-bold text-dark">{{ meeting.title }}</span>
+                  </td>
+                  <td>
+                    <i class="feather icon-clock text-muted me-1"></i>
+                    {{ meeting.scheduled_time | date:'dd MMM yyyy, HH:mm' }}
+                  </td>
+                  <td>{{ meeting.duration_minutes }} min</td>
+                  <td>
+                    <span class="badge bg-light-primary text-primary px-3 py-2" style="border-radius: 12px; background-color: rgba(99, 102, 241, 0.08);">
+                      {{ meeting.creator_name }}
+                    </span>
+                  </td>
+                  <td>
+                    <code class="text-primary">{{ meeting.room_id }}</code>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                      <!-- Professor can start and cancel their own scheduled meetings -->
+                      <ng-container *ngIf="isProf()">
+                        <button class="btn btn-sm btn-success px-3" (click)="startScheduledMeeting(meeting)" *ngIf="meeting.is_mine">
+                          <i class="feather icon-play-circle me-1"></i> Démarrer
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="cancelScheduledMeeting(meeting.id)" *ngIf="meeting.is_mine">
+                          <i class="feather icon-trash-2"></i> Annuler
+                        </button>
+                      </ng-container>
+                      <!-- Students and others can join scheduled meetings -->
+                      <ng-container *ngIf="!meeting.is_mine">
+                        <button class="btn btn-sm btn-primary px-3" (click)="joinSession(meeting.room_id)">
+                          <i class="feather icon-log-in me-1"></i> Rejoindre
+                        </button>
+                      </ng-container>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noMeetings>
+            <div class="text-center py-4 text-muted">
+              <i class="feather icon-calendar" style="font-size: 32px; color: #cbd5e1;"></i>
+              <p class="mt-2 mb-0">Aucune séance planifiée disponible.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ===================================================================== -->
+  <!-- GUEST DISPLAY NAME PROMPT STATE                                       -->
+  <!-- ===================================================================== -->
+  <ng-container *ngIf="sessionState() === 'lobby' && showGuestNamePrompt()">
+    <div class="col-12 d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+      <div class="card session-card border-0 shadow-lg text-center" style="max-width: 480px; width: 100%; border-radius: 20px; overflow: hidden; background: #fff;">
+        <div class="card-header border-0 pt-5 pb-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff;">
+          <div class="restricted-icon-wrapper mb-3" style="background: rgba(255, 255, 255, 0.2); color: #fff; width: 64px; height: 64px; box-shadow: none;">
+            <i class="feather icon-video text-white" style="font-size: 24px;"></i>
+          </div>
+          <h4 class="text-white fw-bold mb-1">Séance en direct</h4>
+          <p class="text-white-50 mb-0 px-3" style="font-size: 13px;">Vous avez été invité(e) à rejoindre une séance vidéo.</p>
+        </div>
+        <div class="card-body p-4">
+          <form (ngSubmit)="joinAsGuest()">
+            <div class="mb-4 text-start">
+              <label class="form-label fw-bold text-dark mb-2">Entrez votre nom d'affichage</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-2 border-end-0" style="border-color: #e8ecf0; border-radius: 10px 0 0 10px;">
+                  <i class="feather icon-user text-muted"></i>
+                </span>
+                <input type="text" class="form-control session-input border-2 border-start-0 ps-0"
+                       [(ngModel)]="displayName" name="displayName" required
+                       placeholder="Ex: Alice Martin" style="border-radius: 0 10px 10px 0; border-color: #e8ecf0;">
+              </div>
+            </div>
+
+            <!-- Audio/Video Toggles -->
+            <div class="d-flex gap-3 justify-content-center mb-4">
+              <button type="button" class="btn d-flex align-items-center gap-2 px-3 py-2" 
+                      [class.btn-primary]="enableAudio" [class.btn-outline-secondary]="!enableAudio"
+                      (click)="enableAudio = !enableAudio" style="border-radius: 10px; font-size: 13px; font-weight: 600;">
+                <i class="feather" [class.icon-mic]="enableAudio" [class.icon-mic-off]="!enableAudio"></i>
+                Micro {{ enableAudio ? 'ON' : 'OFF' }}
+              </button>
+              <button type="button" class="btn d-flex align-items-center gap-2 px-3 py-2" 
+                      [class.btn-primary]="enableVideo" [class.btn-outline-secondary]="!enableVideo"
+                      (click)="enableVideo = !enableVideo" style="border-radius: 10px; font-size: 13px; font-weight: 600;">
+                <i class="feather" [class.icon-video]="enableVideo" [class.icon-video-off]="!enableVideo"></i>
+                Caméra {{ enableVideo ? 'ON' : 'OFF' }}
+              </button>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg start-btn w-100 py-3" [disabled]="!displayName.trim()" style="border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+              Rejoindre la séance <i class="feather icon-arrow-right ms-2"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ===================================================================== -->
+  <!-- LIVE STATE (CUSTOM WEBRTC ROOM)                                       -->
+  <!-- ===================================================================== -->
+  <ng-container *ngIf="sessionState() === 'live'">
+
+    <!-- Live Header Info -->
+    <div class="col-12 mb-4">
+      <div class="live-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="live-badge">
+            <span class="live-dot"></span> SALLE DE SÉANCE
+          </div>
+          <h5 class="mb-0 text-white fw-bold">{{ sessionName }}</h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <!-- Student/guest exit button -->
+          <button class="btn btn-danger btn-sm end-btn" (click)="endSession()" *ngIf="!isProf()" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+            <i class="feather icon-phone-off me-1"></i> Quitter la session
+          </button>
+          
+          <!-- Professor gets choice buttons -->
+          <ng-container *ngIf="isProf()">
+            <button class="btn btn-warning btn-sm end-btn text-white" (click)="leaveSessionOnly()" title="Quitter la séance en la laissant active" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;">
+              <i class="feather icon-log-out me-1"></i> Quitter la session
+            </button>
+            <button class="btn btn-danger btn-sm end-btn" (click)="endSessionForEveryone()" title="Terminer la séance pour tous les participants" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+              <i class="feather icon-phone-off me-1"></i> Terminer pour tous
+            </button>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Stream grid layout -->
+    <div [class]="(showChatPanel() && showQuizPanel()) ? 'col-lg-5 col-md-5 col-12 mb-4' : (showChatPanel() ? 'col-lg-9 col-md-8 col-12 mb-4' : (showQuizPanel() ? 'col-lg-8 col-md-8 col-12 mb-4' : 'col-12 mb-4'))">
+      <div class="video-grid-container" [class.single-peer]="peerList().length === 0">
+        
+        <!-- Local User Video stream -->
+        <div class="video-card-wrapper local-stream-card" [style.order]="isProf() ? 2 : 1">
+          <div class="video-card">
+            <video id="localVideo" autoplay [muted]="true" playsinline></video>
+            <div class="stream-info">
+              <span class="user-name">Vous ({{ displayName || 'Invité' }})</span>
+              <div class="user-indicators">
+                <i class="feather" [class.icon-mic]="enableAudio" [class.icon-mic-off]="!enableAudio" [class.text-danger]="!enableAudio"></i>
+                <i class="feather" [class.icon-video]="enableVideo" [class.icon-video-off]="!enableVideo" [class.text-danger]="!enableVideo"></i>
+              </div>
+            </div>
+            <!-- Video Off Placeholder -->
+            <div class="video-off-placeholder" *ngIf="!enableVideo && !isScreenSharing">
+              <div class="avatar-fallback">{{ (displayName || 'U').substring(0,2).toUpperCase() }}</div>
+            </div>
+            <!-- Hand Raised Indicator -->
+            <div class="hand-badge" *ngIf="isHandRaised">
+              <span class="hand-emoji">🖐️</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remote Participants Video Streams -->
+        <div class="video-card-wrapper remote-stream-card" *ngFor="let peer of peerList()" [style.order]="peer.isProf ? 2 : 1">
+          <div class="video-card">
+            <!-- Bind stream dynamically -->
+            <video [appSrcObject]="peer.stream" autoplay playsinline></video>
+            <div class="stream-info">
+              <span class="user-name">{{ peer.displayName }}</span>
+            </div>
+            <!-- Video Off Placeholder -->
+            <div class="video-off-placeholder" *ngIf="peer.isCameraOn === false">
+              <div class="avatar-fallback">{{ (peer.displayName || 'U').substring(0, 2).toUpperCase() }}</div>
+            </div>
+            <!-- Hand Raised Indicator -->
+            <div class="hand-badge" *ngIf="peer.isHandRaised">
+              <span class="hand-emoji">🖐️</span>
+            </div>
+            <!-- Host Controls for individual participant -->
+            <div class="participant-host-controls animate__animated animate__fadeInDown" *ngIf="isProf()">
+              <button class="host-mini-btn" (click)="muteParticipant(peer.id)" title="Couper le micro">
+                <i class="feather icon-mic-off"></i>
+              </button>
+              <button class="host-mini-btn" (click)="muteParticipantCamera(peer.id)" title="Couper la caméra">
+                <i class="feather icon-video-off"></i>
+              </button>
+              <button class="host-mini-btn kick" (click)="kickParticipant(peer.id)" title="Exclure de la séance">
+                <i class="feather icon-user-minus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="col-lg-3 col-md-4 col-12 mb-4" *ngIf="showChatPanel()">
+      <div class="card chat-panel-card border-0 d-flex flex-column h-100" style="min-height: 450px;">
+        <div class="card-header d-flex align-items-center justify-content-between py-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+          <h6 class="mb-0 fw-bold text-white"><i class="feather icon-message-square me-2 text-primary"></i>Chat de la séance</h6>
+          <button type="button" class="btn-close" (click)="toggleChat()"></button>
+        </div>
+        <div class="card-body d-flex flex-column flex-grow-1 p-0 overflow-hidden">
+          <!-- Message feed list -->
+          <div id="chatMessagesContainer" class="chat-messages-container flex-grow-1 p-3 overflow-y-auto" style="height: 350px;">
+            <div class="text-center text-muted mb-3" style="font-size: 11px;">Les messages sont éphémères et disparaissent à la fin de la séance.</div>
+            
+            <div class="chat-message-item mb-3" *ngFor="let msg of chatMessages" [class.me]="msg.isMe">
+               <div class="sender-name mb-1" *ngIf="!msg.isMe">{{ msg.senderName }}</div>
+               <div class="message-bubble">{{ msg.text }}</div>
+               <div class="message-time text-muted mt-1">{{ msg.time }}</div>
+            </div>
+          </div>
+
+          <!-- Chat input field -->
+          <div class="chat-input-container p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.15);">
+            <form (ngSubmit)="sendChatMessage()">
+              <div class="input-group">
+                <input type="text" class="form-control chat-input" [(ngModel)]="chatInput" name="chatInput" 
+                       [placeholder]="chatRestricted ? 'Le chat a été désactivé par l\'organisateur' : 'Taper un message...'" 
+                       [disabled]="chatRestricted" autocomplete="off">
+                <button type="submit" class="btn btn-primary" [disabled]="!chatInput.trim() || chatRestricted">
+                  <i class="feather icon-send"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz / Game Panel -->
+    <div class="col-lg-4 col-md-4 col-12 mb-4" *ngIf="showQuizPanel()">
+      <div class="card quiz-panel-card border-0 d-flex flex-column h-100 shadow-sm" style="min-height: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 16px; color: #333; border: 1px solid rgba(0,0,0,0.05);">
+        <div class="card-header d-flex align-items-center justify-content-between py-3 px-3" style="border-bottom: 1px solid rgba(0, 0, 0, 0.08); background: transparent;">
+          <h6 class="mb-0 fw-bold text-dark"><i class="feather icon-award me-2 text-success"></i>Quiz en direct</h6>
+          <button type="button" class="btn-close" (click)="toggleQuizPanel()"></button>
+        </div>
+
+        <div class="card-body d-flex flex-column flex-grow-1 overflow-y-auto p-3" style="max-height: 450px;">
+          <!-- PROFESSOR CONTROLS VIEW -->
+          <ng-container *ngIf="isProf()">
+            <!-- Selection State -->
+            <div class="text-center" *ngIf="quizState() === 'inactive'">
+              <h5 class="fw-bold mb-3 text-dark">Lancer une activité</h5>
+              <p class="text-muted small">Choisissez un module pour charger les acquis d'apprentissage et lancer le quiz.</p>
+              
+              <div class="mb-4 text-start">
+                <label class="form-label text-muted small fw-bold">Sélectionner un module</label>
+                <select class="form-select bg-white text-dark border-secondary" [(ngModel)]="selectedModuleId" name="selectedModuleId">
+                  <option [value]="null">-- Passer (Skip) --</option>
+                  <option *ngFor="let item of modulesList()" [value]="item.id">
+                    {{ item.module_title }} {{ item.quiz_data ? '🎮 (Quiz existant)' : '✨ (À générer)' }}
+                  </option>
+                </select>
+              </div>
+
+              <button class="btn btn-success w-100 py-2 fw-bold text-white" [disabled]="!selectedModuleId || isGeneratingQuiz()" (click)="launchQuizForSelectedModule()">
+                <span *ngIf="!isGeneratingQuiz()"><i class="feather icon-zap me-1"></i> Lancer le Quiz</span>
+                <span *ngIf="isGeneratingQuiz()"><span class="spinner-border spinner-border-sm me-1"></span>Génération...</span>
+              </button>
+            </div>
+
+            <!-- Quiz Running: Question State -->
+            <div *ngIf="quizState() === 'active_question' && activeQuestion()">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-secondary">Question {{ activeQuestionIndex() }}</span>
+                <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ quizTimer() }}s</span>
+              </div>
+              <h5 class="fw-bold mb-4 text-dark">{{ activeQuestion().enonce }}</h5>
+
+              <div class="d-flex flex-column gap-2 mb-4">
+                <div class="p-3 border rounded bg-light text-dark-50" style="border-color: rgba(0,0,0,0.08) !important;" *ngFor="let opt of activeQuestion().options">
+                  {{ opt }}
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-info flex-grow-1 py-2 fw-bold text-white" (click)="showLeaderboardInRoom()">
+                  <i class="feather icon-bar-chart-2 me-1"></i> Classement
+                </button>
+                <button class="btn btn-success flex-grow-1 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()">
+                  Suivant <i class="feather icon-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quiz Running: Leaderboard State -->
+            <div *ngIf="quizState() === 'leaderboard'">
+              <h5 class="fw-bold text-center mb-4 text-dark"><i class="feather icon-award text-warning me-2"></i>Classement en direct</h5>
+              
+              <div class="leaderboard-list d-flex flex-column gap-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light border" 
+                     *ngFor="let p of quizParticipants(); let idx = index" 
+                     [style.border-left]="idx === 0 ? '4px solid #eab308' : (idx === 1 ? '4px solid #cbd5e1' : (idx === 2 ? '4px solid #cd7f32' : ''))">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold text-dark" style="width: 20px;">#{{ idx + 1 }}</span>
+                    <span class="text-dark">{{ p.pseudo }}</span>
+                  </div>
+                  <span class="badge bg-primary px-3">{{ p.score_total }} pts</span>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="quizParticipants().length === 0">
+                  Aucun étudiant connecté pour le moment.
+                </div>
+              </div>
+
+              <button class="btn btn-success w-100 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()">
+                Question suivante <i class="feather icon-arrow-right ms-1"></i>
+              </button>
+            </div>
+
+            <!-- Quiz Ended -->
+            <div class="text-center p-3" *ngIf="quizState() === 'ended'">
+              <div class="restricted-icon-wrapper mb-3 bg-success bg-opacity-20 text-success shadow-xs" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center; height: 100%;">
+                <i class="feather icon-check" style="font-size: 32px;"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-2">Quiz Terminé !</h4>
+              <p class="text-muted mb-4">La session de jeu est terminée. Tous les scores ont été validés.</p>
+
+              <h5 class="fw-bold mb-3 text-dark"><i class="feather icon-award text-warning me-2"></i>Podium Final</h5>
+              <div class="leaderboard-list d-flex flex-column gap-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light border" *ngFor="let p of quizParticipants() | slice:0:3; let idx = index">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold text-dark">#{{ idx + 1 }}</span>
+                    <span class="text-dark">{{ p.pseudo }}</span>
+                  </div>
+                  <span class="badge bg-success px-3">{{ p.score_total }} pts</span>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-secondary w-100 py-2" (click)="resetQuizStateCompletely()">
+                <i class="feather icon-refresh-cw me-1"></i> Nouvelle activité
+              </button>
+            </div>
+          </ng-container>
+
+          <!-- STUDENT / PARTICIPANT PLAY VIEW -->
+          <ng-container *ngIf="!isProf()">
+            <!-- Inactive State -->
+            <div class="text-center p-4" *ngIf="quizState() === 'inactive'">
+              <div class="restricted-icon-wrapper mb-3 bg-light text-muted border" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <i class="feather icon-clock" style="font-size: 28px;"></i>
+              </div>
+              <h5 class="text-dark">Aucune activité en cours</h5>
+              <p class="text-muted small">Le professeur n'a pas encore lancé de quiz pour cette séance.</p>
+            </div>
+
+            <!-- Waiting State -->
+            <div class="text-center p-4" *ngIf="quizState() === 'waiting'">
+              <div class="spinner-border text-success mb-3" role="status"></div>
+              <h5 class="text-dark">Préparez-vous !</h5>
+              <p class="text-muted small">Le quiz va démarrer d'un instant à l'autre...</p>
+            </div>
+
+            <!-- Active Question Gameplay -->
+            <div *ngIf="quizState() === 'active_question' && activeQuestion()">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-secondary">Chrono</span>
+                <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ quizTimer() }}s</span>
+              </div>
+              <h5 class="fw-bold mb-4 text-dark">{{ activeQuestion().enonce }}</h5>
+
+              <!-- Clickable Options -->
+              <div class="d-flex flex-column gap-2 mb-4" *ngIf="!hasSubmittedAnswer()">
+                <button class="btn btn-outline-dark text-start py-3 px-3 fw-medium" 
+                        *ngFor="let opt of activeQuestion().options" 
+                        (click)="submitAnswer(opt)">
+                  {{ opt }}
+                </button>
+              </div>
+
+              <!-- Locked state after submission -->
+              <div class="p-4 border rounded bg-light text-center" *ngIf="hasSubmittedAnswer() && !answerResult()">
+                <div class="spinner-grow text-primary mb-3" role="status"></div>
+                <h6 class="text-dark mb-1">Réponse envoyée !</h6>
+                <p class="text-muted small mb-0">Votre réponse : <strong>{{ selectedAnswer() }}</strong></p>
+                <p class="text-muted small mt-2">En attente de la fin du chrono...</p>
+              </div>
+
+              <!-- Answer Results -->
+              <div class="p-4 border rounded text-center" 
+                   *ngIf="answerResult()" 
+                   [style.background-color]="answerResult().est_correcte ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'"
+                   [style.border-color]="answerResult().est_correcte ? '#22c55e' : '#ef4444'">
+                <div class="mb-3" style="font-size: 32px;">{{ answerResult().est_correcte ? '🎉' : '❌' }}</div>
+                <h4 class="fw-bold mb-2" [class.text-success]="answerResult().est_correcte" [class.text-danger]="!answerResult().est_correcte">
+                  {{ answerResult().est_correcte ? 'Bonne réponse !' : 'Mauvaise réponse !' }}
+                </h4>
+                <p class="text-dark mb-2">Points gagnés : <strong>+{{ answerResult().points_obtenus }}</strong></p>
+                <p class="text-muted small mb-0">Temps de réponse : {{ (answerResult().temps_reponse_ms / 1000) | number:'1.1-2' }}s</p>
+              </div>
+            </div>
+
+            <!-- Leaderboard (between questions) -->
+            <div *ngIf="quizState() === 'leaderboard'" class="text-center py-5">
+              <div class="spinner-grow text-success mb-4" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <h5 class="fw-bold text-dark mb-2">Préparez-vous pour la question suivante !</h5>
+              <p class="text-muted small mb-0">Le quiz continue d'un instant à l'autre...</p>
+            </div>
+
+            <!-- Ended View -->
+            <div class="text-center p-3" *ngIf="quizState() === 'ended'">
+              <div class="restricted-icon-wrapper mb-3 bg-success bg-opacity-10 text-success border border-success" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <i class="feather icon-award" style="font-size: 32px;"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-2">Quiz Terminé !</h4>
+              <p class="text-muted mb-4">Félicitations pour votre participation.</p>
+
+              <h5 class="fw-bold mb-3 text-dark">Votre score final</h5>
+              <div class="p-3 border rounded bg-light mb-4 text-center">
+                <h3 class="fw-bold text-success mb-0">
+                  {{ getSelfScore() }} pts
+                </h3>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Floating Controls Bar -->
+    <div class="col-12 text-center mt-2">
+      <div class="floating-controls-bar">
+        <button class="control-btn" [class.muted]="!enableAudio" (click)="toggleMic()" title="Muter/Activer le micro" 
+                [disabled]="micRestricted && !isProf()">
+          <i class="feather" [class.icon-mic]="enableAudio" [class.icon-mic-off]="!enableAudio"></i>
+        </button>
+        <button class="control-btn" [class.muted]="!enableVideo" (click)="toggleVideo()" title="Muter/Activer la caméra" 
+                [disabled]="cameraRestricted && !isProf()">
+          <i class="feather" [class.icon-video]="enableVideo" [class.icon-video-off]="!enableVideo"></i>
+        </button>
+        <button class="control-btn" [class.active-share]="isScreenSharing" (click)="toggleScreenShare()" 
+                [title]="isScreenSharing ? 'Arrêter le partage d\'écran' : 'Partager l\'écran'" 
+                [disabled]="screenShareRestricted && !isProf()">
+          <i class="feather icon-monitor"></i>
+        </button>
+        <button class="control-btn position-relative" [class.active-share]="showChatPanel()" (click)="toggleChat()" title="Chat de la séance">
+          <i class="feather icon-message-square"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" *ngIf="unreadChatCount() > 0" style="font-size: 10px; padding: 4px 6px;">
+            {{ unreadChatCount() }}
+          </span>
+        </button>
+        <button class="control-btn" [class.active-share]="showQuizPanel()" (click)="toggleQuizPanel()" title="Jeu & Quiz en direct">
+          <i class="feather icon-play"></i>
+        </button>
+        <button class="control-btn" [class.active-share]="isHandRaised" (click)="toggleHandRaise()" title="Lever/Baisser la main" *ngIf="!isProf()">
+          <span style="font-size: 18px;">🖐️</span>
+        </button>
+        <button class="control-btn" [class.active-share]="showHostPanel()" (click)="showHostPanel.set(!showHostPanel())" title="Contrôles de l'organisateur" *ngIf="isProf()">
+          <i class="feather icon-settings"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inline Invite Glass Card -->
+    <div class="col-12 mt-1">
+      <div class="invite-glass-card">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="feather icon-link text-primary" style="font-size: 16px;"></i>
+            <span class="fw-bold text-white-50" style="font-size: 13px;">Lien d'invitation :</span>
+            <span class="text-white fw-medium ms-2" style="font-size: 13px; font-family: monospace;">{{ shareLink() }}</span>
+          </div>
+          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+            <i class="feather" [class.icon-copy]="!copied()" [class.icon-check]="copied()"></i>
+            {{ copied() ? ' Copié !' : ' Copier' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Host-only Controls Card -->
+    <div class="col-12 mb-4" *ngIf="isProf() && showHostPanel()">
+      <div class="card host-safety-glass-card shadow-lg">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h6 class="mb-0 fw-bold text-danger"><i class="feather icon-shield me-2"></i> Commandes de sécurité de l'organisateur (Enseignant)</h6>
+          <button type="button" class="btn-close" (click)="showHostPanel.set(false)"></button>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-center">
+            <!-- Global Action buttons -->
+            <div class="col-md-3">
+              <div class="d-flex flex-column gap-2">
+                <button class="btn btn-outline-warning btn-sm text-start" (click)="muteAllParticipants()">
+                  <i class="feather icon-mic-off me-2"></i> Couper tous les micros
+                </button>
+                <button class="btn btn-danger btn-sm text-start" (click)="endCallForEveryone()">
+                  <i class="feather icon-phone-off me-2"></i> Terminer pour tout le monde
+                </button>
+              </div>
+            </div>
+            
+            <!-- Lock Room & Chat -->
+            <div class="col-md-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="lockRoomToggle" [checked]="isRoomLocked" (change)="toggleLockRoom()">
+                <label class="form-check-label fw-bold text-dark" for="lockRoomToggle">
+                  <i class="feather icon-lock me-1"></i> Verrouiller la séance
+                </label>
+              </div>
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" id="chatRestrictToggle" [checked]="chatRestricted" (change)="toggleChatRestriction(!chatRestricted)">
+                <label class="form-check-label fw-bold text-dark" for="chatRestrictToggle">
+                  <i class="feather icon-message-square me-1"></i> Bloquer le chat étudiant
+                </label>
+              </div>
+            </div>
+
+            <!-- Restrict Screen Share / Mic -->
+            <div class="col-md-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="screenRestrictToggle" [checked]="screenShareRestricted" (change)="toggleScreenShareRestriction(!screenShareRestricted)">
+                <label class="form-check-label fw-bold text-dark" for="screenRestrictToggle">
+                  <i class="feather icon-monitor me-1"></i> Bloquer l'écran étudiant
+                </label>
+              </div>
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" id="micRestrictToggle" [checked]="micRestricted" (change)="toggleMicRestriction(!micRestricted)">
+                <label class="form-check-label fw-bold text-dark" for="micRestrictToggle">
+                  <i class="feather icon-mic-off me-1"></i> Bloquer les micros
+                </label>
+              </div>
+            </div>
+
+            <!-- Restrict Camera -->
+            <div class="col-md-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="cameraRestrictToggle" [checked]="cameraRestricted" (change)="toggleCameraRestriction(!cameraRestricted)">
+                <label class="form-check-label fw-bold text-dark" for="cameraRestrictToggle">
+                  <i class="feather icon-video-off me-1"></i> Bloquer les caméras
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>
+
+<!-- Floating Toast Notification -->
+<div class="custom-toast animate__animated animate__fadeInRight shadow-lg" *ngIf="mediaWarning()">
+  <div class="toast-icon-container">
+    <i class="feather icon-info text-primary" style="font-size: 20px;"></i>
+  </div>
+  <div class="toast-content text-dark">
+    {{ mediaWarning() }}
+  </div>
+  <button class="toast-close-btn" (click)="mediaWarning.set('')">
+    <i class="feather icon-x"></i>
+  </button>
+</div>
+
+<!-- Custom Confirmation Modal Overlay -->
+<div class="custom-modal-overlay animate__animated animate__fadeIn" *ngIf="showConfirmModal">
+  <div class="custom-modal-card animate__animated animate__zoomIn">
+    <div class="custom-modal-header">
+      <div class="modal-icon-circle bg-light-warning mb-3">
+        <i class="feather icon-help-circle text-warning" style="font-size: 32px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>
+      </div>
+      <h5 class="fw-bold text-dark">{{ confirmModalTitle }}</h5>
+    </div>
+    <div class="custom-modal-body">
+      <p class="text-muted">{{ confirmModalMessage }}</p>
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn btn-light-secondary px-4 py-2 me-2" (click)="cancelConfirm()" style="border-radius: 10px; border: none; font-weight: 600;">Annuler</button>
+      <button class="btn btn-danger px-4 py-2" (click)="acceptConfirm()" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; font-weight: 600; color: #ffffff;">Confirmer</button>
+    </div>
+  </div>
+</div>

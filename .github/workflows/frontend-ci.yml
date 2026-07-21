@@ -1,0 +1,62 @@
+name: Frontend CI & Security
+
+on:
+  push:
+    branches: [ "main", "master", "develop", "spring_1" ]
+  pull_request:
+    branches: [ "main", "master", "develop", "spring_1" ]
+
+jobs:
+  frontend-ci:
+    name: Frontend Build, Angular Tests & Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Code Quality (ESLint)
+        run: npm run lint
+
+      - name: Build Angular App
+        run: npm run build
+
+      - name: Run Frontend Unit Tests (Karma / ChromeHeadless)
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+      - name: SCA Scan — npm audit (Dependency Security)
+        run: npm audit --audit-level=high || true
+
+  security-sast:
+    name: Security — Gitleaks & CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks Secret Scan
+        uses: zricethezav/gitleaks-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

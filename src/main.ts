@@ -1,6 +1,21 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { App } from './app/app';
+/// <reference types="@angular/localize" />
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+import { enableProdMode, importProvidersFrom } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
+import { environment } from './environments/environment';
+import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
+import { AppRoutingModule } from './app/app-routing.module';
+import { AppComponent } from './app/app.component';
+import { jwtInterceptor } from './app/theme/shared/interceptor/jwt.interceptor';
+
+if (environment.production) {
+  enableProdMode();
+}
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    importProvidersFrom(BrowserModule, AppRoutingModule),
+    provideHttpClient(withInterceptors([jwtInterceptor]))
+  ]
+}).catch((err) => console.error(err));

@@ -1,0 +1,136 @@
+<div class="row">
+  <!-- Profile Overview Card -->
+  <div class="col-lg-4 col-md-12">
+    <div class="card user-card">
+      <div class="card-header border-0 pb-0">
+        <h5>Profile Summary</h5>
+      </div>
+      <div class="card-body text-center pt-2">
+        <div class="profile-avatar-wrapper position-relative d-inline-block">
+          <div class="profile-avatar-circle mb-3" *ngIf="!avatar()">
+            <span>{{ getInitials() }}</span>
+          </div>
+          <img *ngIf="avatar()" [src]="avatar()" class="profile-avatar-img mb-3" alt="Avatar">
+          <label for="avatar-upload" class="avatar-edit-badge" title="Upload Photo">
+            <i class="feather icon-camera"></i>
+          </label>
+          <input type="file" id="avatar-upload" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+        </div>
+        <h4 class="mb-1">{{ first_name && last_name ? (first_name + ' ' + last_name) : username }}</h4>
+        <p class="text-muted mb-3">@{{ username }}</p>
+        
+        <div class="badge bg-light-primary text-primary mb-4 px-3 py-2" style="font-size: 13px; border-radius: 20px;">
+          Active Account
+        </div>
+        
+        <hr class="my-4">
+        
+        <div class="text-start">
+          <div class="mb-3 d-flex align-items-center">
+            <i class="feather icon-mail text-muted me-3" style="font-size: 18px;"></i>
+            <div>
+              <small class="text-muted d-block">Email Address</small>
+              <span class="text-dark">{{ email }}</span>
+            </div>
+          </div>
+          <div class="mb-3 d-flex align-items-center" *ngIf="phone">
+            <i class="feather icon-phone text-muted me-3" style="font-size: 18px;"></i>
+            <div>
+              <small class="text-muted d-block">Phone Number</small>
+              <span class="text-dark">{{ phone }}</span>
+            </div>
+          </div>
+          <div class="mb-3 d-flex align-items-center" *ngIf="address">
+            <i class="feather icon-map-pin text-muted me-3" style="font-size: 18px;"></i>
+            <div>
+              <small class="text-muted d-block">Address</small>
+              <span class="text-dark">{{ address }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Edit Form Card -->
+  <div class="col-lg-8 col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Edit Profile Details</h5>
+      </div>
+      <div class="card-body">
+        <!-- Messages -->
+        <div *ngIf="successMessage()" class="alert alert-success border-0 shadow-sm mb-4" role="alert" style="background-color: #d1e7dd; color: #0f5132; padding: 12px 15px; border-radius: 6px;">
+          <i class="feather icon-check-circle me-2"></i> {{ successMessage() }}
+        </div>
+        <div *ngIf="errorMessage()" class="alert alert-danger border-0 shadow-sm mb-4" role="alert" style="background-color: #f8d7da; color: #842029; padding: 12px 15px; border-radius: 6px;">
+          <i class="feather icon-alert-triangle me-2"></i> {{ errorMessage() }}
+        </div>
+
+        <form (submit)="onSubmit($event)">
+          <!-- Account Details -->
+          <h6 class="mb-3 text-primary uppercase font-weight-bold" style="letter-spacing: 0.5px;">Account Settings</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Username</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="feather icon-user text-muted"></i></span>
+                <input type="text" class="form-control" [(ngModel)]="username" name="username" required placeholder="Username">
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="feather icon-mail text-muted"></i></span>
+                <input type="email" class="form-control" [(ngModel)]="email" name="email" required placeholder="email@example.com">
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Personal Details -->
+          <h6 class="mb-3 text-primary uppercase font-weight-bold" style="letter-spacing: 0.5px;">Personal Information</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">First Name</label>
+              <input type="text" class="form-control" [(ngModel)]="first_name" name="first_name" placeholder="Enter first name">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Last Name</label>
+              <input type="text" class="form-control" [(ngModel)]="last_name" name="last_name" placeholder="Enter last name">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Phone Number</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="feather icon-phone text-muted"></i></span>
+                <input type="text" class="form-control" [(ngModel)]="phone" name="phone" placeholder="Enter phone number">
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="feather icon-map-pin text-muted"></i></span>
+                <input type="text" class="form-control" [(ngModel)]="address" name="address" placeholder="Enter home/work address">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label font-weight-bold">Biography</label>
+            <textarea class="form-control" [(ngModel)]="bio" name="bio" rows="4" placeholder="Tell us a little bit about yourself..."></textarea>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 6px;">
+              <i class="feather icon-save me-2"></i> Save Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

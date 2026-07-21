@@ -1,39 +1,52 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
-
-html {
-  height: 100%;
-  @include mat.theme(
-    (
-      color: (
-        primary: mat.$cyan-palette,
-        tertiary: mat.$orange-palette,
-      ),
-      typography: Roboto,
-      density: 0,
-    )
-  );
-}
-
-body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
-  height: 100%;
-}
 /* You can add global styles to this file, and also import other style files */
+
+/**======================================================================
+=========================================================================
+Template Name: Gradient Able Angular Admin Template
+Author: CodedThemes
+Support: https://codedthemes.support-hub.io/
+File: style.css
+=================================================================================
+=================================================================================== */
+
+// Theme Font
+@import 'scss/themes/font/theme-font';
+
+// main framework
+@import 'node_modules/bootstrap/scss/functions';
+@import 'node_modules/bootstrap/scss/variables';
+@import 'scss/settings/custom-variables';
+@import 'scss/settings/theme-variables';
+
+// bootstrap
+@import 'node_modules/bootstrap/scss/bootstrap';
+@import 'node_modules/bootstrap/scss/mixins';
+@import 'node_modules/bootstrap/scss/utilities';
+@import 'node_modules/bootstrap/scss/utilities/api';
+@import '../node_modules/bootstrap/dist/css/bootstrap.css';
+@import 'scss/themes/general';
+@import 'scss/themes/generic';
+@import 'scss/themes/minixs/function';
+
+// icon
+@import 'scss/themes/font/datta-icon';
+@import 'scss/themes/font/feather';
+@import 'scss/themes/font/fontawesome';
+@import 'scss/themes/font/flaticon';
+
+// component
+@import 'scss/themes/component/component';
+
+// theme layouts
+@import 'scss/themes/layouts/pc-footer.scss';
+@import 'scss/themes/layouts/menu-lite';
+@import 'scss/themes/layouts/menu-ng';
+
+// dashboard
+@import 'scss/themes/pages/dashboard.scss';
+@import 'scss/themes/pages/authentication';
+
+@import 'scss/themes/chat/chat';
+
+// custom
+@import 'scss/themes/custom';
