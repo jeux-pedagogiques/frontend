@@ -1,0 +1,27 @@
+name: Frontend CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  deploy-frontend:
+    name: Deploy Angular Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Production Bundle
+        run: |
+          npm ci
+          npm run build-prod
+
+      - name: Deploy Frontend Assets
+        run: |
+          echo "Deploying Angular bundle to production hosting..."

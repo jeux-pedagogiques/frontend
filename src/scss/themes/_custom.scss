@@ -95,3 +95,84 @@
 #customerChart .apexcharts-tooltip .apexcharts-tooltip-series-group.active {
   background: #ffffff !important;
 }
+
+/* ==========================================================================
+   Horizontal Navbar & Full-Width Layout Overrides
+   ========================================================================== */
+.pcoded-header {
+  left: 0 !important;
+  width: 100% !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+
+  .mobile-menu {
+    display: none !important;
+  }
+}
+
+.pcoded-main-container {
+  margin-left: 0 !important;
+  width: 100% !important;
+  top: 70px !important;
+}
+
+.top-horizontal-menu {
+  .horizontal-nav-link {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+
+    i {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.25) !important;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+/* Light header variant support */
+.pcoded-header.navbar-light:not(.header-blue) {
+  .top-horizontal-menu .horizontal-nav-link {
+    color: #495057;
+
+    &:hover {
+      color: $primary-color;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    &.active {
+      color: $primary-color !important;
+      background: rgba($primary-color, 0.12) !important;
+    }
+  }
+}
+
+@media (max-width: 991.98px) {
+  .top-horizontal-menu {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100%;
+    padding: 10px 0;
+
+    .nav-item {
+      width: 100%;
+    }
+
+    .horizontal-nav-link {
+      width: 100%;
+      padding: 10px 15px;
+    }
+  }
+}

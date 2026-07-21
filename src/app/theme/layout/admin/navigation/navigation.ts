@@ -20,8 +20,8 @@ export interface NavigationItem {
 
 export const NavigationItems: NavigationItem[] = [
   {
-    id: 'navigation',
-    title: 'Navigation',
+    id: 'main',
+    title: 'Principal',
     type: 'group',
     icon: 'icon-group',
     children: [
@@ -35,60 +35,8 @@ export const NavigationItems: NavigationItem[] = [
     ]
   },
   {
-    id: 'ui-component',
-    title: 'Ui Component',
-    type: 'group',
-    icon: 'icon-group',
-    children: [
-      {
-        id: 'basic',
-        title: 'Component',
-        type: 'collapse',
-        icon: 'feather icon-box',
-        children: [
-          {
-            id: 'button',
-            title: 'Button',
-            type: 'item',
-            url: '/component/button'
-          },
-          {
-            id: 'badges',
-            title: 'Badges',
-            type: 'item',
-            url: '/component/badges'
-          },
-          {
-            id: 'breadcrumb-pagination',
-            title: 'Breadcrumb & Pagination',
-            type: 'item',
-            url: '/component/breadcrumb-paging'
-          },
-          {
-            id: 'collapse',
-            title: 'Collapse',
-            type: 'item',
-            url: '/component/collapse'
-          },
-          {
-            id: 'tabs-pills',
-            title: 'Tabs & Pills',
-            type: 'item',
-            url: '/component/tabs-pills'
-          },
-          {
-            id: 'typography',
-            title: 'Typography',
-            type: 'item',
-            url: '/component/typography'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'fiche-module',
-    title: 'Fiche Module',
+    id: 'plateforme',
+    title: 'Plateforme',
     type: 'group',
     icon: 'icon-group',
     children: [
@@ -117,11 +65,11 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item'
       },
       {
-        id: 'prof-dashboard',
-        title: 'Tableau de Bord',
+        id: 'flashcards',
+        title: 'Flashcards',
         type: 'item',
-        url: '/prof-dashboard',
-        icon: 'feather icon-bar-chart-2',
+        url: '/flashcards',
+        icon: 'feather icon-layers',
         classes: 'nav-item'
       },
       {
@@ -133,130 +81,20 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item'
       },
       {
-        id: 'flashcards',
-        title: 'Flashcards',
+        id: 'library',
+        title: 'Bibliothèque',
         type: 'item',
-        url: '/flashcards',
-        icon: 'feather icon-layers',
+        url: '/library',
+        icon: 'feather icon-book-open',
         classes: 'nav-item'
-      }
-    ]
-  },
-  {
-    id: 'Authentication',
-    title: 'Authentication',
-    type: 'group',
-    icon: 'icon-group',
-    children: [
-      {
-        id: 'signup',
-        title: 'Sign up',
-        type: 'item',
-        url: '/register',
-        icon: 'feather icon-at-sign',
-        target: true,
-        breadcrumbs: false
       },
       {
-        id: 'signin',
-        title: 'Sign in',
+        id: 'prof-dashboard',
+        title: 'Tableau de Bord',
         type: 'item',
-        url: '/login',
-        icon: 'feather icon-log-in',
-        target: true,
-        breadcrumbs: false
-      }
-    ]
-  },
-  {
-    id: 'chart',
-    title: 'Chart',
-    type: 'group',
-    icon: 'icon-group',
-    children: [
-      {
-        id: 'apexchart',
-        title: 'ApexChart',
-        type: 'item',
-        url: '/chart',
-        classes: 'nav-item',
-        icon: 'feather icon-pie-chart'
-      }
-    ]
-  },
-  {
-    id: 'forms & tables',
-    title: 'Forms & Tables',
-    type: 'group',
-    icon: 'icon-group',
-    children: [
-      {
-        id: 'forms',
-        title: 'Basic Forms',
-        type: 'item',
-        url: '/forms',
-        classes: 'nav-item',
-        icon: 'feather icon-file-text'
-      },
-      {
-        id: 'tables',
-        title: 'Tables',
-        type: 'item',
-        url: '/tables',
-        classes: 'nav-item',
-        icon: 'feather icon-server'
-      }
-    ]
-  },
-  {
-    id: 'other',
-    title: 'Other',
-    type: 'group',
-    icon: 'icon-group',
-    children: [
-      {
-        id: 'sample-page',
-        title: 'Sample Page',
-        type: 'item',
-        url: '/sample-page',
-        classes: 'nav-item',
-        icon: 'feather icon-sidebar'
-      },
-      {
-        id: 'menu-level',
-        title: 'Menu Levels',
-        type: 'collapse',
-        icon: 'feather icon-menu',
-        children: [
-          {
-            id: 'menu-level-2.1',
-            title: 'Menu Level 2.1',
-            type: 'item',
-            url: 'javascript:',
-            external: true
-          },
-          {
-            id: 'menu-level-2.2',
-            title: 'Menu Level 2.2',
-            type: 'collapse',
-            children: [
-              {
-                id: 'menu-level-2.2.1',
-                title: 'Menu Level 2.2.1',
-                type: 'item',
-                url: 'javascript:',
-                external: true
-              },
-              {
-                id: 'menu-level-2.2.2',
-                title: 'Menu Level 2.2.2',
-                type: 'item',
-                url: 'javascript:',
-                external: true
-              }
-            ]
-          }
-        ]
+        url: '/prof-dashboard',
+        icon: 'feather icon-bar-chart-2',
+        classes: 'nav-item'
       }
     ]
   }

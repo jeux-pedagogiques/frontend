@@ -1,6 +1,13 @@
 <div class="pitching-page">
 
-  <!-- Error -->
+  <!-- Success -->
+  <div class="pc-alert success" *ngIf="successMessage()">
+    <i class="feather icon-check-circle"></i>
+    <span>{{ successMessage() }}</span>
+    <button class="alert-close" (click)="successMessage.set('')"><i class="feather icon-x"></i></button>
+  </div>
+
+  <!-- Loading -->
   <div class="pc-alert error" *ngIf="errorMessage()">
     <i class="feather icon-alert-triangle"></i>
     <span>{{ errorMessage() }}</span>
@@ -100,17 +107,47 @@
   <!-- ================================================================== -->
   <div *ngIf="pageState() === 'result' && pitchingResult()" class="result-section">
 
+    <!-- Top Confirmation Banner & Action Bar -->
+    <div class="confirm-action-bar mb-4 p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3"
+         [class.bg-light-success]="isConfirmed()"
+         [class.bg-light-warning]="!isConfirmed()">
+      <div class="d-flex align-items-center gap-2">
+        <i class="feather text-xl" [class.icon-check-circle]="isConfirmed()" [class.icon-edit-3]="!isConfirmed()"
+           [style.color]="isConfirmed() ? '#16a34a' : '#d97706'"></i>
+        <div>
+          <strong *ngIf="!isConfirmed()" class="text-dark">Mode Prévisualisation & Édition</strong>
+          <strong *ngIf="isConfirmed()" class="text-success">Challenge Enregistré !</strong>
+          <p class="mb-0 text-muted small">
+            {{ isConfirmed() ? 'Ce challenge est enregistré dans votre bibliothèque.' : 'Vous pouvez modifier le titre, le sujet principal ou les sujets par équipe ci-dessous avant de valider.' }}
+          </p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary btn-sm" (click)="backToSelect()">
+          <i class="feather icon-arrow-left me-1"></i> Retour
+        </button>
+        <button class="btn btn-success btn-sm px-3 fw-bold shadow-sm" (click)="confirmAndSave()" [disabled]="isSaving() || isConfirmed()">
+          <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!isSaving() && !isConfirmed()" class="feather icon-check-circle me-1"></i>
+          <i *ngIf="isConfirmed()" class="feather icon-check me-1"></i>
+          {{ isConfirmed() ? 'Enregistré ✓' : (isSaving() ? 'Enregistrement...' : 'Confirmer & Enregistrer') }}
+        </button>
+      </div>
+    </div>
+
     <div class="section-header">
       <div class="header-icon">
         <i class="feather icon-mic"></i>
       </div>
-      <div>
-        <h1>{{ pitchingResult()!.titre_challenge }}</h1>
-        <p class="subtitle">{{ moduleTitle() }}</p>
+      <div class="flex-grow-1">
+        <label class="form-label text-muted small fw-semibold mb-1">Titre du Challenge (modifiable)</label>
+        <input type="text" 
+               class="form-control form-control-lg fw-bold border-1 shadow-sm"
+               [ngModel]="pitchingResult()!.titre_challenge"
+               (ngModelChange)="updateTitle($event)"
+               placeholder="Titre du challenge">
+        <p class="subtitle mt-1 mb-0">{{ moduleTitle() }}</p>
       </div>
-      <button class="btn-back" (click)="backToSelect()">
-        <i class="feather icon-arrow-left"></i> Retour
-      </button>
     </div>
 
     <!-- AA Cibles -->
@@ -141,16 +178,33 @@
     <!-- Tab: Sujet -->
     <div *ngIf="activeTab() === 'sujet'" class="tab-content">
       <div class="sujet-card">
-        <h3>Sujet principal</h3>
-        <p class="sujet-text">{{ pitchingResult()!.sujet_principal }}</p>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h3>Sujet principal</h3>
+          <span class="badge bg-light text-muted fw-normal"><i class="feather icon-edit-2 me-1"></i>Modifiable</span>
+        </div>
+        <textarea class="form-control sujet-textarea border-1 shadow-sm"
+                  rows="5"
+                  [ngModel]="pitchingResult()!.sujet_principal"
+                  (ngModelChange)="updateSujetPrincipal($event)"
+                  placeholder="Sujet principal du challenge..."></textarea>
       </div>
 
       <div *ngIf="pitchingResult()!.sujets_par_equipe && pitchingResult()!.sujets_par_equipe!.length > 0" class="sujets-equipe-section">
-        <h3>Sujets par equipe</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="mb-0">Sujets par équipe</h3>
+          <span class="badge bg-light text-muted fw-normal"><i class="feather icon-edit-2 me-1"></i>Modifiables</span>
+        </div>
         <div class="sujets-grid">
-          <div *ngFor="let sujet of pitchingResult()!.sujets_par_equipe; let i = index" class="sujet-equipe-card">
-            <span class="equipe-num">Equipe {{ i + 1 }}</span>
-            <p>{{ sujet }}</p>
+          <div *ngFor="let sujet of pitchingResult()!.sujets_par_equipe; let i = index" class="sujet-equipe-card shadow-sm">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="equipe-num">Équipe {{ i + 1 }}</span>
+              <i class="feather icon-edit-2 text-muted" style="font-size: 13px;"></i>
+            </div>
+            <textarea class="form-control border-1 equipe-textarea"
+                      rows="5"
+                      [ngModel]="sujet"
+                      (ngModelChange)="updateSujetEquipe(i, $event)"
+                      placeholder="Sujet pour l'équipe {{ i + 1 }}..."></textarea>
           </div>
         </div>
       </div>

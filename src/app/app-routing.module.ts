@@ -94,6 +94,11 @@ const routes: Routes = [
         path: 'flashcards',
         canActivate: [authGuard],
         loadComponent: () => import('./demo/pages/flashcards/flashcards.component').then((c) => c.FlashcardsComponent)
+      },
+      {
+        path: 'library',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/library/library.component').then((c) => c.LibraryComponent)
       }
     ]
   }

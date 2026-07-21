@@ -442,14 +442,11 @@ export class ImportModuleComponent implements OnInit {
     this.http.post<any>(`${this.apiUrl}/history`, payload).subscribe({
       next: (savedEntry: any) => {
         this.isLoading.set(false);
-        this.loadedAnalysisId.set(savedEntry.id);
-        this.successMessage.set('Analyse confirmée et sauvegardée dans l\'historique ! Vous pouvez maintenant générer votre quiz ci-dessous.');
         this.loadHistory();
+        this.backToImport();
+        this.successMessage.set(`Fiche module "${savedEntry.module_title || result.module_title}" confirmée et enregistrée avec succès dans votre historique !`);
         this.cd.detectChanges();
-        setTimeout(() => {
-          const el = document.getElementById('quiz-generator-card');
-          el?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err) => {
         this.isLoading.set(false);

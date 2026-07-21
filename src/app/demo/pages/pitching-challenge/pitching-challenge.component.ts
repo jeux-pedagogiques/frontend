@@ -156,6 +156,9 @@ export class PitchingChallengeComponent implements OnInit {
     return this.bloomColors[level] || '#6b7280';
   }
 
+  isConfirmed = signal(false);
+  isSaving = signal(false);
+
   generateChallenge(): void {
     const analysis = this.selectedAnalysis();
     if (!analysis) return;
@@ -163,6 +166,8 @@ export class PitchingChallengeComponent implements OnInit {
     this.pageState.set('generating');
     this.isLoading.set(true);
     this.errorMessage.set('');
+    this.successMessage.set('');
+    this.isConfirmed.set(false);
 
     const body = {
       module_id: analysis.id,
@@ -190,9 +195,70 @@ export class PitchingChallengeComponent implements OnInit {
     });
   }
 
+  confirmAndSave(): void {
+    const result = this.pitchingResult();
+    const analysis = this.selectedAnalysis();
+    if (!result || !analysis) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    const body = {
+      module_id: analysis.id,
+      titre_challenge: result.titre_challenge,
+      sujet_principal: result.sujet_principal,
+      sujets_par_equipe: result.sujets_par_equipe || [],
+      aa_cibles: result.aa_cibles || [],
+      criteres_vote: result.criteres_vote || [],
+      grille_feedback: result.grille_feedback || {},
+      questions_debriefing: result.questions_debriefing || [],
+      fiche_animateur: result.fiche_animateur || '',
+      fiche_participant: result.fiche_participant || ''
+    };
+
+    this.http.post<any>(`${this.apiUrl}/pitching/confirm`, body).subscribe({
+      next: (res) => {
+        this.isSaving.set(false);
+        this.isConfirmed.set(true);
+        this.successMessage.set('Challenge confirmé et enregistré avec succès dans votre bibliothèque !');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err.error?.detail || 'Erreur lors de la sauvegarde du challenge.');
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  updateTitle(val: string): void {
+    const current = this.pitchingResult();
+    if (current) {
+      this.pitchingResult.set({ ...current, titre_challenge: val });
+    }
+  }
+
+  updateSujetPrincipal(val: string): void {
+    const current = this.pitchingResult();
+    if (current) {
+      this.pitchingResult.set({ ...current, sujet_principal: val });
+    }
+  }
+
+  updateSujetEquipe(index: number, val: string): void {
+    const current = this.pitchingResult();
+    if (current && current.sujets_par_equipe) {
+      const updatedList = [...current.sujets_par_equipe];
+      updatedList[index] = val;
+      this.pitchingResult.set({ ...current, sujets_par_equipe: updatedList });
+    }
+  }
+
   backToSelect(): void {
     this.pageState.set('select');
     this.pitchingResult.set(null);
     this.errorMessage.set('');
+    this.successMessage.set('');
+    this.isConfirmed.set(false);
   }
 }

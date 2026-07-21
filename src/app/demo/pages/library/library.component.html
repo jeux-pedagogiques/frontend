@@ -1,0 +1,408 @@
+<div class="library-container p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-1">Bibliothèque de Jeux</h4>
+      <p class="text-muted mb-0">Gérez et consultez vos jeux éducatifs <span class="badge bg-primary ms-2">{{ totalItems() }} total</span></p>
+    </div>
+  </div>
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <div class="search-input-wrapper">
+            <i class="feather icon-search search-icon"></i>
+            <input type="text" class="form-control ps-5" placeholder="Rechercher par titre ou concept..." [value]="searchQuery()" (input)="onSearch($event)">
+          </div>
+        </div>
+
+        <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 justify-content-md-end">
+          <div class="d-flex flex-wrap gap-2 me-2">
+            @for (type of gameTypes; track type.value) {
+              <button class="btn filter-chip" 
+                      [class.active]="selectedGameType() === type.value"
+                      [style.border-color]="type.color"
+                      [style.color]="selectedGameType() === type.value ? '#fff' : type.color"
+                      [style.background-color]="selectedGameType() === type.value ? type.color : 'transparent'"
+                      (click)="toggleGameType(type.value)">
+                <i [class]="type.icon" class="me-1"></i> {{ type.label }}
+              </button>
+            }
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 me-2">
+            @for (level of bloomLevels; track level.value) {
+              <button class="btn bloom-badge"
+                      [class.active]="selectedBloomLevels().includes(level.value)"
+                      [style.border-color]="level.color"
+                      [style.color]="selectedBloomLevels().includes(level.value) ? '#fff' : level.color"
+                      [style.background-color]="selectedBloomLevels().includes(level.value) ? level.color : 'transparent'"
+                      (click)="toggleBloomLevel(level.value)">
+                {{ level.emoji }} {{ level.label }}
+              </button>
+            }
+          </div>
+
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-outline-secondary" id="moduleDropdown" ngbDropdownToggle>
+              {{ getModuleName(selectedModuleId()) }}
+            </button>
+            <div ngbDropdownMenu aria-labelledby="moduleDropdown">
+              <button ngbDropdownItem (click)="selectModule(null)">Tous les modules</button>
+              @for (mod of modules(); track mod.id) {
+                <button ngbDropdownItem (click)="selectModule(mod.id)">{{ mod.module_title }}</button>
+              }
+            </div>
+          </div>
+
+          <button class="btn btn-outline-secondary" (click)="toggleSortOrder()" title="Trier par date">
+            <i class="feather icon-calendar"></i>
+            <i class="feather ms-1" [class.icon-arrow-down]="sortOrder() === 'desc'" [class.icon-arrow-up]="sortOrder() === 'asc'"></i>
+          </button>
+
+          <button class="btn" [class.btn-outline-danger]="showArchived()" [class.btn-outline-secondary]="!showArchived()" (click)="toggleArchived()">
+            {{ showArchived() ? 'Voir actifs' : 'Voir archivés' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  } @else {
+    @if (items().length === 0) {
+      <div class="empty-state">
+        <i class="feather icon-inbox display-1 text-muted mb-3 d-block"></i>
+        <h5 class="text-muted">Aucun jeu trouvé</h5>
+        <p class="text-muted">Modifiez vos filtres ou effectuez une autre recherche.</p>
+      </div>
+    } @else {
+      <div class="row g-4">
+        @for (item of items(); track item.game_id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 game-card" [style.border-left-color]="getGameTypeInfo(item.game_type).color">
+              <div class="card-header border-0 bg-transparent pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge text-white" [style.background-color]="getGameTypeInfo(item.game_type).color">
+                    <i [class]="getGameTypeInfo(item.game_type).icon" class="me-1"></i>
+                    {{ getGameTypeInfo(item.game_type).label }}
+                  </span>
+                  <small class="text-muted text-truncate ms-2" style="max-width: 150px;">
+                    {{ item.module_title || 'Module inconnu' }}
+                  </small>
+                </div>
+              </div>
+              <div class="card-body cursor-pointer" (click)="consultGame(item, consultModal)">
+                <h6 class="card-title text-primary hover-underline">{{ item.titre || item.title || 'Sans titre' }}</h6>
+                <div class="mb-2">
+                  @for (bloom of item.niveaux_bloom; track bloom) {
+                    <span class="badge me-1" 
+                          [style.color]="getBloomInfo(bloom).color" 
+                          [style.border]="'1px solid ' + getBloomInfo(bloom).color">
+                      {{ getBloomInfo(bloom).emoji }} {{ getBloomInfo(bloom).label }}
+                    </span>
+                  }
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                  @for (concept of item.concepts_cles | slice:0:3; track concept) {
+                    <span class="badge bg-light text-dark text-muted">{{ concept }}</span>
+                  }
+                  @if (item.concepts_cles?.length > 3) {
+                    <span class="badge bg-light text-dark text-muted">+{{ item.concepts_cles.length - 3 }}</span>
+                  }
+                </div>
+              </div>
+              <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ item.created_at | date:'dd/MM/yyyy' }}</small>
+                <div class="card-actions">
+                  <button class="btn btn-consult rounded-pill" (click)="consultGame(item, consultModal)" title="Consulter le jeu">
+                    <i class="feather icon-eye me-1"></i> Consulter
+                  </button>
+                  <button class="btn btn-action-icon btn-duplicate" (click)="duplicateGame(item)" title="Dupliquer">
+                    <i class="feather icon-copy"></i>
+                  </button>
+                  <button class="btn btn-action-icon btn-regenerate" (click)="openRegenerateModal(item, regenerateModal)" title="Régénérer avec IA">
+                    <i class="feather icon-refresh-cw"></i>
+                  </button>
+                  <button class="btn btn-action-icon btn-archive" 
+                          [class.archived]="item.archived"
+                          (click)="archiveGame(item)" 
+                          [title]="item.archived ? 'Désarchiver' : 'Archiver'">
+                    <i class="feather" [class.icon-archive]="!item.archived" [class.icon-rotate-ccw]="item.archived"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="d-flex justify-content-center mt-5">
+        <ngb-pagination 
+          [collectionSize]="totalItems()" 
+          [page]="currentPage()" 
+          [pageSize]="pageSize()" 
+          (pageChange)="onPageChange($event)"
+          [maxSize]="5" 
+          [boundaryLinks]="true">
+        </ngb-pagination>
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal Régénérer avec IA -->
+<ng-template #regenerateModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Régénérer avec IA</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-2">Jeu : <strong>{{ regeneratingItem()?.titre || regeneratingItem()?.title }}</strong></p>
+    <div class="mb-3">
+      <label class="form-label">Consignes de régénération</label>
+      <textarea class="form-control" rows="4" 
+                placeholder="Décrivez les modifications souhaitées..."
+                [ngModel]="regenerateConsignes()"
+                (ngModelChange)="regenerateConsignes.set($event)">
+      </textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()" [disabled]="isRegenerating()">Annuler</button>
+    <button type="button" class="btn btn-primary" (click)="confirmRegenerate(modal)" 
+            [disabled]="isRegenerating() || !regenerateConsignes()">
+      @if (isRegenerating()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+      }
+      Confirmer
+    </button>
+  </div>
+</ng-template>
+
+<!-- Modal Consultation du Jeu -->
+<ng-template #consultModal let-modal>
+  <div class="modal-header border-bottom-0 pb-0">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge text-white px-3 py-2 fs-6" [style.background-color]="getGameTypeInfo(selectedConsultGame()?.game_type || '').color">
+        <i [class]="getGameTypeInfo(selectedConsultGame()?.game_type || '').icon" class="me-1"></i>
+        {{ getGameTypeInfo(selectedConsultGame()?.game_type || '').label }}
+      </span>
+      <div>
+        <h4 class="modal-title mb-0 fw-bold">{{ selectedConsultGame()?.titre || selectedConsultGame()?.titre_escape_room || 'Consultation du Jeu' }}</h4>
+        <small class="text-muted" *ngIf="selectedConsultGame()?.module_title">{{ selectedConsultGame()?.module_title }}</small>
+      </div>
+    </div>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body pt-3">
+    @if (isConsultLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="text-muted mt-2">Chargement des détails du jeu...</p>
+      </div>
+    } @else if (selectedConsultGame()) {
+
+      <!-- ================= QUIZ ================= -->
+      @if (selectedConsultGame().game_type === 'quiz') {
+        <div class="quiz-consult-container">
+          <div class="d-flex gap-3 mb-4 p-3 bg-light rounded-3">
+            <span class="badge bg-indigo text-white p-2">Mode : {{ selectedConsultGame().mode || 'Formatif' }}</span>
+            <span class="badge bg-secondary p-2">{{ selectedConsultGame().quiz_data?.questions?.length || selectedConsultGame().nb_questions || 0 }} Questions</span>
+          </div>
+
+          <div class="questions-list">
+            @for (q of (selectedConsultGame().quiz_data?.questions || []); track $index) {
+              <div class="card mb-3 border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary me-2">Question {{ $index + 1 }}</span>
+                    <span class="badge bg-light text-dark border">{{ q.type | uppercase }}</span>
+                  </div>
+                  <h5 class="card-title fw-bold text-dark mb-3">{{ q.question }}</h5>
+
+                  <div class="options-grid row g-2 mb-3">
+                    @for (opt of q.options; track $index) {
+                      <div class="col-12 col-md-6">
+                        <div class="p-2 border rounded-3 d-flex align-items-center"
+                             [class.bg-success-subtle]="opt === q.bonne_reponse"
+                             [class.border-success]="opt === q.bonne_reponse">
+                          <i class="feather me-2" [class.icon-check-circle]="opt === q.bonne_reponse" [class.text-success]="opt === q.bonne_reponse" [class.icon-circle]="opt !== q.bonne_reponse" [class.text-muted]="opt !== q.bonne_reponse"></i>
+                          <span [class.fw-bold]="opt === q.bonne_reponse" [class.text-success]="opt === q.bonne_reponse">{{ opt }}</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  @if (q.explication) {
+                    <div class="p-2 bg-light-info text-info rounded-3 small">
+                      <i class="feather icon-info me-1"></i> <strong>Explication :</strong> {{ q.explication }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ================= ESCAPE ROOM ================= -->
+      @if (selectedConsultGame().game_type === 'escape_room') {
+        <div class="escape-consult-container">
+          <div class="mb-4 p-3 bg-dark text-white rounded-3 shadow-sm">
+            <h6 class="text-warning fw-bold mb-1"><i class="feather icon-film me-1"></i> Scénario d'introduction</h6>
+            <p class="mb-0 text-light">{{ selectedConsultGame().scenario_intro }}</p>
+          </div>
+
+          <h5 class="fw-bold mb-3"><i class="feather icon-lock me-1 text-danger"></i> Énigmes ({{ selectedConsultGame().escape_room_data?.enigmes?.length || selectedConsultGame().nb_enigmes }})</h5>
+
+          <div class="row g-3 mb-4">
+            @for (enigme of (selectedConsultGame().escape_room_data?.enigmes || []); track $index) {
+              <div class="col-12">
+                <div class="card border-1 shadow-sm">
+                  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-danger">Énigme {{ enigme.ordre || ($index + 1) }} — {{ enigme.type_enigme | uppercase }}</span>
+                    <span class="badge bg-secondary">Niveau Bloom : {{ enigme.niveau_bloom }}</span>
+                  </div>
+                  <div class="card-body">
+                    <p class="fw-semibold text-dark fs-6">{{ enigme.enonce }}</p>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                      <span class="badge bg-success-subtle text-success border border-success p-2">
+                        <i class="feather icon-key me-1"></i> Solution / Code : {{ enigme.solution || enigme.code_deverrouillage_suivant }}
+                      </span>
+                      @if (enigme.indice_optionnel) {
+                        <span class="badge bg-warning-subtle text-dark border border-warning p-2">
+                          <i class="feather icon-help-circle me-1"></i> Indice : {{ enigme.indice_optionnel }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (selectedConsultGame().escape_room_data?.fiche_animateur) {
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body">
+                <h6 class="fw-bold text-primary"><i class="feather icon-user me-1"></i> Fiche Animateur</h6>
+                <p class="mb-0 text-muted small whitespace-pre-line">{{ selectedConsultGame().escape_room_data.fiche_animateur }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= PITCHING CHALLENGE ================= -->
+      @if (selectedConsultGame().game_type === 'pitching') {
+        <div class="pitching-consult-container">
+          <div class="p-3 bg-warning-subtle rounded-3 mb-4 border border-warning">
+            <h6 class="fw-bold text-dark mb-1"><i class="feather icon-lightbulb me-1"></i> Sujet Principal</h6>
+            <p class="mb-0 text-dark fs-6">{{ selectedConsultGame().pitching_data?.sujet_principal || selectedConsultGame().description }}</p>
+          </div>
+
+          @if (selectedConsultGame().pitching_data?.sujets_par_equipe?.length) {
+            <h5 class="fw-bold mb-3"><i class="feather icon-users me-1 text-primary"></i> Sujets par Équipe</h5>
+            <div class="row g-3 mb-4">
+              @for (sujet of selectedConsultGame().pitching_data.sujets_par_equipe; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-1 shadow-sm">
+                    <div class="card-body">
+                      <span class="badge bg-primary mb-2">Équipe {{ $index + 1 }}</span>
+                      <p class="card-text text-dark fw-medium mb-0">{{ sujet }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedConsultGame().pitching_data?.criteres_vote?.length) {
+            <h5 class="fw-bold mb-3"><i class="feather icon-star me-1 text-warning"></i> Critères de Vote</h5>
+            <div class="row g-2 mb-4">
+              @for (c of selectedConsultGame().pitching_data.criteres_vote; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="p-2 border rounded-3 bg-light">
+                    <strong class="text-dark">{{ c.critere }}</strong>
+                    <p class="text-muted small mb-0">{{ c.description }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= FLASHCARDS ================= -->
+      @if (selectedConsultGame().game_type === 'flashcards') {
+        <div class="flashcards-consult-container">
+          @if (selectedConsultGame().cartes?.length) {
+            <!-- Interactive Card Viewer -->
+            <div class="text-center mb-4">
+              <div class="flashcard-box p-4 rounded-4 shadow cursor-pointer mx-auto d-flex align-items-center justify-content-center"
+                   style="max-width: 480px; min-height: 220px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;"
+                   (click)="flipCard()">
+                <div class="text-center">
+                  <small class="badge bg-white text-dark mb-2 opacity-75">{{ isCardFlipped() ? 'VERSO (Réponse)' : 'RECTO (Question)' }}</small>
+                  <h4 class="text-white fw-bold mb-0">
+                    {{ isCardFlipped() ? selectedConsultGame().cartes[currentCardIndex()]?.verso : selectedConsultGame().cartes[currentCardIndex()]?.recto }}
+                  </h4>
+                  <small class="d-block mt-3 opacity-50"><i class="feather icon-rotate-cw me-1"></i> Cliquez pour tourner la carte</small>
+                </div>
+              </div>
+
+              <!-- Deck Navigation -->
+              <div class="d-flex align-items-center justify-content-center gap-3 mt-3">
+                <button class="btn btn-outline-secondary rounded-circle" (click)="prevCard()" [disabled]="currentCardIndex() === 0">
+                  <i class="feather icon-chevron-left"></i>
+                </button>
+                <span class="fw-bold text-muted">Carte {{ currentCardIndex() + 1 }} / {{ selectedConsultGame().cartes.length }}</span>
+                <button class="btn btn-outline-secondary rounded-circle" (click)="nextCard()" [disabled]="currentCardIndex() === selectedConsultGame().cartes.length - 1">
+                  <i class="feather icon-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Cards List Table -->
+            <h6 class="fw-bold text-muted mb-2">Toutes les cartes ({{ selectedConsultGame().cartes.length }})</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle border">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>Recto (Question / Terme)</th>
+                    <th>Verso (Réponse / Définition)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (card of selectedConsultGame().cartes; track card.id) {
+                    <tr>
+                      <td class="fw-bold text-muted">{{ card.ordre || ($index + 1) }}</td>
+                      <td class="fw-semibold text-dark">{{ card.recto }}</td>
+                      <td class="text-muted">{{ card.verso }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="text-muted text-center py-3">Aucune carte enregistrée dans ce jeu.</p>
+          }
+        </div>
+      }
+
+    }
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Fermer</button>
+  </div>
+</ng-template>
