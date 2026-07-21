@@ -16,11 +16,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: ./frontend/yarn.lock
 
       - name: Build Production Bundle
         run: |
-          npm ci
-          npm run build-prod
+          yarn install
+          yarn build-prod
 
       - name: Deploy Frontend Assets
         run: |
