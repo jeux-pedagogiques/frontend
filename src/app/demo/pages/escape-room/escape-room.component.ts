@@ -335,7 +335,14 @@ export class EscapeRoomComponent implements OnInit {
   }
 
   formatNewlines(text: string): string {
-    return text.replace(/\n/g, '<br>');
+    if (!text) return '';
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    return escaped.replace(/\n/g, '<br>');
   }
 
   clamp(value: number, min: number, max: number): number {

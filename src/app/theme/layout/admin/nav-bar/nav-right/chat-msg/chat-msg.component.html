@@ -1,6 +1,6 @@
 <div class="h-list-header">
   <h6>{{ chatMessage.name }}</h6>
-  <a href="javascript:" class="h-back-user-list" (click)="this.ChatToggle.emit()"><i class="feather icon-chevron-left"></i></a>
+  <a href="javascript:void(0)" class="h-back-user-list" (click)="this.ChatToggle.emit()"><i class="feather icon-chevron-left"></i></a>
 </div>
 
 <div class="h-list-body">
@@ -12,7 +12,7 @@
             <div>
               <div class="media chat-messages">
                 @if (messages.type) {
-                  <a class="media-left photo-table" href="javascript:">
+                  <a class="media-left photo-table" href="javascript:void(0)">
                     <img class="media-object img-radius img-radius m-t-5" src="{{ chatMessage.photo }}" alt="{{ chatMessage.name }}" />
                   </a>
                 }
@@ -28,7 +28,7 @@
           <div #newChat [innerHTML]="newReplay"></div>
           @if (friendWriting) {
             <div class="media chat-messages typing">
-              <a class="media-left photo-table" href="javascript:">
+              <a class="media-left photo-table" href="javascript:void(0)">
                 <img class="media-object img-radius img-radius m-t-5" src="{{ chatMessage.photo }}" alt="{{ chatMessage.name }}" />
               </a>
               <div class="media-body chat-menu-content">
@@ -55,7 +55,7 @@
 <div class="h-list-footer">
   <div class="input-group" (focusout)="this.message_error = false">
     <input type="file" class="chat-attach" style="display: none" />
-    <a href="javascript:" class="input-group-prepend btn btn-success btn-attach" [ngClass]="{ 'btn-danger': message_error === true }">
+    <a href="javascript:void(0)" class="input-group-prepend btn btn-success btn-attach" [ngClass]="{ 'btn-danger': message_error === true }">
       <i class="feather icon-paperclip"></i>
     </a>
     <input
