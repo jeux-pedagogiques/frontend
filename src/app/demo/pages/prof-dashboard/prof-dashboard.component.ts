@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
-import { ApexOptions, ChartComponent, NgApexchartsModule } from 'ng-apexcharts';
+import { ApexOptions, NgApexchartsModule } from 'ng-apexcharts';
 
 interface OverviewData {
   total_sessions: number;
@@ -56,7 +56,7 @@ interface ComparisonData {
 @Component({
   selector: 'app-prof-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedModule, RouterModule, NgApexchartsModule],
+  imports: [FormsModule, SharedModule, RouterModule, NgApexchartsModule],
   templateUrl: './prof-dashboard.component.html',
   styleUrls: ['./prof-dashboard.component.scss']
 })

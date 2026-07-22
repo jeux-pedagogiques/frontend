@@ -25,6 +25,8 @@ export default [{
     files: ["**/*.ts"],
 
     rules: {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
         "@angular-eslint/directive-selector": ["error", {
             type: "attribute",
             prefix: "app",

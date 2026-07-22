@@ -83,7 +83,7 @@ export class LibraryComponent implements OnInit {
 
   loadItems() {
     this.isLoading.set(true);
-    let params: any = {
+    const params: any = {
       page: this.currentPage(),
       page_size: this.pageSize(),
       sort_order: this.sortOrder(),

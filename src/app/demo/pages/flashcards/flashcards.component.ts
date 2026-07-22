@@ -9,7 +9,7 @@ import { environment } from 'src/environments/environment';
 interface ModuleAnalysis {
   id: number;
   module_title: string;
-  learning_outcomes: any[];
+  learning_outcomes: { id: number; description: string; bloom_level: string }[];
   key_concepts: string[];
   keywords: string[];
   module_summary?: string | null;

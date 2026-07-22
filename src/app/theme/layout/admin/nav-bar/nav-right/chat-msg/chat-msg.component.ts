@@ -54,13 +54,14 @@ export class ChatMsgComponent implements OnInit {
         this.message_error = false;
       } else {
         this.message_error = false;
-        const temp_replay = this.message;
+        const safeMessage = escapeHtml(this.message);
+        const temp_replay = safeMessage;
         const html_send =
           '<div class="media chat-messages">' +
           '<div class="media-body chat-menu-reply">' +
           '<div >' +
           '<p class="chat-cont">' +
-          this.message +
+          safeMessage +
           '</p>' +
           '</div>' +
           '<p class="chat-time">now</p>' +
@@ -74,11 +75,11 @@ export class ChatMsgComponent implements OnInit {
           this.friendWriting = false;
           const html_replay =
             '<div class="media chat-messages">' +
-            '<a class="media-left photo-table" href="javascript:">' +
+            '<a class="media-left photo-table" href="javascript:void(0)">' +
             '<img class="media-object img-radius img-radius m-t-5" src="' +
-            this.chatMessage.photo +
+            escapeHtml(this.chatMessage.photo) +
             '" alt="' +
-            this.chatMessage.name +
+            escapeHtml(this.chatMessage.name) +
             '">' +
             '</a>' +
             '<div class="media-body chat-menu-content">' +
@@ -98,6 +99,16 @@ export class ChatMsgComponent implements OnInit {
   }
 }
 
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function findObjectByKeyValue<T>(array: T[], key: keyof T, value: T[keyof T]) {
   for (let i = 0; i < array.length; i++) {
     if (array[i][key] === value) {
@@ -106,3 +117,4 @@ function findObjectByKeyValue<T>(array: T[], key: keyof T, value: T[keyof T]) {
   }
   return false;
 }
+

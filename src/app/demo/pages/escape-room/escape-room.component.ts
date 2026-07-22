@@ -24,7 +24,7 @@ interface ModuleAnalysis {
   target_audience?: string | null;
   module_summary?: string | null;
   original_content?: string | null;
-  quiz_data?: any;
+  quiz_data?: Record<string, unknown>;
   created_at?: string;
 }
 
@@ -335,7 +335,14 @@ export class EscapeRoomComponent implements OnInit {
   }
 
   formatNewlines(text: string): string {
-    return text.replace(/\n/g, '<br>');
+    if (!text) return '';
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    return escaped.replace(/\n/g, '<br>');
   }
 
   clamp(value: number, min: number, max: number): number {
@@ -375,7 +382,7 @@ export class EscapeRoomComponent implements OnInit {
       force: true
     };
 
-    this.http.post<any>(`${this.apiUrl}/modules/history/${analysis.id}/quiz`, payload).subscribe({
+    this.http.post<Record<string, unknown>>(`${this.apiUrl}/modules/history/${analysis.id}/quiz`, payload).subscribe({
       next: (quiz) => {
         this.generatedQuiz.set(quiz);
         this.isGeneratingQuiz.set(false);

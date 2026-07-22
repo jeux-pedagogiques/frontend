@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input } from '@angular/core';
+import { Directive, ElementRef, Input, inject } from '@angular/core';
 
 /**
  * Directive that allows binding a MediaStream to a <video> element's srcObject property.
@@ -9,6 +9,7 @@ import { Directive, ElementRef, Input } from '@angular/core';
   standalone: true
 })
 export class SrcObjectDirective {
+  private elementRef = inject(ElementRef);
   private _stream: MediaStream | null = null;
 
   @Input() set appSrcObject(stream: MediaStream | null) {
@@ -34,6 +35,5 @@ export class SrcObjectDirective {
       }
     }
   }
-
-  constructor(private elementRef: ElementRef) {}
 }
+

@@ -1,7 +1,7 @@
 // Angular Import
 import { Component, HostListener, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 
 // Project Import
 import { NavBarComponent } from './nav-bar/nav-bar.component';
@@ -12,7 +12,7 @@ import { AuthService } from '../../shared/service/auth.service';
 
 @Component({
   selector: 'app-admin',
-  imports: [RouterModule, NavBarComponent, CommonModule, BreadcrumbComponent, Footer],
+  imports: [RouterModule, NavBarComponent, BreadcrumbComponent, Footer],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss']
 })
