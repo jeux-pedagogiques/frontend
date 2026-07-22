@@ -68,7 +68,13 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   clientId = (() => {
     let id = sessionStorage.getItem('live_session_client_id');
     if (!id) {
-      id = 'user_' + Math.random().toString(36).substring(2, 9);
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+        id = 'user_' + window.crypto.randomUUID().substring(0, 8);
+      } else {
+        const rand = new Uint32Array(1);
+        window.crypto.getRandomValues(rand);
+        id = 'user_' + rand[0].toString(36);
+      }
       sessionStorage.setItem('live_session_client_id', id);
     }
     return id;
@@ -259,10 +265,16 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   generateRoomId(): string {
     const chars = 'abcdefghijklmnopqrstuvwxyz';
     const segments = [];
+    const randBuffer = new Uint32Array(12);
+    if (typeof window !== 'undefined' && window.crypto) {
+      window.crypto.getRandomValues(randBuffer);
+    }
+    let bufIndex = 0;
     for (let i = 0; i < 3; i++) {
       let segment = '';
       for (let j = 0; j < 4; j++) {
-        segment += chars.charAt(Math.floor(Math.random() * chars.length));
+        const randVal = randBuffer[bufIndex++] || Math.floor(Math.random() * 10000);
+        segment += chars.charAt(randVal % chars.length);
       }
       segments.push(segment);
     }
@@ -1575,7 +1587,12 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
           }
         });
       } else {
-        const pseudo = this.displayName || 'Étudiant_' + Math.floor(Math.random() * 100);
+        const randArray = new Uint32Array(1);
+        if (typeof window !== 'undefined' && window.crypto) {
+          window.crypto.getRandomValues(randArray);
+        }
+        const pseudoNum = randArray[0] ? (randArray[0] % 100) : Math.floor(Math.random() * 100);
+        const pseudo = this.displayName || 'Étudiant_' + pseudoNum;
         this.socket?.emit('session:join', {
           code_session: this.roomId(),
           pseudo: pseudo
