@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { AuthService, User } from 'src/app/theme/shared/service/auth.service';
@@ -7,7 +7,7 @@ import { AuthService, User } from 'src/app/theme/shared/service/auth.service';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedModule],
+  imports: [FormsModule, SharedModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })

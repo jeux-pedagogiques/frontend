@@ -7,10 +7,14 @@
       </div>
       <div class="card-body text-center pt-2">
         <div class="profile-avatar-wrapper position-relative d-inline-block">
-          <div class="profile-avatar-circle mb-3" *ngIf="!avatar()">
-            <span>{{ getInitials() }}</span>
-          </div>
-          <img *ngIf="avatar()" [src]="avatar()" class="profile-avatar-img mb-3" alt="Avatar">
+          @if (!avatar()) {
+            <div class="profile-avatar-circle mb-3">
+              <span>{{ getInitials() }}</span>
+            </div>
+          }
+          @if (avatar()) {
+            <img [src]="avatar()" class="profile-avatar-img mb-3" alt="Avatar">
+          }
           <label for="avatar-upload" class="avatar-edit-badge" title="Upload Photo">
             <i class="feather icon-camera"></i>
           </label>
@@ -18,13 +22,13 @@
         </div>
         <h4 class="mb-1">{{ first_name && last_name ? (first_name + ' ' + last_name) : username }}</h4>
         <p class="text-muted mb-3">@{{ username }}</p>
-        
+
         <div class="badge bg-light-primary text-primary mb-4 px-3 py-2" style="font-size: 13px; border-radius: 20px;">
           Active Account
         </div>
-        
+
         <hr class="my-4">
-        
+
         <div class="text-start">
           <div class="mb-3 d-flex align-items-center">
             <i class="feather icon-mail text-muted me-3" style="font-size: 18px;"></i>
@@ -33,20 +37,24 @@
               <span class="text-dark">{{ email }}</span>
             </div>
           </div>
-          <div class="mb-3 d-flex align-items-center" *ngIf="phone">
-            <i class="feather icon-phone text-muted me-3" style="font-size: 18px;"></i>
-            <div>
-              <small class="text-muted d-block">Phone Number</small>
-              <span class="text-dark">{{ phone }}</span>
+          @if (phone) {
+            <div class="mb-3 d-flex align-items-center">
+              <i class="feather icon-phone text-muted me-3" style="font-size: 18px;"></i>
+              <div>
+                <small class="text-muted d-block">Phone Number</small>
+                <span class="text-dark">{{ phone }}</span>
+              </div>
             </div>
-          </div>
-          <div class="mb-3 d-flex align-items-center" *ngIf="address">
-            <i class="feather icon-map-pin text-muted me-3" style="font-size: 18px;"></i>
-            <div>
-              <small class="text-muted d-block">Address</small>
-              <span class="text-dark">{{ address }}</span>
+          }
+          @if (address) {
+            <div class="mb-3 d-flex align-items-center">
+              <i class="feather icon-map-pin text-muted me-3" style="font-size: 18px;"></i>
+              <div>
+                <small class="text-muted d-block">Address</small>
+                <span class="text-dark">{{ address }}</span>
+              </div>
             </div>
-          </div>
+          }
         </div>
       </div>
     </div>
@@ -60,12 +68,16 @@
       </div>
       <div class="card-body">
         <!-- Messages -->
-        <div *ngIf="successMessage()" class="alert alert-success border-0 shadow-sm mb-4" role="alert" style="background-color: #d1e7dd; color: #0f5132; padding: 12px 15px; border-radius: 6px;">
-          <i class="feather icon-check-circle me-2"></i> {{ successMessage() }}
-        </div>
-        <div *ngIf="errorMessage()" class="alert alert-danger border-0 shadow-sm mb-4" role="alert" style="background-color: #f8d7da; color: #842029; padding: 12px 15px; border-radius: 6px;">
-          <i class="feather icon-alert-triangle me-2"></i> {{ errorMessage() }}
-        </div>
+        @if (successMessage()) {
+          <div class="alert alert-success border-0 shadow-sm mb-4" role="alert" style="background-color: #d1e7dd; color: #0f5132; padding: 12px 15px; border-radius: 6px;">
+            <i class="feather icon-check-circle me-2"></i> {{ successMessage() }}
+          </div>
+        }
+        @if (errorMessage()) {
+          <div class="alert alert-danger border-0 shadow-sm mb-4" role="alert" style="background-color: #f8d7da; color: #842029; padding: 12px 15px; border-radius: 6px;">
+            <i class="feather icon-alert-triangle me-2"></i> {{ errorMessage() }}
+          </div>
+        }
 
         <form (submit)="onSubmit($event)">
           <!-- Account Details -->

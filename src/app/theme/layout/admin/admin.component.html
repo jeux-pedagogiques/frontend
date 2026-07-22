@@ -1,16 +1,19 @@
-<app-nav-bar
-  *ngIf="isLoggedIn()"
-  class="navbar pcoded-header navbar-expand-lg navbar-light header-blue headerPos-fixed"
-  (NavCollapse)="this.navCollapsed = !this.navCollapsed"
-  (NavCollapsedMob)="navMobClick()"
-></app-nav-bar>
+@if (isLoggedIn()) {
+  <app-nav-bar
+    class="navbar pcoded-header navbar-expand-lg navbar-light header-blue headerPos-fixed"
+    (NavCollapse)="this.navCollapsed = !this.navCollapsed"
+    (NavCollapsedMob)="navMobClick()"
+  ></app-nav-bar>
+}
 <div class="pcoded-main-container" style="margin-left: 0px !important;">
   <div class="pcoded-wrapper">
     <div class="pcoded-content" [style.padding]="isLoggedIn() ? '' : '0px'">
       <div class="pcoded-inner-content">
         <div class="main-body">
           <div class="page-wrapper">
-            <app-breadcrumb *ngIf="isLoggedIn()" />
+            @if (isLoggedIn()) {
+              <app-breadcrumb />
+            }
             <router-outlet />
           </div>
         </div>
@@ -19,4 +22,6 @@
   </div>
   <div class="pc-menu-overlay" (click)="closeMenu()" (keydown)="handleKeyDown($event)" tabindex="0"></div>
 </div>
-<app-footer *ngIf="isLoggedIn()" />
+@if (isLoggedIn()) {
+  <app-footer />
+}

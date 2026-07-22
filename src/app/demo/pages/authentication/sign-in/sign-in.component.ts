@@ -1,6 +1,6 @@
 // angular import
 import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, RouterModule } from '@angular/router';
 import { email, Field, form, minLength, required } from '@angular/forms/signals';
 
@@ -10,7 +10,7 @@ import { AuthService } from 'src/app/theme/shared/service/auth.service';
 
 @Component({
   selector: 'app-sign-in',
-  imports: [CommonModule, RouterModule, SharedModule, Field],
+  imports: [RouterModule, SharedModule, Field],
   templateUrl: './sign-in.component.html',
   styleUrls: ['./sign-in.component.scss']
 })

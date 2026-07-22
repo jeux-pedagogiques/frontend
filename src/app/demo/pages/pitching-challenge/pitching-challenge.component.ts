@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -48,7 +48,7 @@ interface PitchingData {
 @Component({
   selector: 'app-pitching-challenge',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedModule, RouterModule],
+  imports: [FormsModule, SharedModule, RouterModule],
   templateUrl: './pitching-challenge.component.html',
   styleUrls: ['./pitching-challenge.component.scss']
 })

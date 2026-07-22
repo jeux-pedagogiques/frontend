@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { PitchingChallengeComponent } from './pitching-challenge.component';
-import { environment } from 'src/environments/environment';
 
 describe('PitchingChallengeComponent', () => {
   let component: PitchingChallengeComponent;
