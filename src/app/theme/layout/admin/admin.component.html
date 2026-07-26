@@ -1,27 +1,51 @@
-@if (isLoggedIn()) {
-  <app-nav-bar
-    class="navbar pcoded-header navbar-expand-lg navbar-light header-blue headerPos-fixed"
-    (NavCollapse)="this.navCollapsed = !this.navCollapsed"
-    (NavCollapsedMob)="navMobClick()"
-  ></app-nav-bar>
-}
-<div class="pcoded-main-container" style="margin-left: 0px !important;">
-  <div class="pcoded-wrapper">
-    <div class="pcoded-content" [style.padding]="isLoggedIn() ? '' : '0px'">
-      <div class="pcoded-inner-content">
-        <div class="main-body">
-          <div class="page-wrapper">
-            @if (isLoggedIn()) {
-              <app-breadcrumb />
-            }
-            <router-outlet />
+<div class="admin-layout">
+  @if (isLoggedIn()) {
+    <aside class="sidebar" [class.collapsed]="navCollapsed" [class.mobile-open]="navCollapsedMob">
+      <div class="sidebar-header">
+        <a [routerLink]="['/analytics']" class="sidebar-brand">
+          <div class="brand-icon-box">
+            <i class="feather icon-file-text"></i>
+          </div>
+          @if (!navCollapsed) {
+            <div class="brand-info">
+              <span class="brand-title">ESPRIT AI</span>
+              <span class="brand-subtitle">Dashboard - Variant 2</span>
+            </div>
+          }
+        </a>
+      </div>
+      <app-navigation />
+    </aside>
+  }
+  <div class="main-content" [class.sidebar-collapsed]="navCollapsed">
+    @if (isLoggedIn()) {
+      <header class="top-bar">
+        <div class="top-bar-content">
+          <div class="top-bar-left">
+            <button type="button" class="mobile-menu-btn" (click)="navMobClick()" title="Toggle Sidebar">
+              <i class="feather icon-menu"></i>
+            </button>
+            <div class="top-brand">
+              <img src="assets/images/logo-icon.png" alt="Esprit Logo" class="top-logo-img" />
+              <span class="top-brand-name">Esprit</span>
+            </div>
+          </div>
+          <div class="top-bar-right">
+            <div class="nav-search-pill">
+              <i class="feather icon-search"></i>
+              <input type="text" placeholder="Rechercher..." />
+            </div>
+            <app-nav-right />
           </div>
         </div>
+      </header>
+    }
+    <div class="content-wrapper">
+      <div class="page-wrapper">
+        <router-outlet />
       </div>
     </div>
   </div>
-  <div class="pc-menu-overlay" (click)="closeMenu()" (keydown)="handleKeyDown($event)" tabindex="0"></div>
+  <div class="pc-menu-overlay" [class.active]="navCollapsedMob" (click)="closeMenu()" (keydown)="handleKeyDown($event)" tabindex="0"></div>
 </div>
-@if (isLoggedIn()) {
-  <app-footer />
-}
+

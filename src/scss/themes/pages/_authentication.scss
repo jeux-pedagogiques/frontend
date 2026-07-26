@@ -62,7 +62,7 @@
   width: 70px;
   height: 70px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #4099ff, #73b4ff);
+  background: linear-gradient(135deg, #C51414, #e54444);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,7 +107,7 @@
 
   i {
     font-size: 18px;
-    color: #4099ff;
+    color: #C51414;
   }
 }
 
@@ -128,7 +128,7 @@
 .shape-1 {
   width: 300px;
   height: 300px;
-  background: #4099ff;
+  background: #C51414;
   top: -80px;
   right: -60px;
   animation: floatShape 12s ease-in-out infinite;
@@ -137,7 +137,7 @@
 .shape-2 {
   width: 200px;
   height: 200px;
-  background: #73b4ff;
+  background: #e54444;
   bottom: 80px;
   left: -50px;
   animation: floatShape 10s ease-in-out infinite reverse;
@@ -181,7 +181,9 @@
 }
 
 .auth-logo {
-  height: 36px;
+  max-height: 58px;
+  width: auto;
+  object-fit: contain;
   margin-bottom: 28px;
 }
 
@@ -323,13 +325,13 @@
 
 .forgot-link {
   font-size: 13px;
-  color: #4099ff !important;
+  color: #C51414 !important;
   font-weight: 500 !important;
   text-decoration: none;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #1a7adf !important;
+    color: #9f1010 !important;
     text-decoration: underline;
   }
 }
@@ -349,7 +351,7 @@
   }
 
   &:focus-within .input-icon {
-    color: #4099ff;
+    color: #C51414;
   }
 }
 
@@ -369,7 +371,7 @@
   }
 
   &:focus {
-    border-color: #4099ff;
+    border-color: #C51414;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(64, 153, 255, 0.1);
   }
@@ -433,7 +435,7 @@
     border: 2px solid #ced4da;
     border-radius: 5px;
     cursor: pointer;
-    accent-color: #4099ff;
+    accent-color: #C51414;
   }
 
   label {
@@ -444,7 +446,7 @@
     font-weight: 500;
 
     a {
-      color: #4099ff !important;
+      color: #C51414 !important;
       font-weight: 600 !important;
     }
   }
@@ -460,7 +462,7 @@
   padding: 14px 24px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #4099ff, #73b4ff);
+  background: linear-gradient(135deg, #C51414, #e54444);
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
@@ -473,7 +475,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #1a7adf, #4099ff);
+    background: linear-gradient(135deg, #9f1010, #C51414);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -516,13 +518,13 @@
 }
 
 .auth-link {
-  color: #4099ff !important;
+  color: #C51414 !important;
   font-weight: 600 !important;
   text-decoration: none;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #1a7adf !important;
+    color: #9f1010 !important;
     text-decoration: underline;
   }
 }

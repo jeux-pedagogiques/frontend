@@ -23,7 +23,6 @@ File: style.css
 @import 'node_modules/bootstrap/scss/mixins';
 @import 'node_modules/bootstrap/scss/utilities';
 @import 'node_modules/bootstrap/scss/utilities/api';
-@import '../node_modules/bootstrap/dist/css/bootstrap.css';
 @import 'scss/themes/general';
 @import 'scss/themes/generic';
 @import 'scss/themes/minixs/function';
@@ -50,3 +49,149 @@ File: style.css
 
 // custom
 @import 'scss/themes/custom';
+
+/* Requirement R1: 100% Full-Width Fluid Layout */
+.container,
+.container-fluid,
+.pcoded-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: clamp(12px, 2vw, 32px);
+  padding-right: clamp(12px, 2vw, 32px);
+}
+
+/* Requirement R2: Global UI Design System & Component Styling Tokens */
+:root {
+  /* Brand Color Tokens */
+  --brand-primary: #C51414;
+  --brand-secondary: #9f1010;
+  --brand-cyan: #06b6d4;
+  --brand-amber: #f59e0b;
+  --brand-emerald: #10b981;
+  --brand-purple: #9f1010;
+  --brand-rose: #f43f5e;
+
+  /* Surface Gradients */
+  --gradient-primary: linear-gradient(135deg, #C51414, #9f1010);
+  --gradient-cyan: linear-gradient(135deg, #06b6d4, #0891b2);
+  --gradient-amber: linear-gradient(135deg, #f59e0b, #f97316);
+  --gradient-emerald: linear-gradient(135deg, #10b981, #059669);
+  --gradient-purple: linear-gradient(135deg, #9f1010, #7a0d0d);
+  --gradient-rose: linear-gradient(135deg, #f43f5e, #e11d48);
+
+  /* Elevated Card Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  /* Spring Curve Transitions */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-spring: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Requirement R2: Global Utility Classes */
+.card-glass {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: var(--shadow-glass) !important;
+}
+
+.card-elevated {
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+  transition: var(--transition-spring) !important;
+}
+
+.badge-gradient-primary {
+  background: var(--gradient-primary) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(197, 20, 20, 0.35) !important;
+}
+
+.badge-gradient-cyan {
+  background: var(--gradient-cyan) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.35) !important;
+}
+
+.badge-gradient-amber {
+  background: var(--gradient-amber) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
+}
+
+.badge-gradient-emerald {
+  background: var(--gradient-emerald) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35) !important;
+}
+
+.badge-gradient-purple {
+  background: var(--gradient-purple) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(159, 16, 16, 0.35) !important;
+}
+
+.badge-gradient-danger {
+  background: var(--gradient-rose) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 0.35em 0.8em !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.35) !important;
+}
+
+.hover-lift {
+  transition: var(--transition-base);
+  &:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.transition-smooth {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Sidebar Layout Overrides */
+.pcoded-navbar,
+.navbar.pcoded-header {
+  display: none !important;
+}
+
+.pcoded-main-container {
+  margin-left: 0 !important;
+}
+
+.pcoded-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Override existing navbar styles */
+.navbar-expand-lg {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+

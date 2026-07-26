@@ -116,9 +116,14 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-submit" id="btn-signin">
-            <span>Sign In</span>
-            <i class="feather icon-arrow-right"></i>
+          <button type="submit" class="btn-submit" id="btn-signin" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <span>Signing in...</span>
+            } @else {
+              <span>Sign In</span>
+              <i class="feather icon-arrow-right"></i>
+            }
           </button>
         </form>
 

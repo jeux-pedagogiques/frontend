@@ -20,6 +20,7 @@ export class SignInComponent {
   private router = inject(Router);
 
   submitted = signal(false);
+  isLoading = signal(false);
   error = signal('');
   showPassword = signal(false);
 
@@ -43,12 +44,15 @@ export class SignInComponent {
       this.cd.detectChanges();
       return;
     }
+    this.isLoading.set(true);
     const credentials = this.loginModal();
     this.authService.login(credentials).subscribe({
       next: () => {
+        this.isLoading.set(false);
         this.router.navigate(['/analytics']);
       },
       error: (err) => {
+        this.isLoading.set(false);
         this.error.set(err.error?.detail || 'An error occurred during sign in');
         this.cd.detectChanges();
       }

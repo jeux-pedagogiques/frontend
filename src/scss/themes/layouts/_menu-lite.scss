@@ -2,6 +2,18 @@
 .b-brand {
   display: flex;
   align-items: center;
+
+  .logo {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .logo-thumb {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+  }
 }
 
 .navbar-collapsed {
@@ -1194,7 +1206,9 @@
 .pcoded-content {
   position: relative;
   display: block;
-  padding: 25px 25px 0px 25px;
+  padding: 25px clamp(12px, 2vw, 32px) 0px clamp(12px, 2vw, 32px);
+  width: 100%;
+  max-width: 100% !important;
 }
 
 .pcoded-main-container {
@@ -1414,7 +1428,9 @@
   }
 
   .pcoded-content {
-    padding: 25px 15px 0px 15px;
+    padding: 25px clamp(12px, 2vw, 32px) 0px clamp(12px, 2vw, 32px);
+    width: 100%;
+    max-width: 100% !important;
   }
 
   .card {

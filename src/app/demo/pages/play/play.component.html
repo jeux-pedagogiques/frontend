@@ -1,0 +1,391 @@
+<!-- ─── LOADING STATE ─── -->
+<div class="play-page" *ngIf="pageState() === 'loading'">
+  <div class="play-card text-center">
+    <div class="spinner-border text-light mb-3" role="status"></div>
+    <p class="text-light">Chargement du jeu...</p>
+  </div>
+</div>
+
+<!-- ─── ERROR STATE ─── -->
+<div class="play-page" *ngIf="pageState() === 'error'">
+  <div class="play-card text-center">
+    <div class="error-icon mb-3">⚠️</div>
+    <h3 class="text-light mb-2">Lien invalide</h3>
+    <p class="text-light-50">{{ errorMessage() }}</p>
+    <button class="btn btn-outline-light mt-3" (click)="retry()">
+      <i class="feather icon-refresh-cw me-2"></i>Réessayer
+    </button>
+  </div>
+</div>
+
+<!-- ─── NAME ENTRY STATE ─── -->
+<div class="play-page" *ngIf="pageState() === 'name-entry'">
+  <div class="play-card name-card">
+    <div class="game-badge mb-3">{{ getGameTypeLabel() }}</div>
+    <h2 class="text-light mb-2">{{ gameTitle() }}</h2>
+    <p class="text-light-50 mb-4">Entrez votre nom pour commencer</p>
+    <div class="name-form">
+      <input
+        type="text"
+        class="form-control form-control-lg glass-input"
+        placeholder="Votre nom..."
+        [(ngModel)]="studentNameInput"
+        (ngModelChange)="studentName.set($event)"
+        (keyup.enter)="startGame()"
+        autofocus
+      />
+      <button
+        class="btn btn-lg btn-glow mt-3 w-100"
+        [disabled]="!studentName().trim()"
+        (click)="startGame()"
+      >
+        🚀 Commencer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PLAYING STATE ─── -->
+<div class="play-page" *ngIf="pageState() === 'playing'">
+  <div class="play-header">
+    <span class="player-name">👤 {{ studentName() }}</span>
+    <span class="game-timer">⏱ {{ formatTime(elapsedSeconds()) }}</span>
+  </div>
+
+  <!-- ── QUIZ ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'quiz' && quizQuestions().length > 0">
+    <div class="progress mb-3" style="height: 6px;">
+      <div class="progress-bar bg-gradient-primary" [style.width.%]="quizProgress()"></div>
+    </div>
+    <div class="question-counter text-light-50 mb-2">
+      Question {{ quizCurrentIndex() + 1 }} / {{ quizQuestions().length }}
+    </div>
+
+    <h4 class="text-light mb-4">
+      {{ quizQuestions()[quizCurrentIndex()].question || quizQuestions()[quizCurrentIndex()].enonce }}
+    </h4>
+
+    <div class="options-grid">
+      <button
+        *ngFor="let option of getQuizOptions(quizQuestions()[quizCurrentIndex()]); let i = index"
+        class="option-btn"
+        [class.selected]="quizSelectedAnswer() === option"
+        [class.correct]="quizAnswered() && isCorrectAnswer(quizQuestions()[quizCurrentIndex()], option)"
+        [class.wrong]="quizAnswered() && quizSelectedAnswer() === option && !isCorrectAnswer(quizQuestions()[quizCurrentIndex()], option)"
+        [disabled]="quizAnswered()"
+        (click)="selectQuizAnswer(option)"
+      >
+        <span class="option-letter">{{ ['A','B','C','D','E','F'][i] }}</span>
+        {{ option }}
+      </button>
+    </div>
+
+    <div class="score-display mt-3">
+      Score: {{ quizScore() }} / {{ quizCurrentIndex() + (quizAnswered() ? 1 : 0) }}
+    </div>
+  </div>
+
+  <!-- ── FLASHCARDS ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'flashcards' && flashcards().length > 0">
+    <div class="progress mb-3" style="height: 6px;">
+      <div class="progress-bar bg-gradient-info" [style.width.%]="flashcardProgress()"></div>
+    </div>
+    <div class="question-counter text-light-50 mb-2">
+      Carte {{ flashcardIndex() + 1 }} / {{ flashcards().length }}
+    </div>
+
+    <div class="flip-container" (click)="flipCard()" [class.flipped]="flashcardFlipped()">
+      <div class="flip-card">
+        <div class="flip-front">
+          <div class="card-label">Question</div>
+          <p>{{ flashcards()[flashcardIndex()].recto }}</p>
+          <small class="tap-hint">Cliquez pour retourner</small>
+        </div>
+        <div class="flip-back">
+          <div class="card-label">Réponse</div>
+          <p>{{ flashcards()[flashcardIndex()].verso }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-buttons mt-4" *ngIf="flashcardFlipped()">
+      <button class="btn btn-danger btn-lg" (click)="reviewFlashcard('mal_su')">
+        ❌ Pas retenu
+      </button>
+      <button class="btn btn-success btn-lg" (click)="reviewFlashcard('bien_su')">
+        ✅ Bien retenu
+      </button>
+    </div>
+  </div>
+
+  <!-- ── ESCAPE ROOM ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'escape_room' && enigmas().length > 0">
+    <div class="progress mb-3" style="height: 6px;">
+      <div class="progress-bar bg-gradient-warning" [style.width.%]="enigmaProgress()"></div>
+    </div>
+    <div class="question-counter text-light-50 mb-2">
+      🔐 Énigme {{ enigmaIndex() + 1 }} / {{ enigmas().length }}
+    </div>
+
+    <h4 class="text-light mb-3">{{ enigmas()[enigmaIndex()].titre || enigmas()[enigmaIndex()].title }}</h4>
+    <p class="text-light-50 mb-4">{{ enigmas()[enigmaIndex()].enonce || enigmas()[enigmaIndex()].question }}</p>
+
+    <button
+      class="btn btn-sm btn-outline-warning mb-3"
+      *ngIf="enigmas()[enigmaIndex()].indice || enigmas()[enigmaIndex()].hint"
+      (click)="toggleEnigmaHint()"
+    >
+      💡 {{ enigmaHintShown() ? 'Masquer' : 'Voir' }} l'indice
+    </button>
+    <div class="hint-box" *ngIf="enigmaHintShown()">
+      {{ enigmas()[enigmaIndex()].indice || enigmas()[enigmaIndex()].hint }}
+    </div>
+
+    <div class="enigma-input mt-3">
+      <input
+        type="text"
+        class="form-control glass-input"
+        placeholder="Code de déverrouillage..."
+        [(ngModel)]="enigmaAnswerInput"
+        (ngModelChange)="enigmaAnswer.set($event)"
+        (keyup.enter)="checkEnigmaAnswer()"
+        [class.is-valid]="enigmaFeedback() === 'correct'"
+        [class.is-invalid]="enigmaFeedback() === 'wrong'"
+      />
+      <button class="btn btn-warning mt-2" (click)="checkEnigmaAnswer()">
+        🔓 Vérifier
+      </button>
+    </div>
+
+    <div class="feedback-msg mt-2" *ngIf="enigmaFeedback() === 'correct'">
+      <span class="text-success">✅ Correct ! Bravo !</span>
+    </div>
+    <div class="feedback-msg mt-2" *ngIf="enigmaFeedback() === 'wrong'">
+      <span class="text-danger">❌ Mauvaise réponse, réessayez !</span>
+    </div>
+  </div>
+
+  <!-- ── PITCHING ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'pitching'">
+    <!-- Subject selection (student picks one) -->
+    <div *ngIf="selectedSubjectIndex() === null">
+      <h4 class="text-light mb-2">🎤 Choisissez votre sujet de Pitch</h4>
+      <p class="text-light-50 mb-4">
+        Tous les sujets disponibles sont affichés ci-dessous. Dès qu'un sujet est réservé par un autre étudiant, il est éliminé et ne peut plus être choisi.
+      </p>
+
+      <div *ngIf="subjectClaimError()" class="alert alert-danger py-2 small mb-3">
+        ⚠️ {{ subjectClaimError() }}
+      </div>
+
+      <div class="subjects-list d-flex flex-column gap-3">
+        <div
+          *ngFor="let subject of pitchingTeams(); let i = index"
+          class="subject-card p-3 rounded-3"
+          [class.claimed]="isSubjectClaimed(i)"
+        >
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-primary">Sujet {{ i + 1 }}</span>
+            <span *ngIf="isSubjectClaimed(i)" class="badge bg-danger">
+              🔒 Pris par {{ getSubjectClaimedBy(i) }}
+            </span>
+            <span *ngIf="!isSubjectClaimed(i)" class="badge bg-success">
+              🟢 Disponible
+            </span>
+          </div>
+
+          <p class="text-light mb-3">
+            {{ typeof subject === 'string' ? subject : (subject.sujet || subject.topic || 'Sujet ' + (i + 1)) }}
+          </p>
+
+          <button
+            *ngIf="!isSubjectClaimed(i)"
+            class="btn btn-glow w-100 py-2"
+            (click)="selectPitchingSubject(i, subject)"
+            [disabled]="isClaimingSubject()"
+          >
+            {{ isClaimingSubject() ? '⏳ Réservation...' : '🚀 Choisir ce sujet' }}
+          </button>
+
+          <div *ngIf="isSubjectClaimed(i)" class="text-center py-2 text-light-50 small">
+            🔒 Ce sujet n'est plus disponible
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject confirmed → auto-complete -->
+    <div *ngIf="selectedSubjectIndex() !== null" class="text-center">
+      <div class="celebration mb-3" style="font-size: 4rem;">🎤</div>
+      <h3 class="text-light mb-3">Sujet réservé avec succès !</h3>
+
+      <div class="team-card mb-4 text-start">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-success">✅ Votre sujet</span>
+        </div>
+        <h5 class="text-light">{{ selectedSubjectTitle() }}</h5>
+      </div>
+
+      <p class="text-light-50 mb-4">
+        Préparez votre pitch sur ce sujet. Bonne chance {{ studentName() }} ! 🍀
+      </p>
+
+      <button class="btn btn-glow w-100 py-3" (click)="completeGame()">
+        ✅ Confirmer et terminer
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CAS D'ÉTUDE ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'cas_etude'">
+    <h4 class="text-light mb-2">📂 {{ gameTitle() || "Étude de Cas Gamifiée" }}</h4>
+    <p class="text-light-50 mb-4 small">Lisez le scénario et soumettez les décisions stratégiques de votre équipe.</p>
+
+    <!-- Scenario Context -->
+    <div class="team-card mb-4 text-start">
+      <h6 class="text-info mb-2"><i class="feather icon-file-text me-1"></i> Scénario Professionnel</h6>
+      <p class="text-light mb-0 small lh-base" style="white-space: pre-line;">{{ gameData()?.contexte_scenario }}</p>
+    </div>
+
+    <!-- Questions / Decisions -->
+    <div class="d-flex flex-column gap-3 mb-4 text-start" *ngIf="casEtudeQuestions().length > 0">
+      <div *ngFor="let q of casEtudeQuestions(); let i = index" class="subject-card p-3 rounded-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge bg-primary">Question {{ i + 1 }}</span>
+          <span class="badge bg-light text-dark">{{ q.id || 'q' + (i+1) }}</span>
+        </div>
+        <h6 class="text-light fw-bold mb-1">{{ q.titre }}</h6>
+        <p class="text-light-50 small mb-3">{{ q.description }}</p>
+
+        <!-- Choice Options if present -->
+        <div class="mb-3" *ngIf="q.choix_possibles && q.choix_possibles.length > 0">
+          <label class="text-light-50 small mb-1">Option retenue :</label>
+          <div class="d-flex flex-column gap-1">
+            <label *ngFor="let choice of q.choix_possibles" class="text-light small d-flex align-items-center gap-2 cursor-pointer">
+              <input type="radio" [name]="'q_' + q.id" [value]="choice" (change)="updateCasEtudeAnswer(q.id, 'decision', choice)">
+              <span>{{ choice }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Custom Decision Input if no choice options -->
+        <div class="mb-3" *ngIf="!q.choix_possibles || q.choix_possibles.length === 0">
+          <label class="text-light-50 small mb-1">Votre décision :</label>
+          <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Décision de l'équipe..." (input)="updateCasEtudeAnswer(q.id, 'decision', $any($event.target).value)">
+        </div>
+
+        <!-- Justification Input -->
+        <div>
+          <label class="text-light-50 small mb-1">Justification détaillée :</label>
+          <textarea class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Arguments et justification (en tenant compte de vos rôles)..." (input)="updateCasEtudeAnswer(q.id, 'justification', $any($event.target).value)"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-glow w-100 py-3 mt-2" (click)="completeGame()">
+      ✅ Soumettre les Décisions de l'Équipe
+    </button>
+  </div>
+
+  <!-- ── MIND MAP COLLABORATIF ── -->
+  <div class="play-card game-card" *ngIf="gameType() === 'mindmap'">
+    <h4 class="text-light mb-2">🧠 {{ gameTitle() || "Mind Map Collaboratif" }}</h4>
+    <p class="text-light-50 mb-4 small">Explorez le concept central et ajoutez vos idées sous les branches suggérées.</p>
+
+    <!-- Concept Central -->
+    <div class="team-card mb-4 text-center p-4">
+      <small class="badge bg-primary mb-2">CONCEPT CENTRAL</small>
+      <h3 class="text-light fw-bold mb-0">{{ gameData()?.concept_central }}</h3>
+    </div>
+
+    <!-- Branches Suggérées -->
+    <div class="d-flex flex-column gap-3 mb-4 text-start" *ngIf="mindmapBranches().length > 0">
+      <div *ngFor="let b of mindmapBranches(); let i = index" class="subject-card p-3 rounded-3">
+        <span class="badge bg-info mb-2">Branche {{ i + 1 }}</span>
+        <h6 class="text-light fw-bold mb-1">🌿 {{ b.titre }}</h6>
+        <p class="text-light-50 small mb-2">{{ b.description }}</p>
+        <div *ngIf="b.questions_guidantes && b.questions_guidantes.length > 0">
+          <small class="text-light-50">❓ {{ b.questions_guidantes.join(' · ') }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Add Node -->
+    <div class="mb-4 text-start">
+      <label class="text-light-50 small mb-1">Ajouter une sous-idée ou notion :</label>
+      <div class="d-flex gap-2">
+        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Votre idée..." [(ngModel)]="mindmapNewIdea">
+        <button class="btn btn-primary text-nowrap" (click)="addMindmapIdea()" [disabled]="!mindmapNewIdea.trim()">➕ Ajouter</button>
+      </div>
+    </div>
+
+    <!-- Added Ideas List -->
+    <div class="mb-4 text-start" *ngIf="mindmapNodes().length > 0">
+      <h6 class="text-light small fw-bold mb-2">Vos contributions :</h6>
+      <div class="d-flex flex-column gap-2">
+        <div *ngFor="let node of mindmapNodes(); let idx = index" class="d-flex justify-content-between align-items-center p-2 bg-dark rounded border border-secondary">
+          <span class="text-light small">💡 {{ node.idea }}</span>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2" (click)="removeMindmapIdea(idx)">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-glow w-100 py-3 mt-2" (click)="completeGame()">
+      ✅ Soumettre et Terminer la Carte Mentale
+    </button>
+  </div>
+</div>
+
+<!-- ─── COMPLETED STATE ─── -->
+<div class="play-page" *ngIf="pageState() === 'completed'">
+  <div class="play-card completion-card text-center">
+    <div class="celebration mb-3">🎉</div>
+    <h2 class="text-light mb-2">Bravo {{ studentName() }} !</h2>
+    <p class="text-light-50 mb-4">Vous avez terminé le {{ getGameTypeLabel() }}</p>
+
+    <div class="result-circle mb-4">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
+        <circle
+          cx="60" cy="60" r="54"
+          fill="none" stroke="url(#scoreGrad)" stroke-width="8"
+          stroke-linecap="round"
+          [attr.stroke-dasharray]="339.3"
+          [attr.stroke-dashoffset]="isQualitativeGame() ? 0 : 339.3 - (339.3 * getScorePercent() / 100)"
+          transform="rotate(-90 60 60)"
+        />
+        <defs>
+          <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#667eea" />
+            <stop offset="100%" stop-color="#764ba2" />
+          </linearGradient>
+        </defs>
+        <text x="60" y="65" text-anchor="middle" fill="white" [attr.font-size]="isQualitativeGame() ? 32 : 24" font-weight="bold">
+          {{ isQualitativeGame() ? '✅' : getScorePercent() + '%' }}
+        </text>
+      </svg>
+    </div>
+
+    <div class="result-stats">
+      <div class="stat-item">
+        <span class="stat-label">Temps</span>
+        <span class="stat-value">{{ formatTime(elapsedSeconds()) }}</span>
+      </div>
+      <div class="stat-item" *ngIf="!isQualitativeGame()">
+        <span class="stat-label">Score</span>
+        <span class="stat-value">{{ getScorePercent() }}%</span>
+      </div>
+      <div class="stat-item" *ngIf="isQualitativeGame()">
+        <span class="stat-label">Statut</span>
+        <span class="stat-value text-success">Soumis</span>
+      </div>
+    </div>
+
+    <p class="text-light-50 mt-4" *ngIf="isQualitativeGame()">
+      Vos réponses et justifications ont bien été transmises à l'enseignant pour évaluation selon la grille. Merci pour votre participation ! 🙏
+    </p>
+    <p class="text-light-50 mt-4" *ngIf="!isQualitativeGame()">
+      Merci pour votre participation ! 🙏
+    </p>
+  </div>
+</div>

@@ -16,7 +16,7 @@ export class ChartDB {
     stroke: {
       curve: 'straight'
     },
-    colors: ['#4099ff'],
+    colors: ['#C51414'],
     series: [
       {
         name: 'Desktops',
@@ -160,7 +160,7 @@ export class ChartDB {
     dataLabels: {
       enabled: false
     },
-    colors: ['#0e9e4a', '#4099ff', '#FF5370'],
+    colors: ['#0e9e4a', '#C51414', '#FF5370'],
     stroke: {
       show: true,
       width: 2,
@@ -276,7 +276,7 @@ export class ChartDB {
     dataLabels: {
       enabled: false
     },
-    colors: ['#4099ff', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#FFB64D', '#FF5370'],
     responsive: [
       {
         breakpoint: 480,
@@ -337,7 +337,7 @@ export class ChartDB {
         }
       }
     },
-    colors: ['#4099ff', '#0e9e4a'],
+    colors: ['#C51414', '#0e9e4a'],
     dataLabels: {
       enabled: false,
       offsetX: -6,
@@ -378,7 +378,7 @@ export class ChartDB {
         horizontal: true
       }
     },
-    colors: ['#4099ff', '#00acc1', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#00acc1', '#0e9e4a', '#FFB64D', '#FF5370'],
     stroke: {
       width: 1,
       colors: ['#fff']
@@ -445,7 +445,7 @@ export class ChartDB {
     stroke: {
       width: [0, 4]
     },
-    colors: ['#4099ff', '#FF5370'],
+    colors: ['#C51414', '#FF5370'],
     title: {
       text: 'Traffic Sources'
     },
@@ -498,7 +498,7 @@ export class ChartDB {
         columnWidth: '50%'
       }
     },
-    colors: ['#FF5370', '#4099ff', '#FFB64D'],
+    colors: ['#FF5370', '#C51414', '#FFB64D'],
     series: [
       {
         name: 'Facebook',
@@ -876,7 +876,7 @@ export class ChartDB {
         })
       }
     ],
-    colors: ['#4099ff', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#FFB64D', '#FF5370'],
     fill: {
       opacity: 0.8
     },
@@ -929,7 +929,7 @@ export class ChartDB {
     fill: {
       type: 'gradient'
     },
-    colors: ['#4099ff', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#FFB64D', '#FF5370'],
     xaxis: {
       tickAmount: 12,
       type: 'datetime',
@@ -957,7 +957,7 @@ export class ChartDB {
     dataLabels: {
       enabled: false
     },
-    colors: ['#4099ff', '#0e9e4a', '#FF5370', '#FFB64D', '#00acc1'],
+    colors: ['#C51414', '#0e9e4a', '#FF5370', '#FFB64D', '#00acc1'],
     series: [
       {
         name: 'SAMPLE A',
@@ -1126,7 +1126,7 @@ export class ChartDB {
     dataLabels: {
       enabled: false
     },
-    colors: ['#4099ff', '#0e9e4a', '#FF5370', '#FFB64D', '#00acc1'],
+    colors: ['#C51414', '#0e9e4a', '#FF5370', '#FFB64D', '#00acc1'],
     grid: {
       xaxis: {
         showLines: true
@@ -1150,7 +1150,7 @@ export class ChartDB {
     dataLabels: {
       enabled: false
     },
-    colors: ['#4099ff'],
+    colors: ['#C51414'],
     series: [
       {
         name: 'Metric1',
@@ -1316,7 +1316,7 @@ export class ChartDB {
         })
       }
     ],
-    colors: ['#4099ff', '#00acc1', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#00acc1', '#0e9e4a', '#FFB64D', '#FF5370'],
     xaxis: {
       type: 'category'
     }
@@ -1328,7 +1328,7 @@ export class ChartDB {
     },
     labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
     series: [44, 55, 13, 43, 22],
-    colors: ['#4099ff', '#0e9e4a', '#00acc1', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#00acc1', '#FFB64D', '#FF5370'],
     legend: {
       show: true,
       position: 'bottom'
@@ -1359,7 +1359,7 @@ export class ChartDB {
       type: 'donut'
     },
     series: [44, 55, 41, 17, 15],
-    colors: ['#4099ff', '#0e9e4a', '#00acc1', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#00acc1', '#FFB64D', '#FF5370'],
     legend: {
       show: true,
       position: 'bottom'
@@ -1414,7 +1414,7 @@ export class ChartDB {
         }
       }
     },
-    colors: ['#4099ff'],
+    colors: ['#C51414'],
     series: [70],
     labels: ['Cricket']
   };
@@ -1447,7 +1447,7 @@ export class ChartDB {
         }
       }
     },
-    colors: ['#4099ff', '#0e9e4a', '#FFB64D', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#FFB64D', '#FF5370'],
     series: [76, 67, 61, 90],
     labels: ['Vimeo', 'Messenger', 'Facebook', 'LinkedIn'],
     legend: {
@@ -1559,7 +1559,7 @@ export class ChartDB {
         data: [44, 76, 78, 13, 43, 10]
       }
     ],
-    colors: ['#4099ff', '#0e9e4a', '#FF5370'],
+    colors: ['#C51414', '#0e9e4a', '#FF5370'],
     stroke: {
       width: 0
     },

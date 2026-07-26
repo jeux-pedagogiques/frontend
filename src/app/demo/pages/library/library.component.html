@@ -6,7 +6,57 @@
     </div>
   </div>
 
-  <div class="card mb-4 shadow-sm">
+  <!-- Share Link Display -->
+  @if (shareLink()) {
+    <div class="alert alert-success mb-4 d-flex align-items-center gap-2 shadow-sm">
+      <i class="feather icon-link me-1"></i>
+      <span class="fw-bold me-2">Lien public du jeu :</span>
+      <code style="flex:1; word-break:break-all; font-size:0.95rem;">{{ shareLink() }}</code>
+      <button class="btn btn-sm btn-success text-nowrap" (click)="shareCopied.set(true)">
+        {{ shareCopied() ? '✅ Copié !' : '📋 Copier le lien' }}
+      </button>
+    </div>
+  }
+
+  <!-- Student Results Panel -->
+  @if (showResults()) {
+    <div class="card mb-4 border-info shadow-sm">
+      <div class="card-header bg-info-subtle d-flex justify-content-between align-items-center py-2">
+        <h5 class="mb-0 text-info-emphasis"><i class="feather icon-bar-chart-2 me-2"></i>Résultats des étudiants</h5>
+        <button class="btn btn-sm btn-outline-secondary border-0" (click)="showResults.set(false)">✕</button>
+      </div>
+      <div class="card-body p-0">
+        @if (shareResults().length === 0) {
+          <p class="text-muted text-center p-4 mb-0">Aucun étudiant n'a encore complété ce jeu.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Étudiant</th>
+                  <th>Score</th>
+                  <th>Temps passé</th>
+                  <th>Date de fin</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of shareResults(); track r.id) {
+                  <tr>
+                    <td><strong>👤 {{ r.student_name }}</strong></td>
+                    <td><span class="badge bg-primary fs-6">{{ r.score }}/{{ r.max_score }}</span></td>
+                    <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min ' + (r.completion_time_seconds % 60) + 's' : '-' }}</td>
+                    <td>{{ r.completed_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="card mb-4 card-elevated">
     <div class="card-body">
       <div class="row g-3">
         <div class="col-12 col-md-4">
@@ -122,6 +172,12 @@
                 <div class="card-actions">
                   <button class="btn btn-consult rounded-pill" (click)="consultGame(item, consultModal)" title="Consulter le jeu">
                     <i class="feather icon-eye me-1"></i> Consulter
+                  </button>
+                  <button class="btn btn-action-icon btn-share text-primary" (click)="shareGame(item)" title="Partager le lien du jeu">
+                    <i class="feather icon-share-2"></i>
+                  </button>
+                  <button class="btn btn-action-icon btn-results text-info" (click)="viewResults(item)" title="Voir les résultats des étudiants">
+                    <i class="feather icon-bar-chart-2"></i>
                   </button>
                   <button class="btn btn-action-icon btn-duplicate" (click)="duplicateGame(item)" title="Dupliquer">
                     <i class="feather icon-copy"></i>
@@ -350,7 +406,7 @@
             <!-- Interactive Card Viewer -->
             <div class="text-center mb-4">
               <div class="flashcard-box p-4 rounded-4 shadow cursor-pointer mx-auto d-flex align-items-center justify-content-center"
-                style="max-width: 480px; min-height: 220px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;"
+                style="max-width: 480px; min-height: 220px; background: linear-gradient(135deg, #9f1010, #7a0d0d); color: white;"
                 (click)="flipCard()">
                 <div class="text-center">
                   <small class="badge bg-white text-dark mb-2 opacity-75">{{ isCardFlipped() ? 'VERSO (Réponse)' : 'RECTO (Question)' }}</small>
@@ -401,10 +457,53 @@
         </div>
       }
 
+      <!-- ================= ÉTUDE DE CAS ================= -->
+      @if (selectedConsultGame().game_type === 'cas_etude') {
+        <div class="cas-etude-consult-container">
+          <div class="p-3 bg-light rounded-3 mb-4">
+            <h6 class="fw-bold text-primary mb-2"><i class="feather icon-file-text me-1"></i> Scénario Professionnel</h6>
+            <p class="text-dark small mb-0" style="white-space: pre-line;">{{ selectedConsultGame().contexte_scenario }}</p>
+          </div>
+
+          <!-- Roles -->
+          <h6 class="fw-bold text-dark mb-3"><i class="feather icon-users me-1"></i> Rôles Asymétriques</h6>
+          <div class="row g-2 mb-4">
+            @for (role of (selectedConsultGame().roles || []); track role.nom_role) {
+              <div class="col-12 col-md-4">
+                <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
+                  <span class="badge bg-primary mb-2">{{ role.nom_role }}</span>
+                  <p class="small text-muted mb-2"><strong>Objectif :</strong> {{ role.objectifs }}</p>
+                  <p class="small text-danger mb-0"><strong>Secrets :</strong> {{ role.infos_privees }}</p>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Decisions -->
+          <h6 class="fw-bold text-dark mb-3"><i class="feather icon-check-square me-1"></i> Questions de Décision</h6>
+          <div class="d-flex flex-column gap-2 mb-4">
+            @for (q of (selectedConsultGame().questions_decisions || []); track q.id) {
+              <div class="p-3 border rounded-3 bg-light">
+                <strong class="text-dark">{{ q.titre }}</strong>
+                <p class="text-muted small mb-0">{{ q.description }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
     }
   </div>
 
-  <div class="modal-footer">
+  <div class="modal-footer d-flex justify-content-between">
+    <div class="d-flex gap-2" *ngIf="selectedConsultGame()">
+      <button type="button" class="btn btn-outline-primary" (click)="shareGame({game_type: selectedConsultGame().game_type, game_id: selectedConsultGame().game_id})">
+        <i class="feather icon-share-2 me-1"></i> Partager ce jeu
+      </button>
+      <button type="button" class="btn btn-outline-info" (click)="viewResults({game_type: selectedConsultGame().game_type, game_id: selectedConsultGame().game_id})">
+        <i class="feather icon-bar-chart-2 me-1"></i> Résultats étudiants
+      </button>
+    </div>
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Fermer</button>
   </div>
 </ng-template>

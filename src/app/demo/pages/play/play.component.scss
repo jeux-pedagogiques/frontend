@@ -1,0 +1,386 @@
+// ─── Play Page Styling ───
+// Standalone game page for students — not part of admin layout
+
+$gradient-start: #0f0c29;
+$gradient-mid: #302b63;
+$gradient-end: #24243e;
+$glass-bg: rgba(255, 255, 255, 0.06);
+$glass-border: rgba(255, 255, 255, 0.12);
+$glow-primary: #667eea;
+$glow-secondary: #764ba2;
+
+.play-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, $gradient-start, $gradient-mid, $gradient-end);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+// ─── Glass Card ───
+.play-card {
+  background: $glass-bg;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid $glass-border;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 640px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Game Badge ───
+.game-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, $glow-primary, $glow-secondary);
+  color: white;
+}
+
+// ─── Glass Input ───
+.glass-input {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-size: 1.05rem !important;
+  transition: all 0.3s ease;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+  &:focus {
+    border-color: $glow-primary !important;
+    box-shadow: 0 0 0 3px rgba($glow-primary, 0.25) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+  }
+}
+
+// ─── Glow Button ───
+.btn-glow {
+  background: linear-gradient(135deg, $glow-primary, $glow-secondary);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba($glow-primary, 0.4);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba($glow-primary, 0.5);
+    color: white;
+  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Header Bar ───
+.play-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 100;
+  color: white;
+  font-weight: 500;
+}
+
+.player-name { font-size: 0.95rem; }
+.game-timer { font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; }
+
+// ─── Quiz Styling ───
+.question-counter {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(4px);
+  }
+
+  &.selected { border-color: $glow-primary; background: rgba($glow-primary, 0.15); }
+  &.correct { border-color: #2ecc71; background: rgba(46, 204, 113, 0.2); }
+  &.wrong { border-color: #e74c3c; background: rgba(231, 76, 60, 0.2); }
+  &:disabled { cursor: default; }
+}
+
+.option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.score-display {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+// ─── Progress Bar ───
+.progress {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(90deg, $glow-primary, $glow-secondary) !important;
+}
+.bg-gradient-info {
+  background: linear-gradient(90deg, #00b4db, #0083b0) !important;
+}
+.bg-gradient-warning {
+  background: linear-gradient(90deg, #f7971e, #ffd200) !important;
+}
+
+// ─── Flashcard Flip ───
+.flip-container {
+  perspective: 1000px;
+  cursor: pointer;
+  margin: 0 auto;
+  max-width: 480px;
+  height: 260px;
+}
+
+.flip-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.flip-container.flipped .flip-card {
+  transform: rotateY(180deg);
+}
+
+.flip-front, .flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  border-radius: 16px;
+  text-align: center;
+  color: white;
+}
+
+.flip-front {
+  background: linear-gradient(135deg, rgba($glow-primary, 0.3), rgba($glow-secondary, 0.3));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.flip-back {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  transform: rotateY(180deg);
+}
+
+.card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+}
+
+.tap-hint {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+  margin-top: 16px;
+}
+
+.review-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+
+  .btn { flex: 1; max-width: 200px; border-radius: 12px; font-weight: 600; }
+}
+
+// ─── Escape Room ───
+.hint-box {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: #ffd700;
+  font-style: italic;
+  animation: fadeInUp 0.3s ease;
+}
+
+.enigma-input {
+  .form-control { margin-bottom: 8px; }
+  .btn { border-radius: 12px; font-weight: 600; }
+}
+
+.feedback-msg {
+  font-weight: 600;
+  font-size: 1rem;
+  animation: fadeInUp 0.3s ease;
+}
+
+// ─── Pitching ───
+.subject-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.3s ease;
+
+  &.claimed {
+    background: rgba(231, 76, 60, 0.08);
+    border-color: rgba(231, 76, 60, 0.3);
+    opacity: 0.75;
+  }
+}
+
+.team-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.star-rating {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.star-btn {
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.active {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    transform: scale(1.1);
+  }
+
+  &:hover { transform: scale(1.15); }
+}
+
+// ─── Completion ───
+.completion-card { max-width: 500px; }
+
+.celebration {
+  font-size: 4rem;
+  animation: bounce 1s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-12px); }
+}
+
+.result-circle {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+
+  svg { width: 100%; height: 100%; }
+  circle { transition: stroke-dashoffset 1.5s ease; }
+}
+
+.result-stats {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+}
+
+.error-icon { font-size: 3rem; }
+
+// ─── Helpers ───
+.text-light-50 { color: rgba(255, 255, 255, 0.55) !important; }
+
+// ─── Responsive ───
+@media (max-width: 576px) {
+  .play-card { padding: 24px 18px; border-radius: 16px; }
+  .flip-container { height: 220px; }
+  .result-stats { gap: 20px; }
+  .star-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+}

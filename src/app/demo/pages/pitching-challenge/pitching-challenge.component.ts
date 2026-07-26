@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
+import { ShareService } from 'src/app/theme/shared/service/share.service';
 
 interface LearningOutcome {
   id: number;
@@ -55,6 +56,7 @@ interface PitchingData {
 export class PitchingChallengeComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private shareService = inject(ShareService);
 
   pageState = signal<'select' | 'generating' | 'result'>('select');
   isLoading = signal(false);
@@ -92,7 +94,7 @@ export class PitchingChallengeComponent implements OnInit {
     'appliquer': '#eab308',
     'analyser': '#22c55e',
     'evaluer': '#3b82f6',
-    'creer': '#8b5cf6'
+    'creer': '#9f1010'
   };
 
   ngOnInit(): void {
@@ -220,6 +222,7 @@ export class PitchingChallengeComponent implements OnInit {
       next: (res) => {
         this.isSaving.set(false);
         this.isConfirmed.set(true);
+        this.confirmedId.set(res.id);
         this.successMessage.set('Challenge confirmé et enregistré avec succès dans votre bibliothèque !');
         this.cd.detectChanges();
       },
@@ -260,5 +263,41 @@ export class PitchingChallengeComponent implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
     this.isConfirmed.set(false);
+    this.confirmedId.set(null);
+  }
+
+  // ─── Share & Results ───
+  confirmedId = signal<number | null>(null);
+  shareLink = signal('');
+  shareCopied = signal(false);
+  shareResults = signal<any[]>([]);
+  showResults = signal(false);
+
+  shareGame(): void {
+    const id = this.confirmedId();
+    if (!id) return;
+    this.shareService.createShare('pitching', id).subscribe({
+      next: (res) => {
+        const url = `${window.location.origin}/play/pitching/${res.share_token}`;
+        this.shareLink.set(url);
+        navigator.clipboard.writeText(url).then(() => {
+          this.shareCopied.set(true);
+          setTimeout(() => this.shareCopied.set(false), 3000);
+        });
+      },
+      error: () => this.errorMessage.set('Erreur lors de la création du lien de partage'),
+    });
+  }
+
+  viewResults(): void {
+    const id = this.confirmedId();
+    if (!id) return;
+    this.shareService.getResults('pitching', id).subscribe({
+      next: (res) => {
+        this.shareResults.set(res.results);
+        this.showResults.set(true);
+      },
+      error: () => this.errorMessage.set('Erreur lors du chargement des résultats'),
+    });
   }
 }

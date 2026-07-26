@@ -24,6 +24,7 @@ export const NavigationItems: NavigationItem[] = [
     title: 'Principal',
     type: 'group',
     icon: 'icon-group',
+    classes: 'nav-group-red',
     children: [
       {
         id: 'dashboard',
@@ -39,6 +40,7 @@ export const NavigationItems: NavigationItem[] = [
     title: 'Plateforme',
     type: 'group',
     icon: 'icon-group',
+    classes: 'nav-group-red',
     children: [
       {
         id: 'import-module',
@@ -78,6 +80,22 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/pitching-challenge',
         icon: 'feather icon-mic',
+        classes: 'nav-item'
+      },
+      {
+        id: 'cas-etude',
+        title: 'Étude de Cas Gamifiée',
+        type: 'item',
+        url: '/cas-etude',
+        icon: 'feather icon-briefcase',
+        classes: 'nav-item'
+      },
+      {
+        id: 'mindmap',
+        title: 'Mind Map Collaboratif',
+        type: 'item',
+        url: '/mindmap',
+        icon: 'feather icon-cpu',
         classes: 'nav-item'
       },
       {

@@ -28,7 +28,9 @@ export class ProfileComponent implements OnInit {
   phone = '';
   address = '';
   bio = '';
+  role = 'System Architect';
   avatar = signal<string | null>(null);
+  activeNav = signal<'home' | 'security' | 'preferences' | 'notifications'>('home');
 
   ngOnInit(): void {
     const currentUser = this.authService.getCurrentUser();
@@ -39,13 +41,14 @@ export class ProfileComponent implements OnInit {
   }
 
   loadFormData(user: User): void {
-    this.username = user.username || '';
-    this.email = user.email || '';
+    this.username = user.username || 'Alex Chen';
+    this.email = user.email || 'alex.chen@future.net';
     this.first_name = user.first_name || '';
     this.last_name = user.last_name || '';
     this.phone = user.phone || '';
-    this.address = user.address || '';
-    this.bio = user.bio || '';
+    this.address = user.address || 'Neo-Tokyo, District 9';
+    this.bio = user.bio || 'Exploring the digital frontier. AI Enthusiast. #FutureTech';
+    this.role = (user as any).role || 'System Architect';
     this.avatar.set(user.avatar || null);
   }
 
@@ -76,6 +79,7 @@ export class ProfileComponent implements OnInit {
       phone: this.phone || null,
       address: this.address || null,
       bio: this.bio || null,
+      role: this.role || null,
       avatar: this.avatar()
     };
 

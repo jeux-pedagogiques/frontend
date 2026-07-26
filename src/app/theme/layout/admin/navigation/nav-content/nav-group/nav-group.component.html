@@ -1,5 +1,5 @@
 @if (!item().hidden) {
-  <li class="nav-item pcoded-menu-caption">
+  <li class="nav-item pcoded-menu-caption" [ngClass]="item().classes">
     <label>{{ item().title }}</label>
   </li>
   @for (items of item().children; track items) {

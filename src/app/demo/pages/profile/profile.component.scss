@@ -1,81 +1,327 @@
-.profile-avatar-circle {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #04a9f5 0%, #049df5 100%);
-  color: #fff;
+// ==========================================
+// Futuristic Glassmorphism Profile SCSS
+// ==========================================
+
+.cyber-profile-wrapper {
+  padding: 1.5rem 1rem 3rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  position: relative;
+
+  /* Ambient Glow Background Accents */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(225, 29, 72, 0.18) 0%, rgba(225, 29, 72, 0) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* ===== Top Command Nav Pill ===== */
+.cyber-nav-pill {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  padding: 8px 24px;
   display: flex;
   align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 0 15px rgba(225, 29, 72, 0.1);
+  flex-wrap: wrap;
   justify-content: center;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 auto;
-  box-shadow: 0 4px 10px rgba(4, 169, 245, 0.25);
-  letter-spacing: 1px;
+
+  .cmd-prompt {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #e11d48;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    i {
+      font-size: 0.9rem;
+    }
+  }
+
+  .nav-item-btn {
+    border: none;
+    background: transparent;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    i {
+      font-size: 0.85rem;
+    }
+
+    &:hover,
+    &.active {
+      color: #e11d48;
+    }
+  }
+
+  .divider {
+    color: #cbd5e1;
+    font-weight: 300;
+    font-size: 0.85rem;
+  }
+
+  .user-status-online {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i {
+      color: #e11d48;
+      font-size: 0.85rem;
+    }
+  }
 }
 
-.profile-avatar-wrapper {
-  margin: 0 auto;
+/* ===== Main Glass Card ===== */
+.cyber-glass-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 28px;
+  padding: 3rem 3.5rem;
+  width: 100%;
+  max-width: 900px;
+  box-shadow: 
+    0 0 60px rgba(225, 29, 72, 0.22),
+    0 20px 40px rgba(15, 23, 42, 0.05),
+    inset 0 0 20px rgba(255, 255, 255, 0.5);
+
+  @media (max-width: 850px) {
+    padding: 2rem 1.5rem;
+  }
 }
 
-.profile-avatar-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.avatar-edit-badge {
-  position: absolute;
-  bottom: 12px;
-  right: -5px;
-  background: #04a9f5;
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+/* Alerts */
+.cyber-alert {
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 12px;
+  gap: 10px;
+
+  &.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+  }
+
+  &.error {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+  }
+}
+
+/* Profile Form Layout */
+.cyber-profile-form {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 3.5rem;
+  align-items: center;
+
+  @media (max-width: 850px) {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ===== Left Column: Avatar & Status ===== */
+.cyber-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar-aura-ring {
+  width: 165px;
+  height: 165px;
+  border-radius: 50%;
+  padding: 6px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%);
+  box-shadow: 
+    0 0 35px rgba(225, 29, 72, 0.45),
+    0 0 0 6px rgba(225, 29, 72, 0.15);
+  position: relative;
   cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    background: #049df5;
-    transform: scale(1.1);
+    transform: scale(1.03);
+    box-shadow: 
+      0 0 45px rgba(225, 29, 72, 0.6),
+      0 0 0 8px rgba(225, 29, 72, 0.2);
+
+    .avatar-edit-overlay {
+      opacity: 1;
+    }
+  }
+
+  .avatar-img-box {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #0f172a;
+    border: 3.5px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-initials {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .avatar-edit-overlay {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    cursor: pointer;
   }
 }
 
-.user-card {
-  .card-body {
-    padding-top: 1.5rem;
+.user-display-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.04em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.user-status-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #e11d48;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ===== Right Column: Inputs ===== */
+.cyber-fields-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group-cyber {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label-cyber {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.cyber-input {
+  width: 100%;
+  height: 44px;
+  background: rgba(248, 250, 252, 0.75);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 0.92rem;
+  color: #1e293b;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+  }
+
+  &:focus,
+  &.glow-focused {
+    background: #ffffff;
+    border-color: #e11d48;
+    box-shadow: 0 0 16px rgba(225, 29, 72, 0.35);
   }
 }
 
-.form-label {
-  font-size: 13px;
-  color: #555;
-  margin-bottom: 0.4rem;
-}
+.cyber-save-btn {
+  width: 100%;
+  height: 48px;
+  margin-top: 0.75rem;
+  border: none;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 24px rgba(225, 29, 72, 0.45);
 
-.input-group-text {
-  border-color: #ced4da;
-}
-
-.form-control {
-  border-color: #ced4da;
-  
-  &:focus {
-    box-shadow: none;
-    border-color: #04a9f5;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 32px rgba(225, 29, 72, 0.65);
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
   }
-}
 
-.bg-light-primary {
-  background-color: rgba(4, 169, 245, 0.1) !important;
+  &:active {
+    transform: translateY(0);
+  }
 }

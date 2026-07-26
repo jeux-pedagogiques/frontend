@@ -6,6 +6,8 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { NgbPaginationModule, NgbDropdownModule, NgbModalModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { environment } from 'src/environments/environment';
+import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
+import { ShareService } from 'src/app/theme/shared/service/share.service';
 
 @Component({
   selector: 'app-library',
@@ -26,6 +28,8 @@ export class LibraryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private modalService = inject(NgbModal);
+  private ramCache = inject(RamCacheService);
+  private shareService = inject(ShareService);
 
   items = signal<any[]>([]);
   totalItems = signal(0);
@@ -50,10 +54,11 @@ export class LibraryComponent implements OnInit {
   isCardFlipped = signal(false);
 
   gameTypes = [
-    {value: 'quiz', label: 'Quiz', icon: 'feather icon-help-circle', color: '#6366f1'},
+    {value: 'quiz', label: 'Quiz', icon: 'feather icon-help-circle', color: '#C51414'},
     {value: 'escape_room', label: 'Escape Room', icon: 'feather icon-lock', color: '#ef4444'},
     {value: 'pitching', label: 'Pitching', icon: 'feather icon-mic', color: '#f97316'},
-    {value: 'flashcards', label: 'Flashcards', icon: 'feather icon-layers', color: '#22c55e'}
+    {value: 'flashcards', label: 'Flashcards', icon: 'feather icon-layers', color: '#22c55e'},
+    {value: 'cas_etude', label: 'Étude de cas', icon: 'feather icon-briefcase', color: '#9f1010'}
   ];
 
   bloomLevels = [
@@ -62,7 +67,7 @@ export class LibraryComponent implements OnInit {
     {value: 'appliquer', label: 'Appliquer', color: '#eab308', emoji: '🔧'},
     {value: 'analyser', label: 'Analyser', color: '#22c55e', emoji: '🔬'},
     {value: 'evaluer', label: 'Évaluer', color: '#3b82f6', emoji: '⚖️'},
-    {value: 'creer', label: 'Créer', color: '#8b5cf6', emoji: '🎨'}
+    {value: 'creer', label: 'Créer', color: '#9f1010', emoji: '🎨'}
   ];
 
   private searchTimeout: any;
@@ -82,7 +87,6 @@ export class LibraryComponent implements OnInit {
   }
 
   loadItems() {
-    this.isLoading.set(true);
     const params: any = {
       page: this.currentPage(),
       page_size: this.pageSize(),
@@ -103,10 +107,21 @@ export class LibraryComponent implements OnInit {
       params.bloom_level = this.selectedBloomLevels().join(',');
     }
 
+    const cacheKey = `library_${JSON.stringify(params)}`;
+    const cached = this.ramCache.get<any>(cacheKey);
+    if (cached) {
+      this.items.set(cached.items || []);
+      this.totalItems.set(cached.total || 0);
+      this.isLoading.set(false);
+    } else {
+      this.isLoading.set(true);
+    }
+
     this.http.get<any>(`${environment.apiUrl}/api/library`, { params }).subscribe({
       next: (response) => {
         this.items.set(response.items || []);
         this.totalItems.set(response.total || 0);
+        this.ramCache.set(cacheKey, response);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -267,5 +282,41 @@ export class LibraryComponent implements OnInit {
 
   flipCard() {
     this.isCardFlipped.set(!this.isCardFlipped());
+  }
+
+  // ─── Share & Results ───
+  shareLink = signal('');
+  shareCopied = signal(false);
+  shareResults = signal<any[]>([]);
+  showResults = signal(false);
+
+  shareGame(item: any): void {
+    if (!item) return;
+    const gameType = item.game_type;
+    const gameId = item.game_id;
+    this.shareService.createShare(gameType, gameId).subscribe({
+      next: (res) => {
+        const url = `${window.location.origin}/play/${gameType}/${res.share_token}`;
+        this.shareLink.set(url);
+        navigator.clipboard.writeText(url).then(() => {
+          this.shareCopied.set(true);
+          setTimeout(() => this.shareCopied.set(false), 3000);
+        });
+      },
+      error: (err) => console.error('Error sharing game', err)
+    });
+  }
+
+  viewResults(item: any): void {
+    if (!item) return;
+    const gameType = item.game_type;
+    const gameId = item.game_id;
+    this.shareService.getResults(gameType, gameId).subscribe({
+      next: (res) => {
+        this.shareResults.set(res.results);
+        this.showResults.set(true);
+      },
+      error: (err) => console.error('Error fetching results', err)
+    });
   }
 }

@@ -23,124 +23,217 @@
     <div class="scan-config-wrapper">
       <!-- Top Section: Two Column Layout -->
       <div class="scan-top-row">
-        <!-- LEFT: Scan Configuration -->
+        <!-- LEFT: Scan Configuration & Analysis Parameters -->
         <div class="scan-config-panel">
-          <div class="panel-header">
-            <i class="feather icon-cpu"></i>
-            <div>
+          <div class="config-card">
+            <div class="panel-header">
               <h5 class="panel-title">Configuration d'Import</h5>
               <p class="panel-subtitle">Sélectionnez la source du document et définissez les paramètres d'analyse.</p>
             </div>
-          </div>
-          <!-- Source Tabs -->
-          <div class="source-tabs">
-            <button class="source-tab" [class.active]="activeTab() === 'upload'" (click)="setActiveTab('upload')">
-              <i class="feather icon-upload"></i> Télécharger un fichier
-            </button>
-            <button class="source-tab" [class.active]="activeTab() === 'editor'" (click)="setActiveTab('editor')">
-              <i class="feather icon-edit-3"></i> Saisie directe
-            </button>
-          </div>
-          <!-- FILE UPLOAD -->
-          @if (activeTab() === 'upload') {
-            <div class="source-content">
-              <div class="drop-zone" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
-                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
-                <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" style="display: none;">
-                @if (!selectedFile) {
-                  <div class="drop-zone-empty">
-                    <i class="feather icon-upload-cloud"></i>
-                    <p class="drop-text">Cliquez ou glissez un fichier ici</p>
-                    <span class="drop-formats">FORMATS SUPPORTÉS : PDF, DOCX, TXT (MAX 10MB)</span>
-                  </div>
-                }
-                @if (selectedFile) {
-                  <div class="selected-file-info" (click)="$event.stopPropagation()">
-                    <div class="file-icon"><i [class]="getFileIcon()"></i></div>
-                    <div class="file-details">
-                      <span class="file-name">{{ selectedFile.name }}</span>
-                      <span class="file-size">{{ getFileSize() }}</span>
+            <!-- Source Tabs -->
+            <div class="source-tabs">
+              <button type="button" class="source-tab" [class.active]="activeTab() === 'upload'" (click)="setActiveTab('upload')">
+                <i class="feather icon-upload"></i> Télécharger un fichier
+              </button>
+              <button type="button" class="source-tab" [class.active]="activeTab() === 'editor'" (click)="setActiveTab('editor')">
+                <i class="feather icon-edit-3"></i> Saisie directe
+              </button>
+            </div>
+            <!-- FILE UPLOAD DROPZONE -->
+            @if (activeTab() === 'upload') {
+              <div class="source-content">
+                <div class="drop-zone" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
+                  (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
+                  <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" style="display: none;">
+                  @if (!selectedFile) {
+                    <div class="drop-zone-empty">
+                      <div class="cloud-upload-icon-wrapper">
+                        <i class="feather icon-upload-cloud"></i>
+                      </div>
+                      <p class="drop-text">Cliquez ou glissez un fichier ici</p>
+                      <span class="drop-formats">(PDF, DOCX, TXT - MAX 10MB)</span>
                     </div>
-                    <button class="file-remove" (click)="removeFile(); $event.stopPropagation()">
-                      <i class="feather icon-x"></i>
-                    </button>
-                  </div>
-                }
+                  }
+                  @if (selectedFile) {
+                    <div class="selected-file-info" (click)="$event.stopPropagation()">
+                      <div class="file-icon"><i [class]="getFileIcon()"></i></div>
+                      <div class="file-details">
+                        <span class="file-name">{{ selectedFile.name }}</span>
+                        <span class="file-size">{{ getFileSize() }}</span>
+                      </div>
+                      <button type="button" class="file-remove" (click)="removeFile(); $event.stopPropagation()">
+                        <i class="feather icon-x"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-          }
-          <!-- RAW CONTENT / EDITOR -->
-          @if (activeTab() === 'editor') {
-            <div class="source-content">
-              <div class="editor-field">
-                <label class="field-label">Titre du module <span class="optional">(optionnel)</span></label>
-                <input type="text" class="scan-input" [(ngModel)]="editorTitle" name="editorTitle"
-                  placeholder="Ex: Introduction à l'Intelligence Artificielle">
+            }
+            <!-- RAW CONTENT / EDITOR -->
+            @if (activeTab() === 'editor') {
+              <div class="source-content">
+                <div class="editor-field">
+                  <label class="field-label">Titre du module <span class="optional">(optionnel)</span></label>
+                  <input type="text" class="scan-input" [(ngModel)]="editorTitle" name="editorTitle"
+                    placeholder="Ex: Introduction à l'Intelligence Artificielle">
+                </div>
+                <div class="editor-field">
+                  <label class="field-label">Contenu de la fiche module</label>
+                  <textarea class="scan-textarea" [(ngModel)]="editorContent" name="editorContent" rows="6"
+                  placeholder="Saisissez ou collez ici le contenu de votre fiche module..."></textarea>
+                  <span class="char-count">{{ editorContent.length }} caractères</span>
+                </div>
               </div>
-              <div class="editor-field">
-                <label class="field-label">Contenu de la fiche module</label>
-                <textarea class="scan-textarea" [(ngModel)]="editorContent" name="editorContent" rows="8"
-                placeholder="Saisissez ou collez ici le contenu de votre fiche module..."></textarea>
-                <span class="char-count">{{ editorContent.length }} caractères</span>
-              </div>
-            </div>
-          }
-          <!-- Analysis Parameters -->
-          <div class="params-section">
-            <div class="params-header">
-              <i class="feather icon-sliders"></i>
-              <span>PARAMÈTRES D'ANALYSE</span>
-            </div>
-            <div class="params-row">
-              <div class="param-field">
-                <label class="field-label">PRÉCISION</label>
-                <select class="scan-select" [(ngModel)]="sensitivity" name="sensitivity">
-                  <option value="standard">Précision Standard</option>
-                  <option value="high">Haute Précision</option>
-                  <option value="deep">Analyse Profonde</option>
-                </select>
-              </div>
-              <div class="param-field">
-                <label class="field-label">FORMAT DE SORTIE</label>
-                <select class="scan-select" [(ngModel)]="outputFormat" name="outputFormat">
-                  <option value="json">JSON Dataset</option>
-                  <option value="structured">Structuré</option>
-                  <option value="detailed">Rapport Détaillé</option>
-                </select>
-              </div>
-            </div>
+            }
           </div>
-          <!-- Execute Button -->
-          <button class="execute-btn" (click)="activeTab() === 'upload' ? uploadFile() : submitEditorContent()"
-            [disabled]="isLoading() || (activeTab() === 'upload' && !selectedFile) || (activeTab() === 'editor' && !editorContent.trim())">
-            @if (!isLoading()) {
-              <span><i class="feather icon-cpu"></i> Lancer l'analyse IA</span>
-            }
-            @if (isLoading()) {
-              <span><span class="spinner-border spinner-border-sm me-2"></span> Extraction en cours...</span>
-            }
-          </button>
-          <!-- Pro Tip -->
-          <div class="pro-tip">
-            <i class="feather icon-info"></i>
-            <div>
-              <strong>Astuce : Import multi-formats</strong>
-              <p>Vous pouvez importer des fichiers PDF, Word ou texte brut. L'IA analyse automatiquement le contenu et extrait les acquis d'apprentissage selon la taxonomie de Bloom.</p>
+
+          <!-- ANALYSIS PARAMETERS CARD -->
+          <div class="params-card">
+            <h5 class="params-title">Paramètres d'Analyse</h5>
+            
+            <!-- PRÉCISION Segment Toggle & Red Slider -->
+            <div class="param-group">
+              <div class="param-row-header">
+                <span class="param-label">Précision</span>
+                <div class="seg-toggle-container">
+                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'standard'" (click)="sensitivity = 'standard'">Standard</button>
+                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'high' || sensitivity === 'elevee'" (click)="sensitivity = 'high'">Élevée</button>
+                </div>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" class="red-range-slider" min="1" max="100" [value]="sensitivity === 'high' ? 85 : 45" (input)="sensitivity = $any($event.target).value > 60 ? 'high' : 'standard'">
+              </div>
             </div>
+
+            <!-- FORMAT DE SORTIE Option Pills -->
+            <div class="param-group mt-3">
+              <div class="param-row-header">
+                <span class="param-label">Format de Sortie</span>
+                <div class="format-pills">
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'json'" (click)="outputFormat = 'json'">JSON Dataset</button>
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'csv'" (click)="outputFormat = 'csv'">CSV</button>
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'pdf' || outputFormat === 'detailed'" (click)="outputFormat = 'pdf'">PDF Rapport</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Action Pill Button -->
+            <button type="button" class="btn-lancer-ia mt-4" (click)="activeTab() === 'upload' ? uploadFile() : submitEditorContent()"
+              [disabled]="isLoading() || (activeTab() === 'upload' && !selectedFile) || (activeTab() === 'editor' && !editorContent.trim())">
+              @if (!isLoading()) {
+                <span>Lancer l'analyse IA</span>
+              }
+              @if (isLoading()) {
+                <span><span class="spinner-border spinner-border-sm me-2"></span> Génération de l'aperçu...</span>
+              }
+            </button>
           </div>
         </div>
-        <!-- RIGHT: Results Preview -->
+
+        <!-- RIGHT: Results Preview Card -->
         <div class="scan-results-panel">
-          @if (!analysisResult()) {
-            <div class="results-empty">
-              <div class="empty-illustration">
-                <i class="feather icon-search"></i>
+          <div class="document-preview-card">
+            <!-- Simulated Document Header & Mock Data -->
+            <div class="doc-mock-wrapper" [class.loading-active]="isLoading()">
+              <div class="doc-mock-header">
+                <div class="doc-mock-title">
+                  <h6>AI Document Analysis</h6>
+                  <span class="doc-mock-subtitle">Génération de l'aperçu en rapport</span>
+                </div>
+                <div class="doc-mock-brand">
+                  <img src="assets/images/logo-icon.png" alt="Esprit" class="doc-logo-img" />
+                  <span class="doc-brand-text">Esprit</span>
+                </div>
               </div>
-              <h5>Aucun résultat à afficher</h5>
-              <p>Téléchargez votre fichier PDF, Word ou texte et cliquez sur « Lancer l'analyse IA » pour commencer. Les résultats détaillés apparaîtront ici une fois l'analyse terminée.</p>
-              <i class="feather icon-search empty-search-icon"></i>
+
+              <!-- Mock Charts & Tables -->
+              <div class="doc-mock-body">
+                <div class="doc-mock-row">
+                  <!-- Bloom Level Bars Chart -->
+                  <div class="doc-mock-chart">
+                    <div class="chart-header-flex">
+                      <span class="chart-label">Bloom charts</span>
+                      <span class="chart-badge">Bloom Taxonomie</span>
+                    </div>
+                    <div class="chart-bars">
+                      <div class="bar-col">
+                        <div class="bar bar-1" style="height: 45%; background: #ef4444;" title="Mémoriser 45%"></div>
+                        <span class="bar-name">Mém</span>
+                      </div>
+                      <div class="bar-col">
+                        <div class="bar bar-2" style="height: 70%; background: #f97316;" title="Comprendre 70%"></div>
+                        <span class="bar-name">Comp</span>
+                      </div>
+                      <div class="bar-col">
+                        <div class="bar bar-3" style="height: 85%; background: #38bdf8;" title="Appliquer 85%"></div>
+                        <span class="bar-name">Appl</span>
+                      </div>
+                      <div class="bar-col">
+                        <div class="bar bar-4" style="height: 65%; background: #10b981;" title="Analyser 65%"></div>
+                        <span class="bar-name">Anal</span>
+                      </div>
+                      <div class="bar-col">
+                        <div class="bar bar-5" style="height: 90%; background: #c53030;" title="Créer 90%"></div>
+                        <span class="bar-name">Créer</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Key Insights Donut Metric -->
+                  <div class="doc-mock-donut">
+                    <span class="chart-label">Key insights</span>
+                    <div class="donut-wrapper">
+                      <div class="donut-circle">
+                        <span class="donut-score">94%</span>
+                      </div>
+                    </div>
+                    <div class="donut-stats">
+                      <span class="stat-tag">Score IA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Extracted Data Summary Table -->
+                <div class="doc-mock-table">
+                  <div class="table-header-flex">
+                    <span class="chart-label">Saisie de données</span>
+                    <span class="table-count">3 Notions décelées</span>
+                  </div>
+                  <div class="mock-table-rows">
+                    <div class="mock-row">
+                      <span class="row-title">1. Concepts Fondamentaux IA</span>
+                      <span class="row-badge success">Extraits</span>
+                      <span class="row-level">Lvl 3</span>
+                    </div>
+                    <div class="mock-row">
+                      <span class="row-title">2. Modèles d'Apprentissage Machine</span>
+                      <span class="row-badge success">Extraits</span>
+                      <span class="row-level">Lvl 4</span>
+                    </div>
+                    <div class="mock-row">
+                      <span class="row-title">3. Évaluation & Métriques IA</span>
+                      <span class="row-badge warning">Analyse</span>
+                      <span class="row-level">Lvl 5</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Centered Spinner Overlay (Active during analysis loading) -->
+              @if (isLoading()) {
+                <div class="preview-overlay">
+                  <div class="red-dots-spinner"></div>
+                  <span class="preview-loading-text">Génération de l'aperçu en cours...</span>
+                </div>
+              }
             </div>
-          }
+
+            <!-- Bottom Tip Banner -->
+            <div class="tip-banner">
+              <span class="tip-bold">Astuce :</span>
+              <span class="tip-text">Import multi-formats pour ui enclienne les générateurs.</span>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Bottom Section: Scan History Table -->
@@ -433,12 +526,20 @@
       <!-- Quiz Results -->
       @if (generatedQuiz() && !isGeneratingQuiz()) {
         <div class="validation-card" id="quiz-results-container">
-          <div class="quiz-results-header">
+          <div class="quiz-results-header d-flex justify-content-between align-items-center">
             <div>
               <span class="quiz-badge">QUIZ CHRONOMÉTRÉ</span>
               <h4>{{ generatedQuiz().titre_quiz }}</h4>
+              <span class="count-badge">{{ generatedQuiz().questions.length }} Questions</span>
             </div>
-            <span class="count-badge">{{ generatedQuiz().questions.length }} Questions</span>
+            <div class="header-actions d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary shadow-sm" (click)="shareGame()">
+                <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
+              </button>
+              <button class="btn btn-sm btn-outline-info shadow-sm" (click)="viewResults()">
+                <i class="feather icon-bar-chart-2"></i> Résultats
+              </button>
+            </div>
           </div>
           <!-- Quiz Sub-tabs -->
           <div class="quiz-tabs">
@@ -519,6 +620,46 @@
             }
           </div>
         </div>
+
+        <!-- Share Link Display -->
+        @if (shareLink()) {
+          <div class="alert alert-success mt-3 d-flex align-items-center gap-2">
+            <i class="feather icon-link"></i>
+            <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
+            <button class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier</button>
+          </div>
+        }
+
+        <!-- Student Results Panel -->
+        @if (showResults()) {
+          <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">📊 Résultats des étudiants</h5>
+              <button class="btn btn-sm btn-outline-secondary" (click)="showResults.set(false)">✕</button>
+            </div>
+            <div class="card-body p-0">
+              @if (shareResults().length === 0) {
+                <p class="text-muted text-center p-4">Aucun résultat pour le moment.</p>
+              } @else {
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead><tr><th>Nom</th><th>Score</th><th>Temps</th><th>Date</th></tr></thead>
+                    <tbody>
+                      @for (r of shareResults(); track r.id) {
+                        <tr>
+                          <td><strong>{{ r.student_name }}</strong></td>
+                          <td>{{ r.score }}/{{ r.max_score }}</td>
+                          <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min' : '-' }}</td>
+                          <td>{{ r.completed_at | date:'short' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        }
       }
       <!-- Action Buttons -->
       <div class="validation-actions">

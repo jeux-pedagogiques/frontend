@@ -1,89 +1,8 @@
-<ul class="navbar-nav ms-auto">
-  <li>
-    <div class="dropdown" ngbDropdown placement="auto">
-      <a ngbDropdownToggle href="javascript:void(0)">
-        <i class="icon feather icon-bell" title="Notification"></i>
-        <span class="badge bg-danger"><span class="sr-only"></span></span>
-      </a>
-      <div ngbDropdownMenu class="dropdown-menu dropdown-menu-end notification">
-        <div class="noti-head">
-          <h6 class="d-inline-block m-b-0">Notifications</h6>
-          <div class="float-end">
-            <a href="javascript:void(0)" class="m-r-10">mark as read</a>
-            <a href="javascript:void(0)">clear all</a>
-          </div>
-        </div>
-        <ul class="noti-body">
-          <li class="n-title">
-            <p class="m-b-0">NEW</p>
-          </li>
-          <li class="notification">
-            <div class="media">
-              <img class="img-radius" src="assets/images/user/avatar-1.jpg" alt="Generic placeholder image" />
-              <div class="media-body">
-                <p>
-                  <strong>John Doe</strong>
-                  <span class="n-time text-muted">
-                    <i class="icon feather icon-clock m-r-10"></i>
-                    30 min
-                  </span>
-                </p>
-                <p>New ticket Added</p>
-              </div>
-            </div>
-          </li>
-          <li class="n-title">
-            <p class="m-b-0">EARLIER</p>
-          </li>
-          <li class="notification">
-            <div class="media">
-              <img class="img-radius" src="assets/images/user/avatar-2.jpg" alt="Generic placeholder image" />
-              <div class="media-body">
-                <p>
-                  <strong>Joseph William</strong>
-                  <span class="n-time text-muted">
-                    <i class="icon feather icon-clock m-r-10"></i>
-                    30 min
-                  </span>
-                </p>
-                <p>Purchase New Theme and make payment</p>
-              </div>
-            </div>
-          </li>
-          <li class="notification">
-            <div class="media">
-              <img class="img-radius" src="assets/images/user/avatar-3.jpg" alt="Generic placeholder image" />
-              <div class="media-body">
-                <p>
-                  <strong>Sara Soudein</strong>
-                  <span class="n-time text-muted">
-                    <i class="icon feather icon-clock m-r-10"></i>
-                    30 min
-                  </span>
-                </p>
-                <p>currently login</p>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <div class="noti-footer">
-          <a href="javascript:void(0)">show all</a>
-        </div>
-      </div>
-    </div>
-  </li>
-  <li (click)="this.visibleUserList = !this.visibleUserList">
-    <div class="dropdown">
-      <a href="javascript:void(0)" class="displayChatbox dropdown-toggle">
-        <i class="icon feather icon-mail" title="Mail InBox"></i>
-        <span class="badge bg-success"><span class="sr-only"></span></span>
-      </a>
-    </div>
-  </li>
-  <li>
+<ul class="navbar-nav ms-auto align-items-center flex-row gap-3 mb-0" style="display: flex; flex-direction: row; align-items: center; white-space: nowrap;">
+  <li class="nav-item d-flex align-items-center">
     <div class="dropdown drp-user" ngbDropdown placement="auto">
-      <a href="javascript:void(0)" ngbDropdownToggle>
-        <img [src]="getAvatar() || 'assets/images/user/avatar-1.jpg'" class="img-radius wid-40" alt="User-Profile-Image" style="object-fit: cover; width: 40px; height: 40px;" />
+      <a href="javascript:void(0)" ngbDropdownToggle class="d-inline-flex align-items-center gap-1 text-decoration-none" style="display: flex !important; align-items: center !important; flex-direction: row !important; white-space: nowrap;">
+        <img [src]="getAvatar() || 'assets/images/user/avatar-1.jpg'" class="img-radius wid-36" alt="User Profile" style="object-fit: cover; width: 36px; height: 36px; border-radius: 50%; display: block;" />
       </a>
       <div class="dropdown-menu dropdown-menu-end profile-notification" ngbDropdownMenu>
         <div class="pro-head">
@@ -98,18 +17,6 @@
             <a [routerLink]="['/profile']" class="dropdown-item">
               <i class="feather icon-user"></i>
               Profile
-            </a>
-          </li>
-          <li>
-            <a href="javascript:void(0)" class="dropdown-item">
-              <i class="feather icon-mail"></i>
-              My Messages
-            </a>
-          </li>
-          <li>
-            <a href="javascript:void(0)" class="dropdown-item">
-              <i class="feather icon-lock"></i>
-              Lock Screen
             </a>
           </li>
           <li>

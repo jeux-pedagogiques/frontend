@@ -6,6 +6,9 @@ import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
 
+import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
+import { ShareService } from 'src/app/theme/shared/service/share.service';
+
 interface ModuleAnalysis {
   id: number;
   module_title: string;
@@ -63,13 +66,16 @@ interface FlashcardStatsResponse {
 export class FlashcardsComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private ramCache = inject(RamCacheService);
+  private shareService = inject(ShareService);
 
-  pageState = signal<'select' | 'generating' | 'result' | 'session' | 'history'>('select');
+  pageState = signal<'select' | 'generating' | 'result' | 'session' | 'history' | 'consult'>('select');
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
 
   analyses = signal<ModuleAnalysis[]>([]);
+  isAnalysesLoading = signal(true);
   selectedAnalysis = signal<ModuleAnalysis | null>(null);
   viewingAnalysis = signal<ModuleAnalysis | null>(null);
 
@@ -86,8 +92,15 @@ export class FlashcardsComponent implements OnInit {
   bienCount = signal(0);
   malCount = signal(0);
 
-  // History
+  // History & Search
   historyList = signal<FlashcardSetResponse[]>([]);
+  historySearch = signal('');
+
+  // Consult state
+  consultSet = signal<FlashcardSessionResponse | null>(null);
+  consultCardIndex = signal(0);
+  isConsultFlipped = signal(false);
+  consultTab = signal<'cards' | 'table' | 'stats'>('cards');
 
   // Stats
   stats = signal<FlashcardStatsResponse | null>(null);
@@ -99,25 +112,53 @@ export class FlashcardsComponent implements OnInit {
     'appliquer': { label: 'Appliquer', color: '#eab308', icon: '⚙️' },
     'analyser': { label: 'Analyser', color: '#22c55e', icon: '🔍' },
     'evaluer': { label: 'Évaluer', color: '#3b82f6', icon: '⚖️' },
-    'creer': { label: 'Créer', color: '#8b5cf6', icon: '🎨' }
+    'creer': { label: 'Créer', color: '#9f1010', icon: '🎨' }
   };
 
   private apiUrl = `${environment.apiUrl}/api`;
 
   ngOnInit(): void {
     this.loadAnalyses();
+    this.loadHistoryList();
   }
 
   loadAnalyses(): void {
+    const cached = this.ramCache.get<ModuleAnalysis[]>('module_analyses');
+    if (cached) {
+      this.analyses.set(cached);
+      this.isAnalysesLoading.set(false);
+    } else {
+      this.isAnalysesLoading.set(true);
+    }
+
     this.http.get<ModuleAnalysis[]>(`${this.apiUrl}/modules/history`).subscribe({
       next: (data) => {
         this.analyses.set(data);
+        this.ramCache.set('module_analyses', data);
+        this.isAnalysesLoading.set(false);
         this.cd.detectChanges();
       },
       error: (err) => {
         this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement des analyses.');
+        this.isAnalysesLoading.set(false);
         this.cd.detectChanges();
       }
+    });
+  }
+
+  loadHistoryList(): void {
+    const cached = this.ramCache.get<FlashcardSetResponse[]>('flashcard_sets');
+    if (cached) {
+      this.historyList.set(cached);
+    }
+
+    this.http.get<FlashcardSetResponse[]>(`${this.apiUrl}/flashcards/sets`).subscribe({
+      next: (data) => {
+        this.historyList.set(data);
+        this.ramCache.set('flashcard_sets', data);
+        this.cd.detectChanges();
+      },
+      error: () => {}
     });
   }
 
@@ -186,6 +227,7 @@ export class FlashcardsComponent implements OnInit {
         this.generatedSet.set(result);
         this.isLoading.set(false);
         this.loadSetCards(result.id);
+        this.loadHistoryList();
         this.successMessage.set("Flashcards générées avec succès !");
         this.cd.detectChanges();
       },
@@ -202,22 +244,45 @@ export class FlashcardsComponent implements OnInit {
 
   loadSetCards(setId: number): void {
     const name = this.participantName.trim() || 'Professeur';
+    const cacheKey = `flashcard_session_${setId}_${name}_${this.nbCartes}`;
+
+    const cached = this.ramCache.get<FlashcardSessionResponse>(cacheKey);
+    if (cached) {
+      this.sessionData.set(cached);
+      this.currentCardIndex.set(0);
+      this.isFlipped.set(false);
+      this.sessionComplete.set(false);
+      this.bienCount.set(0);
+      this.malCount.set(0);
+      this.pageState.set('session');
+      this.cd.detectChanges();
+      return;
+    }
+
+    // Switch page state instantly (0ms latency for smooth UI response)
+    this.sessionData.set(null);
+    this.currentCardIndex.set(0);
+    this.isFlipped.set(false);
+    this.sessionComplete.set(false);
+    this.bienCount.set(0);
+    this.malCount.set(0);
+    this.pageState.set('session');
+    this.isLoading.set(true);
+    this.cd.detectChanges();
+
     this.http.get<FlashcardSessionResponse>(
       `${this.apiUrl}/flashcards/${setId}/session`,
       { params: { participant_name: name, nb_cartes: this.nbCartes.toString() } }
     ).subscribe({
       next: (data) => {
         this.sessionData.set(data);
-        this.currentCardIndex.set(0);
-        this.isFlipped.set(false);
-        this.sessionComplete.set(false);
-        this.bienCount.set(0);
-        this.malCount.set(0);
-        this.pageState.set('session');
+        this.ramCache.set(cacheKey, data);
+        this.isLoading.set(false);
         this.cd.detectChanges();
       },
       error: (err) => {
         this.errorMessage.set(err.error?.detail || "Erreur lors du chargement des cartes.");
+        this.isLoading.set(false);
         this.cd.detectChanges();
       }
     });
@@ -235,40 +300,30 @@ export class FlashcardsComponent implements OnInit {
     const card = cards[this.currentCardIndex()];
     if (!card) return;
 
-    const name = this.participantName.trim() || 'Professeur';
+    // 1. INSTANT OPTIMISTIC UI ADVANCE (0ms latency for smooth experience)
+    if (statut === 'bien_su') {
+      this.bienCount.set(this.bienCount() + 1);
+    } else {
+      this.malCount.set(this.malCount() + 1);
+    }
 
+    const nextIdx = this.currentCardIndex() + 1;
+    if (nextIdx < cards.length) {
+      this.currentCardIndex.set(nextIdx);
+      this.isFlipped.set(false);
+    } else {
+      this.sessionComplete.set(true);
+      this.loadStats(session.set_id);
+    }
+    this.cd.detectChanges();
+
+    // 2. Asynchronous background network sync
+    const name = this.participantName.trim() || 'Professeur';
     this.http.post(`${this.apiUrl}/flashcards/${card.id}/review`, {
       statut: statut,
       participant_name: name,
     }).subscribe({
-      next: () => {
-        if (statut === 'bien_su') {
-          this.bienCount.set(this.bienCount() + 1);
-        } else {
-          this.malCount.set(this.malCount() + 1);
-        }
-
-        const nextIdx = this.currentCardIndex() + 1;
-        if (nextIdx < cards.length) {
-          this.currentCardIndex.set(nextIdx);
-          this.isFlipped.set(false);
-        } else {
-          this.sessionComplete.set(true);
-          this.loadStats(session.set_id);
-        }
-        this.cd.detectChanges();
-      },
-      error: () => {
-        // Still advance the card on error
-        const nextIdx = this.currentCardIndex() + 1;
-        if (nextIdx < cards.length) {
-          this.currentCardIndex.set(nextIdx);
-          this.isFlipped.set(false);
-        } else {
-          this.sessionComplete.set(true);
-        }
-        this.cd.detectChanges();
-      }
+      error: (err) => console.warn('Background card review sync warning:', err)
     });
   }
 
@@ -284,7 +339,7 @@ export class FlashcardsComponent implements OnInit {
     });
   }
 
-  // ========== HISTORY ==========
+  // ========== HISTORY & CONSULTATION ==========
 
   loadHistory(): void {
     this.pageState.set('history');
@@ -303,6 +358,97 @@ export class FlashcardsComponent implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+
+  getFilteredHistory(): FlashcardSetResponse[] {
+    const q = this.historySearch().toLowerCase().trim();
+    if (!q) return this.historyList();
+    return this.historyList().filter(s =>
+      (s.titre && s.titre.toLowerCase().includes(q)) ||
+      (s.module_title && s.module_title.toLowerCase().includes(q))
+    );
+  }
+
+  consultSetFromHistory(set: FlashcardSetResponse, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.clearMessages();
+
+    const cacheKey = `flashcard_consult_${set.id}`;
+    const cached = this.ramCache.get<FlashcardSessionResponse>(cacheKey);
+    if (cached) {
+      this.consultSet.set(cached);
+      this.consultCardIndex.set(0);
+      this.isConsultFlipped.set(false);
+      this.consultTab.set('cards');
+      this.pageState.set('consult');
+      this.loadStats(set.id);
+      this.cd.detectChanges();
+      return;
+    }
+
+    // Switch page state instantly (0ms latency for smooth UI response)
+    this.consultSet.set(null);
+    this.consultCardIndex.set(0);
+    this.isConsultFlipped.set(false);
+    this.consultTab.set('cards');
+    this.pageState.set('consult');
+    this.isLoading.set(true);
+    this.cd.detectChanges();
+
+    this.http.get<FlashcardSessionResponse>(`${this.apiUrl}/flashcards/${set.id}`).subscribe({
+      next: (data) => {
+        this.consultSet.set(data);
+        this.ramCache.set(cacheKey, data);
+        this.loadStats(set.id);
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || "Erreur lors du chargement des détails du jeu.");
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  nextConsultCard(): void {
+    const set = this.consultSet();
+    if (set && this.consultCardIndex() < set.cartes.length - 1) {
+      this.isConsultFlipped.set(false);
+      this.consultCardIndex.set(this.consultCardIndex() + 1);
+    }
+  }
+
+  prevConsultCard(): void {
+    if (this.consultCardIndex() > 0) {
+      this.isConsultFlipped.set(false);
+      this.consultCardIndex.set(this.consultCardIndex() - 1);
+    }
+  }
+
+  flipConsultCard(): void {
+    this.isConsultFlipped.set(!this.isConsultFlipped());
+  }
+
+  getCurrentConsultCard(): FlashcardResponse | null {
+    const set = this.consultSet();
+    if (!set || set.cartes.length === 0) return null;
+    return set.cartes[this.consultCardIndex()] || null;
+  }
+
+  startSessionFromConsult(): void {
+    const set = this.consultSet();
+    if (set) {
+      this.generatedSet.set({
+        id: set.set_id,
+        module_id: 0,
+        module_title: set.module_title,
+        titre: set.titre,
+        nb_cartes: set.total_cartes,
+        created_at: new Date().toISOString()
+      });
+      this.loadSetCards(set.set_id);
+    }
   }
 
   viewSetFromHistory(set: FlashcardSetResponse): void {
@@ -374,4 +520,35 @@ export class FlashcardsComponent implements OnInit {
   getTotalCards(): number {
     return this.sessionData()?.cartes.length || 0;
   }
+
+  // ─── Share & Results ───
+  shareLink = signal('');
+  shareCopied = signal(false);
+  shareResults = signal<any[]>([]);
+  showResults = signal(false);
+
+  shareGame(setId: number): void {
+    this.shareService.createShare('flashcards', setId).subscribe({
+      next: (res) => {
+        const url = `${window.location.origin}/play/flashcards/${res.share_token}`;
+        this.shareLink.set(url);
+        navigator.clipboard.writeText(url).then(() => {
+          this.shareCopied.set(true);
+          setTimeout(() => this.shareCopied.set(false), 3000);
+        });
+      },
+      error: () => this.errorMessage.set('Erreur lors de la création du lien de partage'),
+    });
+  }
+
+  viewResults(setId: number): void {
+    this.shareService.getResults('flashcards', setId).subscribe({
+      next: (res) => {
+        this.shareResults.set(res.results);
+        this.showResults.set(true);
+      },
+      error: () => this.errorMessage.set('Erreur lors du chargement des résultats'),
+    });
+  }
 }
+

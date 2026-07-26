@@ -206,18 +206,16 @@ strong {
   }
 }
 
-/* ================================    Dropdown End  ===================== */
-@media (min-width: 1600px) {
-  .container {
-    max-width: 1540px;
-  }
+/* ================================ Container Fluid Full Width ===================== */
+.container,
+.container-fluid,
+.pcoded-content {
+  width: 100%;
+  max-width: 100% !important;
+  padding-left: clamp(12px, 2vw, 32px);
+  padding-right: clamp(12px, 2vw, 32px);
 }
 
-@media (max-width: 992px) {
-  .container {
-    max-width: 100%;
-  }
-}
 
 a {
   text-decoration: none !important;

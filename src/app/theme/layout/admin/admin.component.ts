@@ -5,14 +5,15 @@ import { RouterModule } from '@angular/router';
 
 // Project Import
 import { NavBarComponent } from './nav-bar/nav-bar.component';
+import { NavRightComponent } from './nav-bar/nav-right/nav-right.component';
+import { NavigationComponent } from './navigation/navigation.component';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
-import { Footer } from './footer/footer';
 import { LayoutStateService } from '../../shared/service/layout-state.service';
 import { AuthService } from '../../shared/service/auth.service';
 
 @Component({
   selector: 'app-admin',
-  imports: [RouterModule, NavBarComponent, BreadcrumbComponent, Footer],
+  imports: [RouterModule, NavBarComponent, NavRightComponent, NavigationComponent, BreadcrumbComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss']
 })
@@ -50,17 +51,11 @@ export class AdminComponent {
 
   // public method
   navMobClick() {
-    // if (this.windowWidth < 992) {
-    //   if (this.navCollapsedMob && !document.querySelector('app-navigation.pcoded-navbar')?.classList.contains('mob-open')) {
-    //     this.navCollapsedMob = !this.navCollapsedMob;
-    //     setTimeout(() => {
-    //       this.navCollapsedMob = !this.navCollapsedMob;
-    //     }, 100);
-    //   } else {
-    //     this.navCollapsedMob = !this.navCollapsedMob;
-    //   }
-    // }
-    this.layoutState.toggleNavCollapsedMob();
+    if (window.innerWidth < 992) {
+      this.layoutState.toggleNavCollapsedMob();
+    } else {
+      this.navCollapsed = !this.navCollapsed;
+    }
   }
 
   handleKeyDown(event: KeyboardEvent): void {

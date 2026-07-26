@@ -426,6 +426,12 @@
           <p class="subtitle">{{ generatedRoom()!.module_title || 'Escape Room Pédagogique' }}</p>
         </div>
         <div class="header-actions">
+          <button class="btn btn-sm btn-outline-primary" (click)="shareGame(generatedRoom()!.id!)">
+            <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
+          </button>
+          <button class="btn btn-sm btn-outline-info" (click)="viewResults(generatedRoom()!.id!)">
+            <i class="feather icon-bar-chart-2"></i> Résultats
+          </button>
           <button class="btn-back" (click)="backToSelect()">
             <i class="feather icon-plus"></i> Nouveau
           </button>
@@ -728,4 +734,45 @@
       }
     </div>
   }
+
+  <!-- Share Link Display -->
+  @if (shareLink()) {
+    <div class="alert alert-success mt-3 d-flex align-items-center gap-2">
+      <i class="feather icon-link"></i>
+      <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
+      <button class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier</button>
+    </div>
+  }
+
+  <!-- Student Results Panel -->
+  @if (showResults()) {
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📊 Résultats des étudiants</h5>
+        <button class="btn btn-sm btn-outline-secondary" (click)="showResults.set(false)">✕</button>
+      </div>
+      <div class="card-body p-0">
+        @if (shareResults().length === 0) {
+          <p class="text-muted text-center p-4">Aucun résultat pour le moment.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Nom</th><th>Score</th><th>Temps</th><th>Date</th></tr></thead>
+              <tbody>
+                @for (r of shareResults(); track r.id) {
+                  <tr>
+                    <td><strong>{{ r.student_name }}</strong></td>
+                    <td>{{ r.score }}/{{ r.max_score }}</td>
+                    <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min' : '-' }}</td>
+                    <td>{{ r.completed_at | date:'short' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
 </div>

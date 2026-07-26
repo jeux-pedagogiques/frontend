@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
+import { ShareService } from 'src/app/theme/shared/service/share.service';
 
 interface ImportResult {
   title: string;
@@ -40,6 +41,7 @@ interface AnalysisResult {
 export class ImportModuleComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private shareService = inject(ShareService);
 
   // Page state: 'import' | 'analyzing' | 'validation'
   pageState = signal<'import' | 'analyzing' | 'validation'>('import');
@@ -92,7 +94,7 @@ export class ImportModuleComponent implements OnInit {
     'appliquer': { label: 'Appliquer', color: '#eab308', icon: '⚙️' },
     'analyser': { label: 'Analyser', color: '#22c55e', icon: '🔍' },
     'evaluer': { label: 'Évaluer', color: '#3b82f6', icon: '⚖️' },
-    'creer': { label: 'Créer', color: '#8b5cf6', icon: '🎨' }
+    'creer': { label: 'Créer', color: '#9f1010', icon: '🎨' }
   };
 
   ngOnInit(): void {
@@ -129,6 +131,45 @@ export class ImportModuleComponent implements OnInit {
 
   totalPages(): number {
     return Math.ceil(this.filteredHistoryList().length / this.pageSize);
+  }
+
+  loadHistoryPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
+  }
+
+  // ─── Share & Results ───
+  shareLink = signal('');
+  shareCopied = signal(false);
+  shareResults = signal<any[]>([]);
+  showResults = signal(false);
+
+  shareGame(): void {
+    const quiz = this.generatedQuiz();
+    if (!quiz || !quiz.id) return;
+    this.shareService.createShare('quiz', quiz.id).subscribe({
+      next: (res) => {
+        const url = `${window.location.origin}/play/quiz/${res.share_token}`;
+        this.shareLink.set(url);
+        navigator.clipboard.writeText(url).then(() => {
+          this.shareCopied.set(true);
+          setTimeout(() => this.shareCopied.set(false), 3000);
+        });
+      },
+      error: () => this.errorMessage.set('Erreur lors de la création du lien de partage'),
+    });
+  }
+
+  viewResults(): void {
+    const quiz = this.generatedQuiz();
+    if (!quiz || !quiz.id) return;
+    this.shareService.getResults('quiz', quiz.id).subscribe({
+      next: (res) => {
+        this.shareResults.set(res.results);
+        this.showResults.set(true);
+      },
+      error: () => this.errorMessage.set('Erreur lors du chargement des résultats'),
+    });
   }
 
   nextPage(): void {

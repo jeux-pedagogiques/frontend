@@ -189,7 +189,7 @@
                       </td>
                       <td>{{ meeting.duration_minutes }} min</td>
                       <td>
-                        <span class="badge bg-light-primary text-primary px-3 py-2" style="border-radius: 12px; background-color: rgba(99, 102, 241, 0.08);">
+                        <span class="badge bg-light-primary text-primary px-3 py-2" style="border-radius: 12px; background-color: rgba(197, 20, 20, 0.08);">
                           {{ meeting.creator_name }}
                         </span>
                       </td>
@@ -241,7 +241,7 @@
   @if (sessionState() === 'lobby' && showGuestNamePrompt()) {
     <div class="col-12 d-flex justify-content-center align-items-center" style="min-height: 80vh;">
       <div class="card session-card border-0 shadow-lg text-center" style="max-width: 480px; width: 100%; border-radius: 20px; overflow: hidden; background: #fff;">
-        <div class="card-header border-0 pt-5 pb-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff;">
+        <div class="card-header border-0 pt-5 pb-3" style="background: linear-gradient(135deg, #C51414 0%, #9f1010 100%); color: #fff;">
           <div class="restricted-icon-wrapper mb-3" style="background: rgba(255, 255, 255, 0.2); color: #fff; width: 64px; height: 64px; box-shadow: none;">
             <i class="feather icon-video text-white" style="font-size: 24px;"></i>
           </div>
@@ -276,7 +276,7 @@
                 Caméra {{ enableVideo ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg start-btn w-100 py-3" [disabled]="!displayName.trim()" style="border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+            <button type="submit" class="btn btn-primary btn-lg start-btn w-100 py-3" [disabled]="!displayName.trim()" style="border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
               Rejoindre la séance <i class="feather icon-arrow-right ms-2"></i>
             </button>
           </form>
@@ -680,7 +680,7 @@
             <span class="fw-bold text-white-50" style="font-size: 13px;">Lien d'invitation :</span>
             <span class="text-white fw-medium ms-2" style="font-size: 13px; font-family: monospace;">{{ shareLink() }}</span>
           </div>
-          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
             <i class="feather" [class.icon-copy]="!copied()" [class.icon-check]="copied()"></i>
             {{ copied() ? ' Copié !' : ' Copier' }}
           </button>
@@ -786,7 +786,7 @@
       </div>
       <div class="custom-modal-actions">
         <button class="btn btn-light-secondary px-4 py-2 me-2" (click)="cancelConfirm()" style="border-radius: 10px; border: none; font-weight: 600;">Annuler</button>
-        <button class="btn btn-danger px-4 py-2" (click)="acceptConfirm()" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; font-weight: 600; color: #ffffff;">Confirmer</button>
+        <button class="btn btn-danger px-4 py-2" (click)="acceptConfirm()" style="border-radius: 10px; background: linear-gradient(135deg, #C51414, #9f1010); border: none; font-weight: 600; color: #ffffff;">Confirmer</button>
       </div>
     </div>
   </div>

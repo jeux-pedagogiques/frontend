@@ -1,5 +1,18 @@
 <div class="flashcards-page">
 
+  <!-- Main Top Navigation Tabs -->
+  <div class="fc-top-nav">
+    <button class="nav-tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle"></i> Générer des Flashcards
+    </button>
+    <button class="nav-tab" [class.active]="pageState() === 'history' || pageState() === 'consult'" (click)="loadHistory()">
+      <i class="feather icon-clock"></i> Mes Flashcards
+      @if (historyList().length > 0) {
+        <span class="count-badge">{{ historyList().length }}</span>
+      }
+    </button>
+  </div>
+
   <!-- Messages -->
   @if (successMessage()) {
     <div class="fc-alert success">
@@ -53,7 +66,12 @@
           <h4>Sélectionner une fiche module analysée</h4>
         </div>
 
-        @if (analyses().length === 0 && !isLoading()) {
+        @if (isAnalysesLoading()) {
+          <div class="empty-state">
+            <div class="spinner-large" style="width: 32px; height: 32px;"></div>
+            <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
+          </div>
+        } @else if (analyses().length === 0) {
           <div class="empty-state">
             <i class="feather icon-file-text"></i>
             <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
@@ -61,9 +79,7 @@
               <i class="feather icon-upload-cloud"></i> Importer une fiche
             </a>
           </div>
-        }
-
-        @if (analyses().length > 0) {
+        } @else {
           <div class="analyses-grid">
             @for (analysis of analyses(); track analysis.id) {
               <div class="analysis-card"
@@ -206,11 +222,11 @@
         </div>
       }
 
-      <!-- History Button -->
-      @if (analyses().length > 0) {
+      <!-- History Link -->
+      @if (historyList().length > 0) {
         <div class="history-link">
           <button class="btn-text" (click)="loadHistory()">
-            <i class="feather icon-clock"></i> Voir les flashcards générées
+            <i class="feather icon-clock"></i> Consulter mes {{ historyList().length }} jeux de flashcards générés
           </button>
         </div>
       }
@@ -218,7 +234,7 @@
   }
 
   <!-- ================================================================= -->
-  <!-- STATE: HISTORY                                                     -->
+  <!-- STATE: HISTORY (Saved Flashcards List)                             -->
   <!-- ================================================================= -->
   @if (pageState() === 'history') {
     <div class="history-section">
@@ -227,24 +243,46 @@
           <i class="feather icon-clock"></i>
         </div>
         <div>
-          <h2>Historique des Flashcards</h2>
-          <p class="subtitle">{{ historyList().length }} jeu(x) de flashcards généré(s).</p>
+          <h2>Mes Flashcards Générées</h2>
+          <p class="subtitle">{{ historyList().length }} jeu(x) de flashcards disponible(s).</p>
         </div>
-        <button class="btn-back" (click)="backToSelect()">
-          <i class="feather icon-arrow-left"></i> Retour
-        </button>
+        <div class="header-actions">
+          <button class="btn-back" (click)="backToSelect()">
+            <i class="feather icon-plus-circle"></i> Créer des flashcards
+          </button>
+        </div>
       </div>
 
-      @if (historyList().length === 0) {
+      <!-- Search & Filter Bar -->
+      @if (historyList().length > 0) {
+        <div class="history-search-box">
+          <i class="feather icon-search search-icon"></i>
+          <input type="text" class="text-input history-search-input"
+                 placeholder="Rechercher par titre de jeu ou par module..."
+                 [ngModel]="historySearch()" (ngModelChange)="historySearch.set($event)">
+        </div>
+      }
+
+      @if (historyList().length === 0 && !isLoading()) {
         <div class="empty-state">
           <i class="feather icon-layers"></i>
           <p>Aucune flashcard générée pour le moment.</p>
+          <button class="btn-primary" (click)="backToSelect()">
+            <i class="feather icon-plus-circle"></i> Générer mes premières flashcards
+          </button>
+        </div>
+      }
+
+      @if (historyList().length > 0 && getFilteredHistory().length === 0) {
+        <div class="empty-state">
+          <i class="feather icon-search"></i>
+          <p>Aucun jeu de flashcards ne correspond à votre recherche.</p>
         </div>
       }
 
       <div class="history-grid">
-        @for (set of historyList(); track set.id) {
-          <div class="history-card" (click)="viewSetFromHistory(set)">
+        @for (set of getFilteredHistory(); track set.id) {
+          <div class="history-card">
             <div class="card-top">
               <h4>{{ set.titre }}</h4>
               <button class="btn-delete" (click)="deleteSet(set.id, $event)" title="Supprimer">
@@ -252,11 +290,21 @@
               </button>
             </div>
             <div class="card-meta">
-              <span><i class="feather icon-book"></i> {{ set.module_title || 'N/A' }}</span>
+              <span><i class="feather icon-book"></i> {{ set.module_title || 'Module' }}</span>
               <span><i class="feather icon-layers"></i> {{ set.nb_cartes }} cartes</span>
             </div>
-            <div class="card-tags">
+            <div class="card-tags mb-3">
               <span class="tag-date">{{ formatDate(set.created_at) }}</span>
+            </div>
+
+            <!-- Action buttons: Consult & Review -->
+            <div class="card-actions-row">
+              <button class="btn-card-action btn-consult" (click)="consultSetFromHistory(set, $event)">
+                <i class="feather icon-eye"></i> Consulter
+              </button>
+              <button class="btn-card-action btn-session" (click)="viewSetFromHistory(set)">
+                <i class="feather icon-play"></i> Réviser
+              </button>
             </div>
           </div>
         }
@@ -265,7 +313,181 @@
   }
 
   <!-- ================================================================= -->
-  <!-- STATE: SESSION (Card Flip + Review)                                -->
+  <!-- STATE: CONSULT (Full Old Flashcard Set Consultation)               -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'consult' && consultSet()) {
+    <div class="consult-section">
+      <div class="section-header">
+        <div class="header-icon consult-icon">
+          <i class="feather icon-eye"></i>
+        </div>
+        <div>
+          <h2>{{ consultSet()!.titre }}</h2>
+          <p class="subtitle">{{ consultSet()!.module_title || 'Fiche Module' }} · {{ consultSet()!.total_cartes }} cartes</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm btn-outline-primary" (click)="shareGame(consultSet()!.set_id)">
+            <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
+          </button>
+          <button class="btn btn-sm btn-outline-info" (click)="viewResults(consultSet()!.set_id)">
+            <i class="feather icon-bar-chart-2"></i> Résultats
+          </button>
+          <button class="btn-review-start" (click)="startSessionFromConsult()">
+            <i class="feather icon-play"></i> Lancer la révision
+          </button>
+          <button class="btn-back" (click)="backToHistory()">
+            <i class="feather icon-arrow-left"></i> Retour aux flashcards
+          </button>
+        </div>
+      </div>
+
+      <!-- Consultation Navigation Subtabs -->
+      <div class="consult-subtabs">
+        <button class="subtab-btn" [class.active]="consultTab() === 'cards'" (click)="consultTab.set('cards')">
+          <i class="feather icon-copy"></i> Mode Carte par Carte
+        </button>
+        <button class="subtab-btn" [class.active]="consultTab() === 'table'" (click)="consultTab.set('table')">
+          <i class="feather icon-list"></i> Toutes les cartes (Tableau)
+        </button>
+        <button class="subtab-btn" [class.active]="consultTab() === 'stats'" (click)="consultTab.set('stats')">
+          <i class="feather icon-bar-chart-2"></i> Statistiques
+        </button>
+      </div>
+
+      <!-- TAB 1: Flip Card Viewer -->
+      @if (consultTab() === 'cards' && getCurrentConsultCard()) {
+        <div class="consult-card-viewer">
+          <div class="card-container">
+            <div class="flashcard" [class.flipped]="isConsultFlipped()" (click)="flipConsultCard()">
+              <!-- Recto -->
+              <div class="flashcard-face flashcard-front">
+                <div class="card-face-label">RECTO (QUESTION / NOTION)</div>
+                @if (getCurrentConsultCard()!.aa_source) {
+                  <div class="card-aa-badge">{{ getCurrentConsultCard()!.aa_source }}</div>
+                }
+                <p class="card-text">{{ getCurrentConsultCard()!.recto }}</p>
+                <div class="flip-hint">
+                  <i class="feather icon-rotate-cw"></i> Cliquer pour voir la réponse
+                </div>
+              </div>
+              <!-- Verso -->
+              <div class="flashcard-face flashcard-back">
+                <div class="card-face-label">VERSO (RÉPONSE / EXPLICATION)</div>
+                @if (getCurrentConsultCard()!.aa_source) {
+                  <div class="card-aa-badge">{{ getCurrentConsultCard()!.aa_source }}</div>
+                }
+                <p class="card-text">{{ getCurrentConsultCard()!.verso }}</p>
+                <div class="flip-hint">
+                  <i class="feather icon-rotate-cw"></i> Cliquer pour retourner la carte
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flip Card Navigation Bar -->
+          <div class="consult-nav-controls">
+            <button class="btn-nav-circle" (click)="prevConsultCard()" [disabled]="consultCardIndex() === 0">
+              <i class="feather icon-chevron-left"></i> Précédent
+            </button>
+            <span class="nav-counter">Carte {{ consultCardIndex() + 1 }} sur {{ consultSet()!.total_cartes }}</span>
+            <button class="btn-nav-circle" (click)="nextConsultCard()" [disabled]="consultCardIndex() === consultSet()!.total_cartes - 1">
+              Suivant <i class="feather icon-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 2: All Cards Table -->
+      @if (consultTab() === 'table') {
+        <div class="consult-table-container">
+          <table class="fc-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>Recto (Question / Notion)</th>
+                <th>Verso (Réponse / Définition)</th>
+                <th style="width: 120px;">Source AA</th>
+                <th style="width: 140px;">Niveau Bloom</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (card of consultSet()!.cartes; track card.id) {
+                <tr>
+                  <td class="col-num">{{ card.ordre || ($index + 1) }}</td>
+                  <td class="col-recto">{{ card.recto }}</td>
+                  <td class="col-verso">{{ card.verso }}</td>
+                  <td><span class="badge-aa">{{ card.aa_source || '-' }}</span></td>
+                  <td>
+                    @if (card.niveau_bloom) {
+                      <span class="bloom-chip" [style.background]="getBloomInfo(card.niveau_bloom).color">
+                        {{ getBloomInfo(card.niveau_bloom).icon }} {{ getBloomInfo(card.niveau_bloom).label }}
+                      </span>
+                    } @else {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- TAB 3: Memorization Stats -->
+      @if (consultTab() === 'stats') {
+        <div class="consult-stats-container">
+          @if (stats()) {
+            <div class="stats-overview-grid">
+              <div class="stat-box rate">
+                <span class="stat-val">{{ stats()!.taux_memorisation }}%</span>
+                <span class="stat-lbl">Taux de Mémorisation Global</span>
+              </div>
+              <div class="stat-box bien">
+                <span class="stat-val">{{ stats()!.bien_su_count }}</span>
+                <span class="stat-lbl">Réponses Bien Sues</span>
+              </div>
+              <div class="stat-box mal">
+                <span class="stat-val">{{ stats()!.mal_su_count }}</span>
+                <span class="stat-lbl">Réponses À Revoir</span>
+              </div>
+              <div class="stat-box total">
+                <span class="stat-val">{{ stats()!.total_reviews }}</span>
+                <span class="stat-lbl">Total Révisions Effectuées</span>
+              </div>
+            </div>
+
+            @if (stats()!.stats_par_aa.length > 0) {
+              <div class="aa-stats-section">
+                <h4><i class="feather icon-bar-chart-2"></i> Performance par Acquis d'Apprentissage (AA)</h4>
+                <div class="aa-stats-list">
+                  @for (aa of stats()!.stats_par_aa; track aa.aa_source) {
+                    <div class="aa-stat-row">
+                      <span class="aa-stat-label">{{ aa.aa_source }}</span>
+                      <div class="aa-stat-bar-track">
+                        <div class="aa-stat-bar-fill" [style.width.%]="aa.taux"></div>
+                      </div>
+                      <span class="aa-stat-value">{{ aa.taux }}% ({{ aa.bien_su }}/{{ aa.total }})</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="empty-state">
+              <i class="feather icon-bar-chart"></i>
+              <p>Aucune statistique de révision enregistrée pour ce jeu de flashcards.</p>
+              <button class="btn-primary" (click)="startSessionFromConsult()">
+                <i class="feather icon-play"></i> Commencer une révision
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: SESSION (Card Flip + Spaced Repetition Review)              -->
   <!-- ================================================================= -->
   @if (pageState() === 'session' && sessionData()) {
     <div class="session-section">
@@ -279,8 +501,8 @@
           <p class="subtitle">{{ sessionData()!.module_title || 'Flashcards Révision' }}</p>
         </div>
         <div class="header-actions">
-          <button class="btn-back" (click)="backToSelectFromSession()">
-            <i class="feather icon-arrow-left"></i> Retour
+          <button class="btn-back" (click)="backToHistory()">
+            <i class="feather icon-arrow-left"></i> Quitter la session
           </button>
         </div>
       </div>
@@ -386,13 +608,53 @@
               <button class="btn-generate" (click)="startNewSession()">
                 <i class="feather icon-refresh-cw"></i> Nouvelle session
               </button>
-              <button class="btn-back" (click)="backToSelectFromSession()">
-                <i class="feather icon-arrow-left"></i> Retour à la sélection
+              <button class="btn-back" (click)="backToHistory()">
+                <i class="feather icon-arrow-left"></i> Voir mes flashcards
               </button>
             </div>
           </div>
         </div>
       }
+    </div>
+  }
+
+  <!-- Share Link Display -->
+  @if (shareLink()) {
+    <div class="alert alert-success mt-3 d-flex align-items-center gap-2">
+      <i class="feather icon-link"></i>
+      <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
+      <button class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier</button>
+    </div>
+  }
+
+  <!-- Student Results Panel -->
+  @if (showResults()) {
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📊 Résultats des étudiants</h5>
+        <button class="btn btn-sm btn-outline-secondary" (click)="showResults.set(false)">✕</button>
+      </div>
+      <div class="card-body p-0">
+        @if (shareResults().length === 0) {
+          <p class="text-muted text-center p-4">Aucun résultat pour le moment.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Nom</th><th>Score</th><th>Temps</th><th>Date</th></tr></thead>
+              <tbody>
+                @for (r of shareResults(); track r.id) {
+                  <tr>
+                    <td><strong>{{ r.student_name }}</strong></td>
+                    <td>{{ r.score }}/{{ r.max_score }}</td>
+                    <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min' : '-' }}</td>
+                    <td>{{ r.completed_at | date:'short' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
     </div>
   }
 </div>

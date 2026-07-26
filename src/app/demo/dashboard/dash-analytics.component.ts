@@ -70,7 +70,7 @@ export class DashAnalyticsComponent {
         type: 'gradient',
         gradient: {
           shade: 'light',
-          gradientToColors: ['#4099ff', '#2ed8b6'],
+          gradientToColors: ['#C51414', '#2ed8b6'],
           shadeIntensity: 0.5,
           type: 'horizontal',
           opacityFrom: 1,

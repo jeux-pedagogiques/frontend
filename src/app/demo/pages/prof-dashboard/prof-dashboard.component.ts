@@ -7,6 +7,8 @@ import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
 import { ApexOptions, NgApexchartsModule } from 'ng-apexcharts';
 
+import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
+
 interface OverviewData {
   total_sessions: number;
   total_games_generated: number;
@@ -63,6 +65,7 @@ interface ComparisonData {
 export class ProfDashboardComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private ramCache = inject(RamCacheService);
 
   // State
   pageState = signal<'overview' | 'detail' | 'loading'>('loading');
@@ -102,7 +105,7 @@ export class ProfDashboardComponent implements OnInit {
     'appliquer': '#eab308',
     'analyser': '#22c55e',
     'evaluer': '#3b82f6',
-    'creer': '#8b5cf6'
+    'creer': '#9f1010'
   };
 
   ngOnInit(): void {
@@ -110,21 +113,32 @@ export class ProfDashboardComponent implements OnInit {
   }
 
   loadOverview(): void {
-    this.pageState.set('loading');
-    this.isLoading.set(true);
+    const cached = this.ramCache.get<OverviewData>('dashboard_overview');
+    if (cached) {
+      this.overview.set(cached);
+      this.initCharts(cached);
+      this.pageState.set('overview');
+      this.isLoading.set(false);
+    } else {
+      this.pageState.set('loading');
+      this.isLoading.set(true);
+    }
     this.errorMessage.set('');
 
     this.http.get<OverviewData>(`${this.apiUrl}/overview`).subscribe({
       next: (data) => {
         this.overview.set(data);
+        this.ramCache.set('dashboard_overview', data);
         this.initCharts(data);
         this.pageState.set('overview');
         this.isLoading.set(false);
         this.cd.detectChanges();
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement du tableau de bord.');
-        this.pageState.set('overview');
+        if (!cached) {
+          this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement du tableau de bord.');
+          this.pageState.set('overview');
+        }
         this.isLoading.set(false);
         this.cd.detectChanges();
       }
@@ -182,7 +196,7 @@ export class ProfDashboardComponent implements OnInit {
       chart: { type: 'donut', height: 260 },
       labels: ['Quiz', 'Escape Room', 'Pitching'],
       series: [types.quiz, types.escape_room, types.pitching],
-      colors: ['#6366f1', '#8b5cf6', '#f59e0b'],
+      colors: ['#C51414', '#9f1010', '#f59e0b'],
       legend: { position: 'bottom' },
       dataLabels: { enabled: true, dropShadow: { enabled: false } },
       plotOptions: { pie: { donut: { size: '65%' } } }
@@ -212,7 +226,7 @@ export class ProfDashboardComponent implements OnInit {
         categories: sessions.map(s => s.code_session || `S${s.session_id}`),
         labels: { style: { fontSize: '10px' } }
       },
-      colors: ['#6366f1'],
+      colors: ['#C51414'],
       plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
       dataLabels: { enabled: false },
       grid: { borderColor: '#f1f5f9' }
@@ -251,7 +265,7 @@ export class ProfDashboardComponent implements OnInit {
         }),
         labels: { style: { fontSize: '10px' } }
       },
-      colors: ['#6366f1'],
+      colors: ['#C51414'],
       stroke: { width: 3, curve: 'smooth' },
       markers: { size: 6 },
       dataLabels: { enabled: false },
