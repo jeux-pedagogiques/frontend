@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
 import { ShareService } from 'src/app/theme/shared/service/share.service';
+import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
 
 interface ImportResult {
   title: string;
@@ -42,6 +43,7 @@ export class ImportModuleComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
   private shareService = inject(ShareService);
+  private ramCache = inject(RamCacheService);
 
   // Page state: 'import' | 'analyzing' | 'validation'
   pageState = signal<'import' | 'analyzing' | 'validation'>('import');
@@ -87,15 +89,57 @@ export class ImportModuleComponent implements OnInit {
 
   private apiUrl = `${environment.apiUrl}/api/modules`;
 
-  // Bloom level labels and colors
-  bloomLevels: Record<string, { label: string; color: string; icon: string }> = {
-    'memoriser': { label: 'Mémoriser', color: '#ef4444', icon: '🧠' },
-    'comprendre': { label: 'Comprendre', color: '#f97316', icon: '💡' },
-    'appliquer': { label: 'Appliquer', color: '#eab308', icon: '⚙️' },
-    'analyser': { label: 'Analyser', color: '#22c55e', icon: '🔍' },
-    'evaluer': { label: 'Évaluer', color: '#3b82f6', icon: '⚖️' },
-    'creer': { label: 'Créer', color: '#9f1010', icon: '🎨' }
+  // Bloom level labels, numbers, colors and styles matching prototype
+  bloomLevels: Record<string, { label: string; full: string; levelNum: number; color: string }> = {
+    'memoriser':  { label: 'Mém',  full: 'Mémoriser',  levelNum: 1, color: '#38BDF8' },
+    'comprendre': { label: 'Comp', full: 'Comprendre', levelNum: 2, color: '#22C1C3' },
+    'appliquer':  { label: 'Appl', full: 'Appliquer',  levelNum: 3, color: '#10B981' },
+    'analyser':   { label: 'Anal', full: 'Analyser',   levelNum: 4, color: '#F97316' },
+    'evaluer':    { label: 'Éval', full: 'Évaluer',    levelNum: 5, color: '#EF4444' },
+    'creer':      { label: 'Créer',full: 'Créer',      levelNum: 6, color: '#C53030' }
   };
+
+  bloomList = [
+    { id: 'memoriser',  label: 'Mém',  full: 'Mémoriser',  levelNum: 1, color: '#38BDF8' },
+    { id: 'comprendre', label: 'Comp', full: 'Comprendre', levelNum: 2, color: '#22C1C3' },
+    { id: 'appliquer',  label: 'Appl', full: 'Appliquer',  levelNum: 3, color: '#10B981' },
+    { id: 'analyser',   label: 'Anal', full: 'Analyser',   levelNum: 4, color: '#F97316' },
+    { id: 'evaluer',    label: 'Éval', full: 'Évaluer',    levelNum: 5, color: '#EF4444' },
+    { id: 'creer',      label: 'Créer',full: 'Créer',      levelNum: 6, color: '#C53030' }
+  ];
+
+  getBloomCount(levelId: string): number {
+    const res = this.analysisResult();
+    if (!res || !res.learning_outcomes) return 0;
+    return res.learning_outcomes.filter(o => o.bloom_level === levelId).length;
+  }
+
+  getBloomColor(levelId: string): string {
+    return this.bloomLevels[levelId]?.color || '#6b7280';
+  }
+
+  getBloomLevelNum(levelId: string): number {
+    return this.bloomLevels[levelId]?.levelNum || 1;
+  }
+
+  hexToRgba(hex: string, alpha: number): string {
+    if (!hex || !hex.startsWith('#')) return `rgba(100, 116, 139, ${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16) || 0;
+    const g = parseInt(hex.slice(3, 5), 16) || 0;
+    const b = parseInt(hex.slice(5, 7), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  getMaxBloomCount(): number {
+    const counts = this.bloomList.map(b => this.getBloomCount(b.id));
+    return Math.max(1, ...counts);
+  }
+
+  getBloomBarHeight(levelId: string): number {
+    const count = this.getBloomCount(levelId);
+    const max = this.getMaxBloomCount();
+    return 14 + (count / max) * 66;
+  }
 
   ngOnInit(): void {
     this.loadHistory();
@@ -115,8 +159,20 @@ export class ImportModuleComponent implements OnInit {
   filteredHistoryList(): any[] {
     const query = this.searchQuery().toLowerCase().trim();
     const list = this.historyList();
-    if (!query) return list;
-    return list.filter(item => 
+
+    // Deduplicate by module_title so each module title displays only one time
+    const seenTitles = new Set<string>();
+    const deduplicated: any[] = [];
+    for (const item of list) {
+      const normalized = (item.module_title || '').trim().toLowerCase();
+      if (!normalized || !seenTitles.has(normalized)) {
+        if (normalized) seenTitles.add(normalized);
+        deduplicated.push(item);
+      }
+    }
+
+    if (!query) return deduplicated;
+    return deduplicated.filter(item => 
       item.module_title?.toLowerCase().includes(query) ||
       item.id?.toString().includes(query) ||
       (item.module_summary && item.module_summary.toLowerCase().includes(query))
@@ -354,8 +410,8 @@ export class ImportModuleComponent implements OnInit {
     }
   }
 
-  getBloomInfo(level: string): { label: string; color: string; icon: string } {
-    return this.bloomLevels[level] || { label: level, color: '#6b7280', icon: '📌' };
+  getBloomInfo(level: string): { label: string; color: string; levelNum: number } {
+    return this.bloomLevels[level] || { label: level, color: '#6b7280', levelNum: 1 };
   }
 
   getBloomOrder(level: string): number {
@@ -469,6 +525,7 @@ export class ImportModuleComponent implements OnInit {
     this.clearMessages();
 
     const payload = {
+      analysis_id: this.loadedAnalysisId(),
       module_title: result.module_title,
       original_content: importRes?.content || '',
       learning_outcomes: result.learning_outcomes,
@@ -483,6 +540,7 @@ export class ImportModuleComponent implements OnInit {
     this.http.post<any>(`${this.apiUrl}/history`, payload).subscribe({
       next: (savedEntry: any) => {
         this.isLoading.set(false);
+        this.loadedAnalysisId.set(savedEntry.id);
         this.loadHistory();
         this.backToImport();
         this.successMessage.set(`Fiche module "${savedEntry.module_title || result.module_title}" confirmée et enregistrée avec succès dans votre historique !`);
@@ -540,6 +598,7 @@ export class ImportModuleComponent implements OnInit {
       next: (quiz) => {
         this.generatedQuiz.set(quiz);
         this.isGeneratingQuiz.set(false);
+        this.ramCache.clear();
         this.successMessage.set("Quiz généré avec succès !");
         this.cd.detectChanges();
         setTimeout(() => {
@@ -562,6 +621,7 @@ export class ImportModuleComponent implements OnInit {
       if (!result) return reject('No analysis result');
 
       const payload = {
+        analysis_id: this.loadedAnalysisId(),
         module_title: result.module_title,
         original_content: importRes?.content || '',
         learning_outcomes: result.learning_outcomes,

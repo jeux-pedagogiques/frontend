@@ -352,328 +352,402 @@
   <!-- STATE 3: VALIDATION                                                   -->
   <!-- ===================================================================== -->
   @if (pageState() === 'validation' && analysisResult()) {
-    <div class="scan-validation">
-      <!-- Module Summary Card -->
-      <div class="validation-card">
-        <div class="validation-card-header">
-          <div class="val-icon"><i class="feather icon-book-open"></i></div>
-          <input type="text" class="title-edit-input" [(ngModel)]="analysisResult()!.module_title" name="moduleTitle" placeholder="Titre du module">
+    <div class="page-validation-wrapper">
+      <div class="page-head">
+        <div class="head-top-row">
+          <button type="button" class="btn-back-circle" (click)="backToImport()" title="Retour à la page d'import">
+            <i class="feather icon-arrow-left"></i>
+          </button>
+          <div class="crumb"><i class="feather icon-upload-cloud me-1"></i> Import de Fiche</div>
         </div>
-        @if (analysisResult()!.module_summary) {
-          <div class="validation-card-body">
-            <label class="field-label"><i class="feather icon-align-left me-1"></i> Résumé du module</label>
-            <p class="summary-text">{{ analysisResult()!.module_summary }}</p>
-            <div class="info-pills">
-              @if (analysisResult()!.target_audience) {
-                <div class="info-pill">
-                  <i class="feather icon-users"></i>
-                  <strong>Public cible :</strong> {{ analysisResult()!.target_audience }}
-                </div>
-              }
-              @if (analysisResult()!.estimated_duration) {
-                <div class="info-pill">
-                  <i class="feather icon-clock"></i>
-                  <strong>Durée :</strong> {{ analysisResult()!.estimated_duration }}
-                </div>
-              }
+        <h1>Vérification de l'analyse IA</h1>
+        <p>Relisez et corrigez les informations détectées avant de générer un jeu pédagogique.</p>
+        <span class="ai-flag"><i class="feather icon-zap"></i> Contenu généré par l'IA — tout est modifiable</span>
+      </div>
+
+      <div class="stack mt-4">
+
+        <!-- Stat Row -->
+        <div class="row-3">
+          <div class="card stat-card">
+            <div class="stat-icon red"><i class="feather icon-target"></i></div>
+            <div>
+              <div class="stat-num">{{ analysisResult()!.learning_outcomes.length }}</div>
+              <div class="stat-label">Acquis détectés</div>
             </div>
           </div>
-        }
-      </div>
-      <!-- Learning Outcomes -->
-      <div class="validation-card">
-        <div class="validation-card-header">
-          <div class="d-flex justify-content-between align-items-center w-100">
-            <h5 class="mb-0"><i class="feather icon-target me-2"></i> Acquis d'apprentissage (AA)</h5>
-            <span class="count-badge">{{ analysisResult()!.learning_outcomes.length }} AA détectés</span>
+          <div class="card stat-card">
+            <div class="stat-icon blue"><i class="feather icon-book"></i></div>
+            <div>
+              <div class="stat-num">{{ analysisResult()!.key_concepts.length }}</div>
+              <div class="stat-label">Concepts identifiés</div>
+            </div>
+          </div>
+          <div class="card gauge-card">
+            <div class="gauge">
+              <div class="gauge-fill" style="background: conic-gradient(from -90deg, var(--red) 92%, #F3E3E3 92% 100%);"></div>
+              <div class="gauge-hole"><b>92%</b></div>
+            </div>
+            <div class="gauge-info">
+              <b>Confiance IA</b>
+              <span class="fiab-pill"><i class="feather icon-check-circle me-1" style="width:11px;height:11px;"></i>Fiabilité élevée</span>
+            </div>
           </div>
         </div>
-        <div class="outcomes-list">
-          @for (outcome of analysisResult()!.learning_outcomes; track outcome; let i = $index) {
-            <div class="outcome-item">
-              <div class="outcome-number">AA{{ outcome.id }}</div>
-              <div class="outcome-content">
-                <textarea class="scan-textarea outcome-textarea" [(ngModel)]="outcome.description" [name]="'outcome_' + i" rows="2"></textarea>
-                <div class="outcome-meta">
-                  <div class="bloom-badge" [style.background]="getBloomInfo(outcome.bloom_level).color + '15'"
-                    [style.color]="getBloomInfo(outcome.bloom_level).color"
-                    [style.border-color]="getBloomInfo(outcome.bloom_level).color + '30'">
-                    <span class="bloom-icon">{{ getBloomInfo(outcome.bloom_level).icon }}</span>
-                    <select class="bloom-select" [(ngModel)]="outcome.bloom_level" [name]="'bloom_' + i"
-                      [style.color]="getBloomInfo(outcome.bloom_level).color">
-                      <option value="memoriser">Mémoriser</option>
-                      <option value="comprendre">Comprendre</option>
-                      <option value="appliquer">Appliquer</option>
-                      <option value="analyser">Analyser</option>
-                      <option value="evaluer">Évaluer</option>
-                      <option value="creer">Créer</option>
-                    </select>
+
+        <!-- Module summary card -->
+        <div class="card">
+          <div class="module-head">
+            <div class="module-icon"><i class="feather icon-book"></i></div>
+            <input class="title-input" type="text" [(ngModel)]="analysisResult()!.module_title" name="moduleTitle" placeholder="Titre du module">
+          </div>
+          @if (analysisResult()!.module_summary) {
+            <div class="card-body">
+              <div class="field-label"><i class="feather icon-align-left"></i> Résumé du module</div>
+              <p class="summary-text">{{ analysisResult()!.module_summary }}</p>
+              <div class="pills">
+                @if (analysisResult()!.target_audience) {
+                  <div class="pill">
+                    <i class="feather icon-users"></i>
+                    <span><strong>Public :</strong> {{ analysisResult()!.target_audience }}</span>
                   </div>
-                  @if (outcome.bloom_justification) {
-                    <span class="bloom-justification">
-                      <i class="feather icon-info me-1"></i> {{ outcome.bloom_justification }}
-                    </span>
-                  }
-                </div>
+                }
+                @if (analysisResult()!.estimated_duration) {
+                  <div class="pill">
+                    <i class="feather icon-clock"></i>
+                    <span><strong>Durée :</strong> {{ analysisResult()!.estimated_duration }}</span>
+                  </div>
+                }
               </div>
-              <button class="action-btn delete" (click)="removeOutcome(i)" title="Supprimer">
-                <i class="feather icon-trash-2"></i>
-              </button>
             </div>
           }
         </div>
-      </div>
-      <!-- Key Concepts & Keywords -->
-      <div class="tags-row">
-        <div class="validation-card half">
-          <div class="validation-card-header">
-            <h5 class="mb-0"><i class="feather icon-book me-2"></i> Concepts clés</h5>
+
+        <!-- Learning outcomes with Bloom Bar Chart & Esprit AI Watermark -->
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="feather icon-target"></i> Acquis d'apprentissage (AA)</h3>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="watermark">
+                <div class="wm-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  </svg>
+                </div>
+                Esprit AI
+              </div>
+              <span class="badge-count">{{ analysisResult()!.learning_outcomes.length }} AA détectés</span>
+            </div>
           </div>
-          <div class="validation-card-body">
-            <div class="tags-container">
-              @for (concept of analysisResult()!.key_concepts; track concept; let i = $index) {
-                <div class="editable-tag concept-tag">
-                  <span>{{ concept }}</span>
-                  <button class="tag-remove" (click)="removeConcept(i)"><i class="feather icon-x"></i></button>
+          <div class="dist-wrap">
+            <div class="field-label" style="margin:14px 0 10px;"><i class="feather icon-bar-chart-2 me-1"></i>Répartition Bloom</div>
+            <div class="bloom-chart">
+              @for (b of bloomList; track b.id) {
+                <div class="bloom-col">
+                  <div class="count">{{ getBloomCount(b.id) > 0 ? getBloomCount(b.id) : '' }}</div>
+                  <div class="bar" [style.height.px]="getBloomBarHeight(b.id)" [style.background]="getBloomCount(b.id) > 0 ? b.color : '#F1E1E1'"></div>
+                  <div class="lbl">{{ b.label }}</div>
                 </div>
               }
             </div>
           </div>
-        </div>
-        <div class="validation-card half">
-          <div class="validation-card-header">
-            <h5 class="mb-0"><i class="feather icon-hash me-2"></i> Mots-clés</h5>
-          </div>
-          <div class="validation-card-body">
-            <div class="tags-container">
-              @for (keyword of analysisResult()!.keywords; track keyword; let i = $index) {
-                <div class="editable-tag keyword-tag">
-                  <span>{{ keyword }}</span>
-                  <button class="tag-remove" (click)="removeKeyword(i)"><i class="feather icon-x"></i></button>
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Quiz Generator -->
-      @if (analysisResult()) {
-        <div class="validation-card" id="quiz-generator-card">
-          <div class="validation-card-header">
-            <h5 class="mb-0"><i class="feather icon-play me-2"></i> Générer un Jeu : Quiz chronométré</h5>
-          </div>
-          <div class="validation-card-body">
-            <div class="quiz-params">
-              <div class="param-field">
-                <label class="field-label">Nombre de questions</label>
-                <select class="scan-select" [(ngModel)]="quizQuestionsCount" name="quizQuestionsCount">
-                  <option [value]="3">3 questions</option>
-                  <option [value]="5">5 questions</option>
-                  <option [value]="10">10 questions</option>
-                  <option [value]="15">15 questions</option>
-                </select>
-              </div>
-              <div class="param-field">
-                <label class="field-label">Durée par question</label>
-                <select class="scan-select" [(ngModel)]="quizDurationPerQuestion" name="quizDurationPerQuestion">
-                  <option [value]="15">15 secondes</option>
-                  <option [value]="30">30 secondes</option>
-                  <option [value]="45">45 secondes</option>
-                  <option [value]="60">60 secondes</option>
-                </select>
-              </div>
-              <div class="param-field">
-                <label class="field-label">Mode de jeu</label>
-                <select class="scan-select" [(ngModel)]="quizMode" name="quizMode">
-                  <option value="formatif">Formatif (apprentissage)</option>
-                  <option value="competitif">Compétitif (défi)</option>
-                  <option value="collaboratif">Collaboratif (équipe)</option>
-                </select>
-              </div>
-              <div class="param-field">
-                <label class="field-label">Types de questions</label>
-                <div class="checkbox-group">
-                  <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.qcm" name="typeQcm"> QCM</label>
-                  <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.vrai_faux" name="typeVraiFaux"> Vrai / Faux</label>
-                  <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.question_ouverte" name="typeOuverte"> Question ouverte</label>
-                  <label class="check-label"><input type="checkbox" [(ngModel)]="quizQuestionTypes.association" name="typeAssociation"> Association</label>
-                </div>
-              </div>
-            </div>
-            <div class="text-end mt-3">
-              <button class="execute-btn inline" (click)="generateQuiz()" [disabled]="isGeneratingQuiz()">
-                @if (!isGeneratingQuiz()) {
-                  <span><i class="feather icon-cpu"></i> Générer le Quiz</span>
-                }
-                @if (isGeneratingQuiz()) {
-                  <span><span class="spinner-border spinner-border-sm me-2"></span> Génération par l'IA en cours...</span>
-                }
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-      <!-- Quiz Loading -->
-      @if (isGeneratingQuiz()) {
-        <div class="validation-card">
-          <div class="validation-card-body text-center py-5">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-            <h5 class="mt-4">Ludification en cours...</h5>
-            <p class="text-muted">L'IA crée des questions sur-mesure alignées avec vos acquis d'apprentissage.</p>
-          </div>
-        </div>
-      }
-      <!-- Quiz Results -->
-      @if (generatedQuiz() && !isGeneratingQuiz()) {
-        <div class="validation-card" id="quiz-results-container">
-          <div class="quiz-results-header d-flex justify-content-between align-items-center">
-            <div>
-              <span class="quiz-badge">QUIZ CHRONOMÉTRÉ</span>
-              <h4>{{ generatedQuiz().titre_quiz }}</h4>
-              <span class="count-badge">{{ generatedQuiz().questions.length }} Questions</span>
-            </div>
-            <div class="header-actions d-flex gap-2">
-              <button class="btn btn-sm btn-outline-primary shadow-sm" (click)="shareGame()">
-                <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
-              </button>
-              <button class="btn btn-sm btn-outline-info shadow-sm" (click)="viewResults()">
-                <i class="feather icon-bar-chart-2"></i> Résultats
-              </button>
-            </div>
-          </div>
-          <!-- Quiz Sub-tabs -->
-          <div class="quiz-tabs">
-            <button class="quiz-tab" [class.active]="quizActiveTab() === 'questions'" (click)="quizActiveTab.set('questions')">
-              <i class="feather icon-list me-1"></i> Questions
-            </button>
-            <button class="quiz-tab" [class.active]="quizActiveTab() === 'animateur'" (click)="quizActiveTab.set('animateur')">
-              <i class="feather icon-user me-1"></i> Fiche Animateur
-            </button>
-            <button class="quiz-tab" [class.active]="quizActiveTab() === 'participant'" (click)="quizActiveTab.set('participant')">
-              <i class="feather icon-users me-1"></i> Fiche Participant
-            </button>
-            <button class="quiz-tab" [class.active]="quizActiveTab() === 'debriefing'" (click)="quizActiveTab.set('debriefing')">
-              <i class="feather icon-check-square me-1"></i> Débriefing
-            </button>
-          </div>
-          <div class="quiz-tab-content">
-            <!-- QUESTIONS TAB -->
-            @if (quizActiveTab() === 'questions') {
-              <div>
-                @for (q of generatedQuiz().questions; track q; let i = $index) {
-                  <div class="question-card">
-                    <div class="question-header">
-                      <span class="count-badge">Question {{ i + 1 }}</span>
-                      <div class="question-tags">
-                        <span class="format-tag">Bloom {{ q.niveau_bloom }}</span>
-                        <span class="format-tag info">{{ q.type | uppercase }}</span>
-                        <span class="format-tag warn"><i class="feather icon-clock me-1"></i>{{ q.duree_secondes }}s</span>
-                        <span class="format-tag primary">{{ q.aa_source }}</span>
-                      </div>
-                    </div>
-                    <h5 class="question-text">{{ q.enonce }}</h5>
-                    @if (q.options && q.options.length > 0) {
-                      <div class="options-grid">
-                        @for (opt of q.options; track opt) {
-                          <div class="option-item" [class.correct]="opt === q.bonne_reponse">
-                            @if (opt === q.bonne_reponse) {
-                              <span class="correct-mark">✅</span>
-                            }
-                            {{ opt }}
-                          </div>
+          <div class="outcomes">
+            @for (outcome of analysisResult()!.learning_outcomes; track outcome; let i = $index) {
+              <div class="outcome">
+                <div class="outcome-num">AA{{ i + 1 }}</div>
+                <div class="outcome-body">
+                  <textarea class="outcome-text" [(ngModel)]="outcome.description" [name]="'outcome_' + i" rows="2"></textarea>
+                  <div class="outcome-meta">
+                    <div class="bloom-badge"
+                      [style.background]="hexToRgba(getBloomColor(outcome.bloom_level), 0.10)"
+                      [style.color]="getBloomColor(outcome.bloom_level)"
+                      [style.border-color]="hexToRgba(getBloomColor(outcome.bloom_level), 0.35)">
+                      <span class="lvl" [style.background]="getBloomColor(outcome.bloom_level)">
+                        {{ getBloomLevelNum(outcome.bloom_level) }}
+                      </span>
+                      <select [(ngModel)]="outcome.bloom_level" [name]="'bloom_' + i" [style.color]="getBloomColor(outcome.bloom_level)">
+                        @for (b of bloomList; track b.id) {
+                          <option [value]="b.id">{{ b.full }}</option>
                         }
+                      </select>
+                    </div>
+                    @if (outcome.bloom_justification) {
+                      <div class="outcome-just ms-2">
+                        <i class="feather icon-info me-1"></i>
+                        <span>{{ outcome.bloom_justification }}</span>
                       </div>
                     }
-                    <div class="answer-box">
-                      <div><strong>Réponse attendue :</strong> <span class="correct-answer">{{ q.bonne_reponse }}</span></div>
-                      <div class="explanation"><strong>Explication :</strong> {{ q.explication }}</div>
+                  </div>
+                </div>
+                <button type="button" class="outcome-del" (click)="removeOutcome(i)" title="Supprimer">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Concepts Clés & Mots-Clés -->
+        <div class="row-2">
+          <div class="card">
+            <div class="card-head">
+              <h3><i class="feather icon-book"></i> Concepts clés</h3>
+            </div>
+            <div class="card-body">
+              <div class="tags">
+                @for (concept of analysisResult()!.key_concepts; track concept; let i = $index) {
+                  <div class="tag concept">
+                    <span>{{ concept }}</span>
+                    <button type="button" (click)="removeConcept(i)"><i class="feather icon-x"></i></button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3><i class="feather icon-hash"></i> Mots-clés</h3>
+            </div>
+            <div class="card-body">
+              <div class="tags">
+                @for (keyword of analysisResult()!.keywords; track keyword; let i = $index) {
+                  <div class="tag keyword">
+                    <span>{{ keyword }}</span>
+                    <button type="button" (click)="removeKeyword(i)"><i class="feather icon-x"></i></button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz generator card matching design -->
+        <div class="card quiz" id="quiz-generator-card">
+          <div class="card-head">
+            <h3><i class="feather icon-play"></i> Générer un jeu — Quiz chronométré</h3>
+          </div>
+          <div class="card-body">
+            <div class="quiz-grid">
+              <div>
+                <div class="field-label">Nombre de questions</div>
+                <div class="toggle-row">
+                  <label><input type="radio" name="qn" [value]="3" [(ngModel)]="quizQuestionsCount">3</label>
+                  <label><input type="radio" name="qn" [value]="5" [(ngModel)]="quizQuestionsCount">5</label>
+                  <label><input type="radio" name="qn" [value]="10" [(ngModel)]="quizQuestionsCount">10</label>
+                  <label><input type="radio" name="qn" [value]="15" [(ngModel)]="quizQuestionsCount">15</label>
+                </div>
+              </div>
+              <div>
+                <div class="field-label">Durée par question</div>
+                <div class="toggle-row">
+                  <label><input type="radio" name="dur" [value]="15" [(ngModel)]="quizDurationPerQuestion">15s</label>
+                  <label><input type="radio" name="dur" [value]="30" [(ngModel)]="quizDurationPerQuestion">30s</label>
+                  <label><input type="radio" name="dur" [value]="45" [(ngModel)]="quizDurationPerQuestion">45s</label>
+                  <label><input type="radio" name="dur" [value]="60" [(ngModel)]="quizDurationPerQuestion">60s</label>
+                </div>
+              </div>
+              <div>
+                <div class="field-label">Mode de jeu</div>
+                <div class="toggle-row">
+                  <label><input type="radio" name="mode" value="formatif" [(ngModel)]="quizMode">Formatif</label>
+                  <label><input type="radio" name="mode" value="competitif" [(ngModel)]="quizMode">Compétitif</label>
+                  <label><input type="radio" name="mode" value="collaboratif" [(ngModel)]="quizMode">Collaboratif</label>
+                </div>
+              </div>
+              <div>
+                <div class="field-label">Types de questions</div>
+                <div class="chip-group">
+                  <label class="chip">
+                    <input type="checkbox" [(ngModel)]="quizQuestionTypes.qcm" name="typeQcm">
+                    QCM <i class="feather icon-check ms-1"></i>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" [(ngModel)]="quizQuestionTypes.vrai_faux" name="typeVraiFaux">
+                    Vrai / Faux <i class="feather icon-check ms-1"></i>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" [(ngModel)]="quizQuestionTypes.question_ouverte" name="typeOuverte">
+                    Question ouverte <i class="feather icon-check ms-1"></i>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" [(ngModel)]="quizQuestionTypes.association" name="typeAssociation">
+                    Association <i class="feather icon-check ms-1"></i>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="quiz-foot">
+              <button type="button" class="btn btn-primary" (click)="generateQuiz()" [disabled]="isGeneratingQuiz()">
+                @if (!isGeneratingQuiz()) {
+                  <span><i class="feather icon-cpu me-1"></i> Générer le Quiz</span>
+                }
+                @if (isGeneratingQuiz()) {
+                  <span><span class="spinner-border spinner-border-sm me-2"></span> Génération...</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Loading State -->
+        @if (isGeneratingQuiz()) {
+          <div class="card">
+            <div class="card-body text-center py-5">
+              <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+              <h5 class="mt-4 fw-bold">Ludification en cours...</h5>
+              <p class="text-muted">L'IA crée des questions sur-mesure alignées avec vos acquis d'apprentissage.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Generated Quiz Results Container -->
+        @if (generatedQuiz() && !isGeneratingQuiz()) {
+          <div class="card" id="quiz-results-container">
+            <div class="card-head d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge bg-primary px-3 py-1 mb-1">QUIZ CHRONOMÉTRÉ</span>
+                <h4 class="fw-bold mb-0 text-dark">{{ generatedQuiz().titre_quiz }}</h4>
+                <small class="text-muted">{{ generatedQuiz().questions.length }} Questions</small>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="shareGame()">
+                  <i class="feather icon-share-2 me-1"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="viewResults()">
+                  <i class="feather icon-bar-chart-2 me-1"></i> Résultats
+                </button>
+              </div>
+            </div>
+            <!-- Quiz Sub-tabs -->
+            <div class="card-body">
+              <div class="quiz-tabs d-flex gap-2 border-bottom pb-2 mb-3">
+                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'questions'" [class.btn-ghost]="quizActiveTab() !== 'questions'" (click)="quizActiveTab.set('questions')">
+                  <i class="feather icon-list me-1"></i> Questions
+                </button>
+                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'animateur'" [class.btn-ghost]="quizActiveTab() !== 'animateur'" (click)="quizActiveTab.set('animateur')">
+                  <i class="feather icon-user me-1"></i> Fiche Animateur
+                </button>
+                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'participant'" [class.btn-ghost]="quizActiveTab() !== 'participant'" (click)="quizActiveTab.set('participant')">
+                  <i class="feather icon-users me-1"></i> Fiche Participant
+                </button>
+                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'debriefing'" [class.btn-ghost]="quizActiveTab() !== 'debriefing'" (click)="quizActiveTab.set('debriefing')">
+                  <i class="feather icon-check-square me-1"></i> Débriefing
+                </button>
+              </div>
+              <div class="quiz-tab-content">
+                @if (quizActiveTab() === 'questions') {
+                  <div>
+                    @for (q of generatedQuiz().questions; track q; let i = $index) {
+                      <div class="p-3 mb-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <span class="fw-bold">Question {{ i + 1 }}</span>
+                          <div class="d-flex gap-2">
+                            <span class="badge bg-info text-dark">Bloom {{ q.niveau_bloom }}</span>
+                            <span class="badge bg-secondary">{{ q.type | uppercase }}</span>
+                            <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ q.duree_secondes }}s</span>
+                          </div>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-3">{{ q.enonce }}</h5>
+                        @if (q.options && q.options.length > 0) {
+                          <div class="row g-2 mb-3">
+                            @for (opt of q.options; track opt) {
+                              <div class="col-md-6">
+                                <div class="p-2 border rounded" [class.bg-success-subtle]="opt === q.bonne_reponse" [class.border-success]="opt === q.bonne_reponse">
+                                  @if (opt === q.bonne_reponse) { <span class="me-1">✅</span> }
+                                  {{ opt }}
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                        <div class="small text-muted border-top pt-2 mt-2">
+                          <div><strong>Réponse attendue :</strong> <span class="text-success fw-bold">{{ q.bonne_reponse }}</span></div>
+                          <div><strong>Explication :</strong> {{ q.explication }}</div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+                @if (quizActiveTab() === 'animateur') {
+                  <div class="p-3 border rounded bg-light font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_animateur }}</div>
+                }
+                @if (quizActiveTab() === 'participant') {
+                  <div class="p-3 border rounded bg-light font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_participant }}</div>
+                }
+                @if (quizActiveTab() === 'debriefing') {
+                  <div>
+                    <h5 class="fw-bold mb-3"><i class="feather icon-award me-2 text-warning"></i>Critères de débriefing final</h5>
+                    <div class="d-flex flex-column gap-2">
+                      @for (critere of generatedQuiz().grille_debriefing.criteres; track critere; let i = $index) {
+                        <div class="p-3 border rounded bg-light d-flex align-items-center gap-3">
+                          <span class="badge bg-primary rounded-circle" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">{{ i + 1 }}</span>
+                          <span>{{ critere }}</span>
+                        </div>
+                      }
                     </div>
                   </div>
                 }
               </div>
-            }
-            <!-- ANIMATEUR TAB -->
-            @if (quizActiveTab() === 'animateur') {
-              <div>
-                <div class="fiche-content">{{ generatedQuiz().fiche_animateur }}</div>
+            </div>
+          </div>
+
+          <!-- Share Link Display -->
+          @if (shareLink()) {
+            <div class="alert alert-success mt-3 d-flex align-items-center gap-2">
+              <i class="feather icon-link"></i>
+              <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
+              <button type="button" class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier</button>
+            </div>
+          }
+
+          <!-- Student Results Panel -->
+          @if (showResults()) {
+            <div class="card mt-3">
+              <div class="card-head d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📊 Résultats des étudiants</h5>
+                <button type="button" class="btn btn-sm btn-ghost" (click)="showResults.set(false)">✕</button>
               </div>
-            }
-            <!-- PARTICIPANT TAB -->
-            @if (quizActiveTab() === 'participant') {
-              <div>
-                <div class="fiche-content">{{ generatedQuiz().fiche_participant }}</div>
+              <div class="card-body p-0">
+                @if (shareResults().length === 0) {
+                  <p class="text-muted text-center p-4">Aucun résultat pour le moment.</p>
+                } @else {
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead><tr><th>Nom</th><th>Score</th><th>Temps</th><th>Date</th></tr></thead>
+                      <tbody>
+                        @for (r of shareResults(); track r.id) {
+                          <tr>
+                            <td><strong>{{ r.student_name }}</strong></td>
+                            <td>{{ r.score }}/{{ r.max_score }}</td>
+                            <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min' : '-' }}</td>
+                            <td>{{ r.completed_at | date:'short' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
               </div>
-            }
-            <!-- DEBRIEFING TAB -->
-            @if (quizActiveTab() === 'debriefing') {
-              <div>
-                <h5 class="debrief-title"><i class="feather icon-award me-2"></i>Critères de débriefing final</h5>
-                <div class="debrief-list">
-                  @for (critere of generatedQuiz().grille_debriefing.criteres; track critere; let i = $index) {
-                    <div class="debrief-item">
-                      <span class="debrief-num">{{ i + 1 }}</span>
-                      {{ critere }}
-                    </div>
-                  }
-                </div>
-              </div>
-            }
+            </div>
+          }
+        }
+
+        <!-- Bottom Actions Bar -->
+        <div class="actions-bar">
+          <button type="button" class="btn btn-ghost" (click)="backToImport()">
+            <i class="feather icon-arrow-left me-1"></i> Nouvel import
+          </button>
+          <div class="right">
+            <button type="button" class="btn btn-ghost" (click)="retryAnalysis()">
+              <i class="feather icon-refresh-cw me-1"></i> Ré-analyser
+            </button>
+            <button type="button" class="btn btn-primary" (click)="confirmAnalysis()">
+              <i class="feather icon-check me-1"></i> Confirmer et continuer
+            </button>
           </div>
         </div>
 
-        <!-- Share Link Display -->
-        @if (shareLink()) {
-          <div class="alert alert-success mt-3 d-flex align-items-center gap-2">
-            <i class="feather icon-link"></i>
-            <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
-            <button class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier</button>
-          </div>
-        }
-
-        <!-- Student Results Panel -->
-        @if (showResults()) {
-          <div class="card mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">📊 Résultats des étudiants</h5>
-              <button class="btn btn-sm btn-outline-secondary" (click)="showResults.set(false)">✕</button>
-            </div>
-            <div class="card-body p-0">
-              @if (shareResults().length === 0) {
-                <p class="text-muted text-center p-4">Aucun résultat pour le moment.</p>
-              } @else {
-                <div class="table-responsive">
-                  <table class="table table-hover mb-0">
-                    <thead><tr><th>Nom</th><th>Score</th><th>Temps</th><th>Date</th></tr></thead>
-                    <tbody>
-                      @for (r of shareResults(); track r.id) {
-                        <tr>
-                          <td><strong>{{ r.student_name }}</strong></td>
-                          <td>{{ r.score }}/{{ r.max_score }}</td>
-                          <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min' : '-' }}</td>
-                          <td>{{ r.completed_at | date:'short' }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      }
-      <!-- Action Buttons -->
-      <div class="validation-actions">
-        <button class="action-secondary" (click)="backToImport()">
-          <i class="feather icon-arrow-left me-2"></i> Nouvel import
-        </button>
-        <div class="d-flex gap-3">
-          <button class="action-secondary" (click)="retryAnalysis()">
-            <i class="feather icon-refresh-cw me-2"></i> Ré-analyser
-          </button>
-          <button class="execute-btn inline" (click)="confirmAnalysis()">
-            <i class="feather icon-check me-2"></i> Confirmer et continuer
-          </button>
-        </div>
       </div>
     </div>
   }

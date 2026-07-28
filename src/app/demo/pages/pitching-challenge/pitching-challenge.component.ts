@@ -58,7 +58,7 @@ export class PitchingChallengeComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
   private shareService = inject(ShareService);
 
-  pageState = signal<'select' | 'generating' | 'result'>('select');
+  pageState = signal<'select' | 'generating' | 'result' | 'history'>('select');
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
@@ -66,6 +66,10 @@ export class PitchingChallengeComponent implements OnInit {
   analyses = signal<ModuleAnalysis[]>([]);
   selectedAnalysis = signal<ModuleAnalysis | null>(null);
   viewingAnalysis = signal<ModuleAnalysis | null>(null);
+
+  // History & Consultation
+  historyList = signal<any[]>([]);
+  historySearch = signal<string>('');
 
   nbEquipes = 4;
   dureePreparation = 10;
@@ -99,6 +103,7 @@ export class PitchingChallengeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAnalyses();
+    this.loadSavedSessions();
   }
 
   loadAnalyses(): void {
@@ -125,6 +130,56 @@ export class PitchingChallengeComponent implements OnInit {
         this.isLoading.set(false);
         this.cd.detectChanges();
       }
+    });
+  }
+
+  loadSavedSessions(): void {
+    this.http.get<any[]>(`${this.apiUrl}/pitching/sessions`).subscribe({
+      next: (data) => {
+        this.historyList.set(data || []);
+        this.cd.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  switchToHistory(): void {
+    this.pageState.set('history');
+    this.loadSavedSessions();
+  }
+
+  consultSession(sessionId: number): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.http.get<any>(`${this.apiUrl}/pitching/sessions/${sessionId}`).subscribe({
+      next: (res) => {
+        this.pitchingResult.set(res.data);
+        this.confirmedId.set(res.id);
+        this.isConfirmed.set(true);
+        this.moduleTitle.set(res.module_title || res.titre);
+        this.pageState.set('result');
+        this.isLoading.set(false);
+        this.activeTab.set('sujet');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Erreur lors de la consultation du pitching challenge.');
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  deleteSession(sessionId: number, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Voulez-vous vraiment supprimer ce pitching challenge ?')) return;
+
+    this.http.delete(`${this.apiUrl}/pitching/sessions/${sessionId}`).subscribe({
+      next: () => {
+        this.successMessage.set('Pitching challenge supprimé.');
+        this.loadSavedSessions();
+      },
+      error: () => this.errorMessage.set('Erreur lors de la suppression du pitching challenge.')
     });
   }
 

@@ -109,7 +109,7 @@
             <!-- Module Summary -->
             @if (viewingAnalysis()!.module_summary) {
               <div class="detail-section">
-                <h4><i class="feather icon-book-open"></i> Résumé du module</h4>
+                <h4><i class="feather icon-book"></i> Résumé du module</h4>
                 <p class="detail-text">{{ viewingAnalysis()!.module_summary }}</p>
               </div>
             }
@@ -454,7 +454,7 @@
       <!-- Tabs -->
       <div class="result-tabs">
         <button [class.active]="activeTab() === 'scenario'" (click)="activeTab.set('scenario')">
-          <i class="feather icon-book-open"></i> Scénario
+          <i class="feather icon-book"></i> Scénario
         </button>
         <button [class.active]="activeTab() === 'enigmes'" (click)="activeTab.set('enigmes')">
           <i class="feather icon-lock"></i> Énigmes ({{ generatedRoom()!.escape_room_data.enigmes?.length || 0 }})
@@ -475,7 +475,7 @@
         <div class="tab-content">
           <div class="content-card scenario-card">
             <div class="scenario-header">
-              <i class="feather icon-book-open"></i>
+              <i class="feather icon-book"></i>
               <h3>Scénario Narratif</h3>
             </div>
             <p class="scenario-text">{{ generatedRoom()!.escape_room_data.scenario_intro }}</p>

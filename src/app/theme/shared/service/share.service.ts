@@ -41,4 +41,19 @@ export class ShareService {
       { headers }
     );
   }
+
+  sendShareEmail(gameType: string, gameId: number, emails: string[]): Observable<any> {
+    const token = localStorage.getItem('access_token');
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.post<any>(
+      `${this.apiUrl}/email`,
+      {
+        game_type: gameType,
+        game_id: gameId,
+        recipient_emails: emails,
+        frontend_url: window.location.origin
+      },
+      { headers }
+    );
+  }
 }

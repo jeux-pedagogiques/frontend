@@ -104,6 +104,15 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   newMeetingTime = '';
   newMeetingDuration = 60;
 
+  // Email Sharing & CSV Scanning properties (Backend SMTP)
+  showEmailModal = signal(false);
+  emailTargetMeeting = signal<any>(null);
+  singleRecipientInput = signal('');
+  recipientList = signal<string[]>([]);
+  isSendingEmail = signal(false);
+  emailSendStatus = signal<{ success?: boolean; message?: string } | null>(null);
+  csvImportMessage = signal('');
+
   screenStream: MediaStream | null = null;
   isScreenSharing = false;
 
@@ -352,6 +361,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
 
   private async initializeWebRTCSession(): Promise<void> {
     this.sessionState.set('live');
+    this.showChatPanel.set(true);
+    this.unreadChatCount.set(0);
     this.mediaWarning.set('');
     this.cd.detectChanges();
 
@@ -1311,6 +1322,141 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         this.loadScheduledMeetings();
       },
       error: (err) => console.error('Failed to cancel scheduled meeting:', err)
+    });
+  }
+
+  openEmailModal(meeting: any): void {
+    this.emailTargetMeeting.set(meeting);
+    this.singleRecipientInput.set('');
+    this.recipientList.set([]);
+    this.emailSendStatus.set(null);
+    this.csvImportMessage.set('');
+    this.showEmailModal.set(true);
+  }
+
+  closeEmailModal(): void {
+    this.showEmailModal.set(false);
+    this.emailTargetMeeting.set(null);
+    this.singleRecipientInput.set('');
+    this.recipientList.set([]);
+    this.emailSendStatus.set(null);
+    this.csvImportMessage.set('');
+  }
+
+  addSingleRecipient(): void {
+    const val = this.singleRecipientInput().trim();
+    if (!val) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(val)) {
+      this.emailSendStatus.set({ success: false, message: `"${val}" n'est pas une adresse email valide.` });
+      return;
+    }
+
+    const currentList = this.recipientList();
+    if (currentList.includes(val)) {
+      this.emailSendStatus.set({ success: false, message: `L'adresse "${val}" est déjà dans la liste.` });
+      return;
+    }
+
+    this.recipientList.set([...currentList, val]);
+    this.singleRecipientInput.set('');
+    this.emailSendStatus.set(null);
+  }
+
+  removeRecipient(index: number): void {
+    const currentList = [...this.recipientList()];
+    currentList.splice(index, 1);
+    this.recipientList.set(currentList);
+  }
+
+  updateRecipient(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const newVal = input.value.trim();
+    const currentList = [...this.recipientList()];
+    currentList[index] = newVal;
+    this.recipientList.set(currentList);
+  }
+
+  clearAllRecipients(): void {
+    this.recipientList.set([]);
+    this.csvImportMessage.set('');
+  }
+
+  onCsvFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const content = e.target.result as string;
+      // Extract all email addresses using regex
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+      const foundEmails = content.match(emailRegex) || [];
+
+      if (foundEmails.length === 0) {
+        this.csvImportMessage.set('Aucune adresse email valide trouvée dans le fichier CSV.');
+        return;
+      }
+
+      const existing = this.recipientList();
+      const newEmails = foundEmails.map(e => e.trim().toLowerCase());
+      const merged = Array.from(new Set([...existing, ...newEmails]));
+
+      this.recipientList.set(merged);
+      const addedCount = merged.length - existing.length;
+      this.csvImportMessage.set(`${foundEmails.length} email(s) scanné(s) (${addedCount} nouveau(x) ajouté(s)).`);
+      
+      // Reset file input value
+      event.target.value = '';
+    };
+
+    reader.readAsText(file);
+  }
+
+  sendInvitationEmail(): void {
+    const meeting = this.emailTargetMeeting();
+    
+    // Auto add single input if user typed but didn't press Add
+    if (this.singleRecipientInput().trim()) {
+      this.addSingleRecipient();
+    }
+
+    const list = this.recipientList().map(e => e.trim()).filter(e => e.length > 0);
+
+    if (!meeting) return;
+
+    if (list.length === 0) {
+      this.emailSendStatus.set({ success: false, message: 'Veuillez ajouter au moins une adresse email destinataire.' });
+      return;
+    }
+
+    this.isSendingEmail.set(true);
+    this.emailSendStatus.set(null);
+
+    const payload = {
+      recipient_emails: list,
+      frontend_url: window.location.origin
+    };
+
+    this.http.post(`${environment.apiUrl}/api/live/schedule/${meeting.id}/share-email`, payload).subscribe({
+      next: (res: any) => {
+        this.isSendingEmail.set(false);
+        this.emailSendStatus.set({
+          success: true,
+          message: res.message || `Invitation envoyée avec succès par email SMTP à ${list.length} destinataire(s)`
+        });
+        setTimeout(() => {
+          if (this.showEmailModal()) {
+            this.closeEmailModal();
+          }
+        }, 2800);
+      },
+      error: (err: any) => {
+        this.isSendingEmail.set(false);
+        const detail = err.error?.detail || "Erreur lors de l'envoi des emails via SMTP.";
+        this.emailSendStatus.set({ success: false, message: detail });
+      }
     });
   }
 

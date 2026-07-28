@@ -1,5 +1,4 @@
-// Angular Import
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 
@@ -20,6 +19,14 @@ import { AuthService } from '../../shared/service/auth.service';
 export class AdminComponent {
   private layoutState = inject(LayoutStateService);
   private authService = inject(AuthService);
+
+  isSidebarDarkMode = signal<boolean>(localStorage.getItem('sidebar_theme') !== 'light');
+
+  toggleSidebarTheme(): void {
+    const nextVal = !this.isSidebarDarkMode();
+    this.isSidebarDarkMode.set(nextVal);
+    localStorage.setItem('sidebar_theme', nextVal ? 'dark' : 'light');
+  }
 
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();

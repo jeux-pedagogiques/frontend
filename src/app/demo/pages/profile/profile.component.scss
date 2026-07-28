@@ -325,3 +325,95 @@
     transform: translateY(0);
   }
 }
+
+/* ===== Dark Mode Overrides for Cyber Profile Page ===== */
+:host-context(.dark-mode) {
+  .cyber-profile-wrapper {
+    &::before {
+      background: radial-gradient(circle, rgba(225, 29, 72, 0.28) 0%, rgba(13, 13, 15, 0) 70%);
+    }
+  }
+
+  .cyber-nav-pill {
+    background: rgba(18, 18, 22, 0.88);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(225, 29, 72, 0.25);
+
+    .cmd-prompt {
+      color: #ff3b30;
+    }
+
+    .nav-item-btn {
+      color: #a1a1aa;
+
+      &:hover,
+      &.active {
+        color: #ff3b30;
+      }
+    }
+
+    .divider {
+      color: #3f3f46;
+    }
+
+    .user-status-online {
+      color: #e4e4e7;
+
+      i {
+        color: #ff3b30;
+      }
+    }
+  }
+
+  .cyber-glass-card {
+    background: rgba(18, 18, 22, 0.88);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 0 60px rgba(225, 29, 72, 0.25),
+      0 20px 40px rgba(0, 0, 0, 0.5),
+      inset 0 0 20px rgba(255, 255, 255, 0.04);
+  }
+
+  .user-display-name {
+    color: #ffffff;
+  }
+
+  .user-status-text {
+    color: #ff3b30;
+  }
+
+  .field-label-cyber {
+    color: #e4e4e7;
+  }
+
+  .cyber-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+
+    &::placeholder {
+      color: #71717a;
+    }
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &:focus,
+    &.glow-focused {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: #ff3b30;
+      box-shadow: 0 0 18px rgba(255, 59, 48, 0.45);
+    }
+  }
+
+  .cyber-save-btn {
+    background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+    box-shadow: 0 0 28px rgba(225, 29, 72, 0.55);
+
+    &:hover {
+      box-shadow: 0 0 38px rgba(225, 29, 72, 0.75);
+    }
+  }
+}

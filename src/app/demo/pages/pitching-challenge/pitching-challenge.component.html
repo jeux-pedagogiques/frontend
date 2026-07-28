@@ -27,6 +27,19 @@
     </div>
   }
 
+  <!-- Top Navigation Tabs -->
+  <div class="pc-top-nav mb-4">
+    <button class="nav-tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="pageState.set('select')">
+      <i class="feather icon-zap"></i> Générer un Pitching Challenge
+    </button>
+    <button class="nav-tab" [class.active]="pageState() === 'history'" (click)="switchToHistory()">
+      <i class="feather icon-archive"></i> Mes Pitching Challenges
+      @if (historyList().length > 0) {
+        <span class="count-badge">{{ historyList().length }}</span>
+      }
+    </button>
+  </div>
+
   <!-- ================================================================== -->
   <!-- SELECT MODULE                                                       -->
   <!-- ================================================================== -->
@@ -110,6 +123,65 @@
             <div class="empty-state">
               <i class="feather icon-inbox"></i>
               <p>Aucun module analyse. Importez une fiche module d'abord.</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ================================================================== -->
+  <!-- HISTORY / CONSULTATION                                            -->
+  <!-- ================================================================== -->
+  @if (pageState() === 'history') {
+    <div class="history-section">
+      <div class="section-header">
+        <div class="header-icon">
+          <i class="feather icon-archive"></i>
+        </div>
+        <div>
+          <h1>Mes Pitching Challenges Enregistrés</h1>
+          <p class="subtitle">Consultez, partagez ou révisez vos sujets et grilles de pitching enregistrés.</p>
+        </div>
+      </div>
+
+      @if (historyList().length === 0) {
+        <div class="empty-state">
+          <i class="feather icon-inbox"></i>
+          <p>Aucun pitching challenge enregistré pour le moment.</p>
+          <button class="btn-primary" (click)="pageState.set('select')">
+            <i class="feather icon-plus"></i> Générer un Pitching Challenge
+          </button>
+        </div>
+      } @else {
+        <div class="history-search-box mb-4">
+          <i class="feather icon-search search-icon"></i>
+          <input type="text"
+            class="form-control history-search-input"
+            [(ngModel)]="historySearch"
+            placeholder="Rechercher par titre de challenge ou de module...">
+        </div>
+
+        <div class="history-grid">
+          @for (item of historyList(); track item.id) {
+            <div class="history-card" (click)="consultSession(item.id)">
+              <div class="card-top">
+                <h4>{{ item.titre }}</h4>
+                <button class="btn-delete" (click)="deleteSession(item.id, $event)" title="Supprimer">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </div>
+              <div class="card-meta mb-2">
+                @if (item.module_title) {
+                  <span><i class="feather icon-book"></i> {{ item.module_title }}</span>
+                }
+                <span><i class="feather icon-calendar"></i> {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="card-actions-row">
+                <button class="btn-card-action btn-consult" (click)="consultSession(item.id); $event.stopPropagation()">
+                  <i class="feather icon-eye"></i> Consulter
+                </button>
+              </div>
             </div>
           }
         </div>

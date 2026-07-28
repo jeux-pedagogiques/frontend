@@ -1,13 +1,18 @@
-// ─── Play Page Styling ───
-// Standalone game page for students — not part of admin layout
+// ─── ESPRIT AI Play Page Styling ───
+// Standalone game page for students — matching ESPRIT AI brand theme
 
-$gradient-start: #0f0c29;
-$gradient-mid: #302b63;
-$gradient-end: #24243e;
-$glass-bg: rgba(255, 255, 255, 0.06);
-$glass-border: rgba(255, 255, 255, 0.12);
-$glow-primary: #667eea;
-$glow-secondary: #764ba2;
+$gradient-start: #090d16;
+$gradient-mid: #111827;
+$gradient-end: #0b0f19;
+
+$esprit-red: #C51414;
+$esprit-dark-red: #8C0A10;
+$esprit-red-gradient: linear-gradient(135deg, #C51414 0%, #8C0A10 100%);
+
+$glass-bg: rgba(17, 24, 39, 0.75);
+$glass-border: rgba(255, 255, 255, 0.1);
+$glow-primary: #C51414;
+$glow-secondary: #8C0A10;
 
 .play-page {
   min-height: 100vh;
@@ -15,79 +20,84 @@ $glow-secondary: #764ba2;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: linear-gradient(135deg, $gradient-start, $gradient-mid, $gradient-end);
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  padding: 32px 20px;
+  background: radial-gradient(circle at 50% 15%, rgba(197, 20, 20, 0.16) 0%, transparent 60%),
+              linear-gradient(135deg, $gradient-start 0%, $gradient-mid 50%, $gradient-end 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #f8fafc;
 }
 
 // ─── Glass Card ───
 .play-card {
   background: $glass-bg;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid $glass-border;
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 640px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 44px;
+  max-width: 660px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  animation: fadeInUp 0.5s ease-out;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(197, 20, 20, 0.08);
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 // ─── Game Badge ───
 .game-badge {
   display: inline-block;
-  padding: 6px 16px;
+  padding: 6px 18px;
   border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  background: linear-gradient(135deg, $glow-primary, $glow-secondary);
-  color: white;
+  letter-spacing: 1.5px;
+  background: $esprit-red-gradient;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(140, 10, 16, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 // ─── Glass Input ───
 .glass-input {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border-radius: 12px !important;
-  padding: 14px 18px !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
   font-size: 1.05rem !important;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 
-  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+  &::placeholder { color: rgba(255, 255, 255, 0.35); }
   &:focus {
-    border-color: $glow-primary !important;
-    box-shadow: 0 0 0 3px rgba($glow-primary, 0.25) !important;
-    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: $esprit-red !important;
+    box-shadow: 0 0 0 4px rgba(197, 20, 20, 0.25) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
   }
 }
 
 // ─── Glow Button ───
 .btn-glow {
-  background: linear-gradient(135deg, $glow-primary, $glow-secondary);
-  border: none;
-  color: white;
-  font-weight: 600;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba($glow-primary, 0.4);
+  background: $esprit-red-gradient;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff !important;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 20px rgba(140, 10, 16, 0.4);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba($glow-primary, 0.5);
-    color: white;
+    box-shadow: 0 10px 28px rgba(197, 20, 20, 0.55);
+    background: linear-gradient(135deg, #d91c1c 0%, #a10c13 100%);
+    color: #ffffff;
   }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 }
 
 // ─── Header Bar ───
@@ -99,23 +109,63 @@ $glow-secondary: #764ba2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  padding: 14px 32px;
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 100;
-  color: white;
-  font-weight: 500;
+  color: #ffffff;
+  font-weight: 600;
 }
 
-.player-name { font-size: 0.95rem; }
-.game-timer { font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; }
+.brand-logo {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #ffffff;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.player-name {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-timer {
+  font-size: 0.92rem;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(197, 20, 20, 0.2);
+  border: 1px solid rgba(197, 20, 20, 0.35);
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 // ─── Quiz Styling ───
 .question-counter {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  color: #94a3b8;
 }
 
 .options-grid {
@@ -127,26 +177,37 @@ $glow-secondary: #764ba2;
 .option-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.06);
+  gap: 14px;
+  padding: 16px 22px;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: white;
+  border-radius: 16px;
+  color: #ffffff;
   font-size: 1rem;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(197, 20, 20, 0.4);
     transform: translateX(4px);
   }
 
-  &.selected { border-color: $glow-primary; background: rgba($glow-primary, 0.15); }
-  &.correct { border-color: #2ecc71; background: rgba(46, 204, 113, 0.2); }
-  &.wrong { border-color: #e74c3c; background: rgba(231, 76, 60, 0.2); }
+  &.selected {
+    border-color: $esprit-red;
+    background: rgba(197, 20, 20, 0.18);
+    box-shadow: 0 0 15px rgba(197, 20, 20, 0.2);
+  }
+  &.correct {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.2);
+  }
+  &.wrong {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+  }
   &:disabled { cursor: default; }
 }
 
@@ -154,19 +215,22 @@ $glow-secondary: #764ba2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  font-weight: 700;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(197, 20, 20, 0.2);
+  border: 1px solid rgba(197, 20, 20, 0.3);
+  color: #ffffff;
+  font-weight: 800;
   font-size: 0.85rem;
   flex-shrink: 0;
 }
 
 .score-display {
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: #94a3b8;
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 // ─── Progress Bar ───
@@ -177,13 +241,13 @@ $glow-secondary: #764ba2;
 }
 
 .bg-gradient-primary {
-  background: linear-gradient(90deg, $glow-primary, $glow-secondary) !important;
+  background: $esprit-red-gradient !important;
 }
 .bg-gradient-info {
-  background: linear-gradient(90deg, #00b4db, #0083b0) !important;
+  background: linear-gradient(90deg, #38bdf8, #0284c7) !important;
 }
 .bg-gradient-warning {
-  background: linear-gradient(90deg, #f7971e, #ffd200) !important;
+  background: linear-gradient(90deg, #f59e0b, #d97706) !important;
 }
 
 // ─── Flashcard Flip ───
@@ -200,7 +264,7 @@ $glow-secondary: #764ba2;
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s ease;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .flip-container.flipped .flip-card {
@@ -216,32 +280,35 @@ $glow-secondary: #764ba2;
   align-items: center;
   justify-content: center;
   padding: 32px;
-  border-radius: 16px;
+  border-radius: 20px;
   text-align: center;
   color: white;
 }
 
 .flip-front {
-  background: linear-gradient(135deg, rgba($glow-primary, 0.3), rgba($glow-secondary, 0.3));
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(197, 20, 20, 0.25), rgba(140, 10, 16, 0.3));
+  border: 1px solid rgba(197, 20, 20, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .flip-back {
-  background: linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
-  border: 1px solid rgba(46, 204, 113, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.3));
+  border: 1px solid rgba(16, 185, 129, 0.35);
   transform: rotateY(180deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .card-label {
   font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 12px;
 }
 
 .tap-hint {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 0.8rem;
   margin-top: 16px;
 }
@@ -251,23 +318,23 @@ $glow-secondary: #764ba2;
   gap: 16px;
   justify-content: center;
 
-  .btn { flex: 1; max-width: 200px; border-radius: 12px; font-weight: 600; }
+  .btn { flex: 1; max-width: 200px; border-radius: 14px; font-weight: 700; padding: 12px; }
 }
 
 // ─── Escape Room ───
 .hint-box {
-  background: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
   padding: 14px 18px;
-  color: #ffd700;
+  color: #fbbf24;
   font-style: italic;
   animation: fadeInUp 0.3s ease;
 }
 
 .enigma-input {
-  .form-control { margin-bottom: 8px; }
-  .btn { border-radius: 12px; font-weight: 600; }
+  .form-control { margin-bottom: 10px; }
+  .btn { border-radius: 12px; font-weight: 700; }
 }
 
 .feedback-msg {
@@ -278,21 +345,21 @@ $glow-secondary: #764ba2;
 
 // ─── Pitching ───
 .subject-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   transition: all 0.3s ease;
 
   &.claimed {
-    background: rgba(231, 76, 60, 0.08);
-    border-color: rgba(231, 76, 60, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.3);
     opacity: 0.75;
   }
 }
 
 .team-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
   padding: 20px;
 }
 
@@ -316,8 +383,8 @@ $glow-secondary: #764ba2;
   justify-content: center;
 
   &.active {
-    border-color: #ffd700;
-    background: rgba(255, 215, 0, 0.15);
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.15);
     transform: scale(1.1);
   }
 
@@ -325,16 +392,16 @@ $glow-secondary: #764ba2;
 }
 
 // ─── Completion ───
-.completion-card { max-width: 500px; }
+.completion-card { max-width: 520px; }
 
 .celebration {
-  font-size: 4rem;
+  font-size: 3.5rem;
   animation: bounce 1s ease infinite alternate;
 }
 
 @keyframes bounce {
   from { transform: translateY(0); }
-  to { transform: translateY(-12px); }
+  to { transform: translateY(-10px); }
 }
 
 .result-circle {
@@ -361,25 +428,26 @@ $glow-secondary: #764ba2;
 
 .stat-label {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .stat-value {
   font-size: 1.4rem;
-  font-weight: 700;
-  color: white;
+  font-weight: 800;
+  color: #ffffff;
 }
 
 .error-icon { font-size: 3rem; }
 
 // ─── Helpers ───
-.text-light-50 { color: rgba(255, 255, 255, 0.55) !important; }
+.text-light-50 { color: #94a3b8 !important; }
 
 // ─── Responsive ───
 @media (max-width: 576px) {
-  .play-card { padding: 24px 18px; border-radius: 16px; }
+  .play-card { padding: 28px 20px; border-radius: 18px; }
+  .play-header { padding: 10px 16px; }
   .flip-container { height: 220px; }
   .result-stats { gap: 20px; }
   .star-btn { width: 40px; height: 40px; font-size: 1.1rem; }

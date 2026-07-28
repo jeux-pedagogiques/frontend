@@ -103,7 +103,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Bibliothèque',
         type: 'item',
         url: '/library',
-        icon: 'feather icon-book-open',
+        icon: 'feather icon-book',
         classes: 'nav-item'
       },
       {

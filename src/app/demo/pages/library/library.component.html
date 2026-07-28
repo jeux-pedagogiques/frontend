@@ -6,210 +6,207 @@
     </div>
   </div>
 
-  <!-- Share Link Display -->
+  <!-- Share Link Display (Futuristic V2 Banner) -->
   @if (shareLink()) {
-    <div class="alert alert-success mb-4 d-flex align-items-center gap-2 shadow-sm">
-      <i class="feather icon-link me-1"></i>
-      <span class="fw-bold me-2">Lien public du jeu :</span>
-      <code style="flex:1; word-break:break-all; font-size:0.95rem;">{{ shareLink() }}</code>
-      <button class="btn btn-sm btn-success text-nowrap" (click)="shareCopied.set(true)">
-        {{ shareCopied() ? '✅ Copié !' : '📋 Copier le lien' }}
-      </button>
-    </div>
-  }
-
-  <!-- Student Results Panel -->
-  @if (showResults()) {
-    <div class="card mb-4 border-info shadow-sm">
-      <div class="card-header bg-info-subtle d-flex justify-content-between align-items-center py-2">
-        <h5 class="mb-0 text-info-emphasis"><i class="feather icon-bar-chart-2 me-2"></i>Résultats des étudiants</h5>
-        <button class="btn btn-sm btn-outline-secondary border-0" (click)="showResults.set(false)">✕</button>
+    <div class="share-link-banner mb-4 p-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 shadow-sm rounded-4">
+      <div class="d-flex align-items-center gap-2.5 flex-grow-1 overflow-hidden">
+        <div class="banner-icon-wrapper rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; flex-shrink: 0;">
+          <i class="feather icon-link fs-5 text-danger"></i>
+        </div>
+        <div class="overflow-hidden" style="flex: 1;">
+          <small class="fw-bold text-uppercase tracking-wider text-muted d-block" style="font-size: 0.68rem; letter-spacing: 0.5px;">Lien public du jeu généré</small>
+          <code class="share-url-text text-truncate d-block">{{ shareLink() }}</code>
+        </div>
       </div>
-      <div class="card-body p-0">
-        @if (shareResults().length === 0) {
-          <p class="text-muted text-center p-4 mb-0">Aucun étudiant n'a encore complété ce jeu.</p>
-        } @else {
-          <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>Étudiant</th>
-                  <th>Score</th>
-                  <th>Temps passé</th>
-                  <th>Date de fin</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (r of shareResults(); track r.id) {
-                  <tr>
-                    <td><strong>👤 {{ r.student_name }}</strong></td>
-                    <td><span class="badge bg-primary fs-6">{{ r.score }}/{{ r.max_score }}</span></td>
-                    <td>{{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min ' + (r.completion_time_seconds % 60) + 's' : '-' }}</td>
-                    <td>{{ r.completed_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
+      <div class="d-flex align-items-center gap-2 text-nowrap">
+        <button class="btn btn-sm btn-v2-copy" [class.copied]="shareCopied()" (click)="copyShareLink()">
+          <i class="feather me-1" [class.icon-check]="shareCopied()" [class.icon-copy]="!shareCopied()"></i>
+          <span>{{ shareCopied() ? 'Copié !' : 'Copier le lien' }}</span>
+        </button>
+        <button class="btn btn-sm btn-icon-close" (click)="closeShareLink()" title="Fermer">✕</button>
       </div>
     </div>
   }
 
-  <div class="card mb-4 card-elevated">
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
-          <div class="search-input-wrapper">
-            <i class="feather icon-search search-icon"></i>
-            <input type="text" class="form-control ps-5" placeholder="Rechercher par titre ou concept..." [value]="searchQuery()" (input)="onSearch($event)">
+  <!-- Futuristic V2 Glass Panel Container -->
+  <div class="futuristic-library-panel p-3 p-md-4 mb-4">
+    
+    <!-- Top Filter Control Bar -->
+    <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-3">
+      <!-- Search Bar -->
+      <div class="search-input-wrapper flex-grow-1" style="max-width: 420px;">
+        <i class="feather icon-search search-icon"></i>
+        <input type="text" class="form-control ps-5" placeholder="Search games, modules, concepts..." [value]="searchQuery()" (input)="onSearch($event)">
+      </div>
+
+      <!-- Right Side Dropdowns & Action Controls -->
+      <div class="d-flex flex-wrap align-items-center gap-2">
+
+        <!-- All Modules Dropdown -->
+        <div ngbDropdown class="d-inline-block">
+          <button class="btn btn-v2-dropdown" id="moduleDropdown" ngbDropdownToggle>
+            <span>{{ getModuleName(selectedModuleId()) }}</span>
+            <i class="feather icon-chevron-down ms-1 small"></i>
+          </button>
+          <div ngbDropdownMenu aria-labelledby="moduleDropdown" class="shadow-sm">
+            <button ngbDropdownItem [class.active]="selectedModuleId() === null" (click)="selectModule(null)">
+              All Modules
+            </button>
+            <div class="dropdown-divider"></div>
+            @for (mod of modules(); track mod.id) {
+              <button ngbDropdownItem [class.active]="selectedModuleId() === mod.id" (click)="selectModule(mod.id)">
+                {{ mod.module_title }}
+              </button>
+            }
           </div>
         </div>
 
-        <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 justify-content-md-end">
-          <div class="d-flex flex-wrap gap-2 me-2">
-            @for (type of gameTypes; track type.value) {
-              <button class="btn filter-chip"
-                [class.active]="selectedGameType() === type.value"
-                [style.border-color]="type.color"
-                [style.color]="selectedGameType() === type.value ? '#fff' : type.color"
-                [style.background-color]="selectedGameType() === type.value ? type.color : 'transparent'"
-                (click)="toggleGameType(type.value)">
-                <i [class]="type.icon" class="me-1"></i> {{ type.label }}
-              </button>
-            }
-          </div>
-
-          <div class="d-flex flex-wrap gap-2 me-2">
-            @for (level of bloomLevels; track level.value) {
-              <button class="btn bloom-badge"
-                [class.active]="selectedBloomLevels().includes(level.value)"
-                [style.border-color]="level.color"
-                [style.color]="selectedBloomLevels().includes(level.value) ? '#fff' : level.color"
-                [style.background-color]="selectedBloomLevels().includes(level.value) ? level.color : 'transparent'"
-                (click)="toggleBloomLevel(level.value)">
-                {{ level.emoji }} {{ level.label }}
-              </button>
-            }
-          </div>
-
-          <div ngbDropdown class="d-inline-block">
-            <button class="btn btn-outline-secondary" id="moduleDropdown" ngbDropdownToggle>
-              {{ getModuleName(selectedModuleId()) }}
-            </button>
-            <div ngbDropdownMenu aria-labelledby="moduleDropdown">
-              <button ngbDropdownItem (click)="selectModule(null)">Tous les modules</button>
-              @for (mod of modules(); track mod.id) {
-                <button ngbDropdownItem (click)="selectModule(mod.id)">{{ mod.module_title }}</button>
+        <!-- Bloom Dropdown -->
+        <div ngbDropdown class="d-inline-block">
+          <button class="btn btn-v2-dropdown" id="bloomDropdown" ngbDropdownToggle>
+            <span>Bloom {{ selectedBloomLevels().length > 0 ? '(' + selectedBloomLevels().length + ')' : '' }}</span>
+            <i class="feather icon-chevron-down ms-1 small"></i>
+          </button>
+          <div ngbDropdownMenu aria-labelledby="bloomDropdown" class="p-2 shadow-sm" style="min-width: 210px;">
+            <div class="d-flex justify-content-between align-items-center mb-2 px-2 pb-1 border-bottom">
+              <span class="small fw-bold text-muted">Taxonomie de Bloom</span>
+              @if (selectedBloomLevels().length > 0) {
+                <button class="btn btn-link btn-sm p-0 text-danger text-decoration-none small" (click)="selectedBloomLevels.set([]); currentPage.set(1); loadItems()">Effacer</button>
               }
             </div>
+            @for (level of bloomLevels; track level.value) {
+              <button ngbDropdownItem class="d-flex align-items-center justify-content-between rounded py-1 px-2 mb-1"
+                [class.bg-light]="selectedBloomLevels().includes(level.value)"
+                (click)="toggleBloomLevel(level.value); $event.stopPropagation()">
+                <span>{{ level.emoji }} {{ level.label }}</span>
+                @if (selectedBloomLevels().includes(level.value)) {
+                  <i class="feather icon-check text-danger ms-2"></i>
+                }
+              </button>
+            }
           </div>
+        </div>
 
-          <button class="btn btn-outline-secondary" (click)="toggleSortOrder()" title="Trier par date">
-            <i class="feather icon-calendar"></i>
-            <i class="feather ms-1" [class.icon-arrow-down]="sortOrder() === 'desc'" [class.icon-arrow-up]="sortOrder() === 'asc'"></i>
-          </button>
+        <!-- Sort Button -->
+        <button class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" title="Trier">
+          <i class="feather" [class.icon-arrow-down]="sortOrder() === 'desc'" [class.icon-arrow-up]="sortOrder() === 'asc'"></i>
+        </button>
 
-          <button class="btn" [class.btn-outline-danger]="showArchived()" [class.btn-outline-secondary]="!showArchived()" (click)="toggleArchived()">
-            {{ showArchived() ? 'Voir actifs' : 'Voir archivés' }}
-          </button>
+        <!-- Calendar Button -->
+        <button class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" title="Date">
+          <i class="feather icon-calendar"></i>
+        </button>
+
+        <!-- Archived Pill Button -->
+        <button class="btn btn-v2-archive-pill" [class.active-archive]="showArchived()" (click)="toggleArchived()">
+          <i class="feather icon-archive me-1"></i>
+          <span>{{ showArchived() ? 'Active' : 'Archived' }}</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Segmented Tab Navigation -->
+    <div class="v2-segmented-tabs mb-4">
+      <button class="v2-tab-item" [class.active]="selectedGameType() === null" (click)="toggleGameType('')">
+        <i class="feather icon-grid me-1.5"></i>
+        <span>All Games</span>
+      </button>
+      @for (type of gameTypes; track type.value) {
+        <button class="v2-tab-item"
+          [class.active]="selectedGameType() === type.value"
+          (click)="toggleGameType(type.value)">
+          <i [class]="type.icon" class="me-1.5"></i>
+          <span>{{ type.label }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Cards Grid -->
+    @if (isLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
-    </div>
-  </div>
-
-  @if (isLoading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  } @else {
-    @if (items().length === 0) {
-      <div class="empty-state">
-        <i class="feather icon-inbox display-1 text-muted mb-3 d-block"></i>
-        <h5 class="text-muted">Aucun jeu trouvé</h5>
-        <p class="text-muted">Modifiez vos filtres ou effectuez une autre recherche.</p>
-      </div>
     } @else {
-      <div class="row g-4">
-        @for (item of items(); track item.game_id) {
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 game-card" [style.border-left-color]="getGameTypeInfo(item.game_type).color">
-              <div class="card-header border-0 bg-transparent pb-0">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="badge text-white" [style.background-color]="getGameTypeInfo(item.game_type).color">
+      @if (items().length === 0) {
+        <div class="empty-state py-5">
+          <i class="feather icon-inbox display-1 text-muted mb-3 d-block"></i>
+          <h5 class="text-muted">Aucun jeu trouvé</h5>
+          <p class="text-muted">Modifiez vos filtres ou effectuez une autre recherche.</p>
+        </div>
+      } @else {
+        <div class="row g-3">
+          @for (item of items(); track item.game_id) {
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="card h-100 v2-game-card">
+                <!-- Card Header -->
+                <div class="card-header border-0 bg-transparent pt-3 px-3 pb-2 d-flex justify-content-between align-items-center">
+                  <span class="v2-type-tag" [style.color]="getGameTypeInfo(item.game_type).color">
                     <i [class]="getGameTypeInfo(item.game_type).icon" class="me-1"></i>
                     {{ getGameTypeInfo(item.game_type).label }}
                   </span>
-                  <small class="text-muted text-truncate ms-2" style="max-width: 150px;">
-                    {{ item.module_title || 'Module inconnu' }}
-                  </small>
+                  <small class="v2-card-date">{{ item.created_at | date:'dd/MM/yy' }}</small>
                 </div>
-              </div>
-              <div class="card-body cursor-pointer" (click)="consultGame(item, consultModal)">
-                <h6 class="card-title text-primary hover-underline">{{ item.titre || item.title || 'Sans titre' }}</h6>
-                <div class="mb-2">
-                  @for (bloom of item.niveaux_bloom; track bloom) {
-                    <span class="badge me-1"
-                      [style.color]="getBloomInfo(bloom).color"
-                      [style.border]="'1px solid ' + getBloomInfo(bloom).color">
-                      {{ getBloomInfo(bloom).emoji }} {{ getBloomInfo(bloom).label }}
-                    </span>
-                  }
+
+                <!-- Card Body -->
+                <div class="card-body cursor-pointer px-3 py-1" (click)="consultGame(item, consultModal)">
+                  <h6 class="v2-card-title">{{ cleanTitle(item.titre || item.title) }}</h6>
+                  
+                  <!-- Concept Tags -->
+                  <div class="d-flex flex-wrap gap-1.5 mt-2">
+                    @for (concept of item.concepts_cles | slice:0:2; track concept) {
+                      <span class="v2-concept-chip">{{ concept }}</span>
+                    }
+                    @if (item.concepts_cles?.length > 2) {
+                      <span class="v2-concept-chip count-tag">+{{ item.concepts_cles.length - 2 }}</span>
+                    }
+                  </div>
                 </div>
-                <div class="d-flex flex-wrap gap-1">
-                  @for (concept of item.concepts_cles | slice:0:3; track concept) {
-                    <span class="badge bg-light text-dark text-muted">{{ concept }}</span>
-                  }
-                  @if (item.concepts_cles?.length > 3) {
-                    <span class="badge bg-light text-dark text-muted">+{{ item.concepts_cles.length - 3 }}</span>
-                  }
+
+                <!-- Card Bottom Action Toolbar -->
+                <div class="card-footer border-top-0 bg-transparent p-2 px-3 pt-3">
+                  <div class="v2-action-toolbar d-flex align-items-center justify-content-around py-1">
+                    <button class="v2-action-btn" (click)="consultGame(item, consultModal)" title="Consulter le jeu">
+                      <i class="feather icon-eye"></i>
+                    </button>
+                    <button class="v2-action-btn" (click)="openGameEmailModal(item)" title="Envoyer par email (CSV / SMTP)">
+                      <i class="feather icon-mail"></i>
+                    </button>
+                    <button class="v2-action-btn" (click)="shareGame(item)" title="Partager le lien public">
+                      <i class="feather icon-share-2"></i>
+                    </button>
+                    <button class="v2-action-btn" (click)="viewResults(item, resultsModal)" title="Résultats étudiants">
+                      <i class="feather icon-bar-chart-2"></i>
+                    </button>
+                    <button class="v2-action-btn" (click)="openRegenerateModal(item, regenerateModal)" title="Régénérer par IA">
+                      <i class="feather icon-refresh-cw"></i>
+                    </button>
+                    <button class="v2-action-btn btn-delete-icon" (click)="openDeleteModal(item, deleteModal)" title="Supprimer le jeu">
+                      <i class="feather icon-trash-2"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
-                <small class="text-muted">{{ item.created_at | date:'dd/MM/yyyy' }}</small>
-                <div class="card-actions">
-                  <button class="btn btn-consult rounded-pill" (click)="consultGame(item, consultModal)" title="Consulter le jeu">
-                    <i class="feather icon-eye me-1"></i> Consulter
-                  </button>
-                  <button class="btn btn-action-icon btn-share text-primary" (click)="shareGame(item)" title="Partager le lien du jeu">
-                    <i class="feather icon-share-2"></i>
-                  </button>
-                  <button class="btn btn-action-icon btn-results text-info" (click)="viewResults(item)" title="Voir les résultats des étudiants">
-                    <i class="feather icon-bar-chart-2"></i>
-                  </button>
-                  <button class="btn btn-action-icon btn-duplicate" (click)="duplicateGame(item)" title="Dupliquer">
-                    <i class="feather icon-copy"></i>
-                  </button>
-                  <button class="btn btn-action-icon btn-regenerate" (click)="openRegenerateModal(item, regenerateModal)" title="Régénérer avec IA">
-                    <i class="feather icon-refresh-cw"></i>
-                  </button>
-                  <button class="btn btn-action-icon btn-archive"
-                    [class.archived]="item.archived"
-                    (click)="archiveGame(item)"
-                    [title]="item.archived ? 'Désarchiver' : 'Archiver'">
-                    <i class="feather" [class.icon-archive]="!item.archived" [class.icon-rotate-ccw]="item.archived"></i>
-                  </button>
-                </div>
+
               </div>
             </div>
-          </div>
-        }
-      </div>
-
-      <div class="d-flex justify-content-center mt-5">
-        <ngb-pagination
-          [collectionSize]="totalItems()"
-          [page]="currentPage()"
-          [pageSize]="pageSize()"
-          (pageChange)="onPageChange($event)"
-          [maxSize]="5"
-          [boundaryLinks]="true">
-        </ngb-pagination>
-      </div>
+          }
+        </div>
+      }
     }
-  }
+  </div>
+
+  <div class="d-flex justify-content-center mt-4">
+    <ngb-pagination
+      [collectionSize]="totalItems()"
+      [page]="currentPage()"
+      [pageSize]="pageSize()"
+      (pageChange)="onPageChange($event)"
+      [maxSize]="5"
+      [boundaryLinks]="true">
+    </ngb-pagination>
+  </div>
 </div>
 
 <!-- Modal Régénérer avec IA -->
@@ -507,3 +504,262 @@
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Fermer</button>
   </div>
 </ng-template>
+
+<!-- Modal Supprimer Jeu (Sleek Modern Modal) -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header border-bottom-0 pb-0">
+    <div class="d-flex align-items-center gap-2">
+      <div class="rounded-circle p-2 bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+        <i class="feather icon-trash-2 fs-5"></i>
+      </div>
+      <h5 class="modal-title fw-bold text-danger">Confirmer la suppression</h5>
+    </div>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body py-3">
+    <p class="mb-2">Êtes-vous sûr de vouloir supprimer définitivement ce jeu ?</p>
+    <div class="p-3 bg-light rounded-3 border">
+      <strong class="d-block text-dark mb-1">{{ cleanTitle(deletingItem()?.titre || deletingItem()?.title) }}</strong>
+      <small class="text-muted"><i class="feather icon-book me-1"></i>{{ deletingItem()?.module_title || 'Module' }}</small>
+    </div>
+    <small class="text-muted d-block mt-2">Cette action est irréversible et supprimera le jeu de votre bibliothèque.</small>
+  </div>
+  <div class="modal-footer border-top-0 pt-0">
+    <button type="button" class="btn btn-light rounded-pill px-4" (click)="modal.dismiss()">Annuler</button>
+    <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" (click)="confirmDelete(modal)">
+      Supprimer
+    </button>
+  </div>
+</ng-template>
+
+<!-- Modal Résultats des étudiants (Sleek Pop-up Modal) -->
+<ng-template #resultsModal let-modal>
+  <div class="modal-header border-bottom-0 pb-0">
+    <div class="d-flex align-items-center gap-2.5">
+      <div class="rounded-circle p-2 bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+        <i class="feather icon-bar-chart-2 fs-5"></i>
+      </div>
+      <div>
+        <h5 class="modal-title fw-bold text-dark mb-0">Résultats des Étudiants</h5>
+        <small class="text-muted">{{ cleanTitle(selectedResultsGame()?.titre || selectedResultsGame()?.title) }}</small>
+      </div>
+    </div>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body py-3">
+    @if (isResultsLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="text-muted mt-2">Récupération des résultats en cours...</p>
+      </div>
+    } @else if (shareResults().length === 0) {
+      <div class="text-center py-5 px-3 bg-light rounded-4 border">
+        <i class="feather icon-inbox display-4 text-muted mb-2 d-block opacity-50"></i>
+        <h6 class="fw-bold text-dark">Aucune participation pour l'instant</h6>
+        <p class="text-muted small mb-0">Partagez le lien de ce jeu avec vos étudiants pour recueillir leurs résultats.</p>
+      </div>
+    } @else {
+      <!-- Top Actions Bar -->
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 p-2 bg-light rounded-3 border">
+        <span class="small fw-bold text-muted ps-2">
+          <i class="feather icon-users me-1"></i> {{ shareResults().length }} participation(s) enregistrée(s)
+        </span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-success fw-bold d-inline-flex align-items-center gap-1 rounded-pill px-3" (click)="exportResultsCSV()">
+            <i class="feather icon-download"></i> Exporter CSV
+          </button>
+          <button class="btn btn-sm btn-outline-danger fw-bold d-inline-flex align-items-center gap-1 rounded-pill px-3" (click)="exportResultsPDF()">
+            <i class="feather icon-file-text"></i> Exporter PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="table-responsive rounded-3 border shadow-sm">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">#</th>
+              <th>Étudiant</th>
+              <th>Score</th>
+              <th>Temps passé</th>
+              <th class="pe-3">Date de fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of shareResults(); track r.id; let idx = $index) {
+              <tr>
+                <td class="ps-3 text-muted fw-semibold">{{ idx + 1 }}</td>
+                <td>
+                  <span class="fw-bold text-dark">👤 {{ r.student_name }}</span>
+                </td>
+                <td>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 px-2.5 py-1.5 rounded-pill">
+                    {{ r.score }} / {{ r.max_score }}
+                  </span>
+                </td>
+                <td>
+                  <span class="text-muted">
+                    <i class="feather icon-clock me-1"></i>
+                    {{ r.completion_time_seconds ? (r.completion_time_seconds / 60 | number:'1.0-0') + ' min ' + (r.completion_time_seconds % 60) + 's' : '-' }}
+                  </span>
+                </td>
+                <td class="pe-3 text-muted">
+                  {{ r.completed_at | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer border-top-0 pt-0">
+    <button type="button" class="btn btn-light rounded-pill px-4" (click)="modal.dismiss()">Fermer</button>
+  </div>
+</ng-template>
+
+<!-- SMTP Game Email Share Modal with CSV Scanner & Recipient Editor -->
+@if (showGameEmailModal()) {
+  <div class="custom-modal-overlay animate__animated animate__fadeIn" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1065;">
+    <div class="custom-modal-card animate__animated animate__zoomIn bg-white rounded-4 p-4 shadow-lg" style="max-width: 580px; width: 92%;">
+      <div class="custom-modal-header border-bottom pb-3 mb-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <div class="modal-icon-circle bg-light-danger" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(197, 20, 20, 0.1);">
+            <i class="feather icon-mail text-danger" style="font-size: 20px;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0 text-dark">Partager le Jeu par Email</h6>
+            <small class="text-muted">Envoi direct d'invitations via SMTP Gmail</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="closeGameEmailModal()"></button>
+      </div>
+      
+      <div class="custom-modal-body text-start">
+        @if (emailTargetGame()) {
+          <div class="p-3 mb-3 rounded-3 bg-light border border-light">
+            <div class="fw-bold text-dark mb-1"><i class="feather icon-award text-danger me-1"></i> {{ cleanTitle(emailTargetGame().titre || emailTargetGame().title) }}</div>
+            <div class="small text-muted mb-1"><i class="feather icon-layers me-1"></i> Type : <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill">{{ emailTargetGame().game_type }}</span></div>
+            <div class="small text-muted"><i class="feather icon-calendar me-1"></i> Créé le : {{ emailTargetGame().created_at | date:'dd/MM/yyyy' }}</div>
+          </div>
+        }
+
+        <!-- Add Single Email + CSV Scanner Button -->
+        <div class="mb-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <label class="form-label fw-bold text-dark mb-0">Destinataires ({{ gameRecipientList().length }})</label>
+            <div>
+              <label for="gameCsvFileInput" class="btn btn-sm btn-outline-primary py-1 px-2 cursor-pointer mb-0" title="Scanner et importer une liste depuis un fichier CSV">
+                <i class="feather icon-file-text me-1"></i> Importer CSV
+              </label>
+              <input 
+                id="gameCsvFileInput" 
+                type="file" 
+                accept=".csv,.txt" 
+                class="d-none" 
+                (change)="onGameCsvFileSelected($event)"
+              />
+            </div>
+          </div>
+
+          <div class="input-group mb-2">
+            <span class="input-group-text bg-white"><i class="feather icon-at-sign text-muted"></i></span>
+            <input 
+              type="email" 
+              class="form-control" 
+              placeholder="Saisir un email (ex: etudiant@esprit.tn)" 
+              [ngModel]="gameSingleRecipientInput()" 
+              (ngModelChange)="gameSingleRecipientInput.set($event)"
+              [disabled]="isSendingGameEmail()"
+              (keyup.enter)="addGameSingleRecipient()"
+            />
+            <button class="btn btn-primary fw-bold" type="button" (click)="addGameSingleRecipient()" [disabled]="isSendingGameEmail()">
+              <i class="feather icon-plus me-1"></i> Ajouter
+            </button>
+          </div>
+
+          @if (gameCsvImportMessage()) {
+            <div class="small text-info mb-2">
+              <i class="feather icon-info me-1"></i> {{ gameCsvImportMessage() }}
+            </div>
+          }
+        </div>
+
+        <!-- Recipient List Editor -->
+        @if (gameRecipientList().length > 0) {
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="fw-bold text-muted">LISTE DES EMAILS À ENVOYER :</small>
+              <button class="btn btn-link text-danger btn-sm p-0 text-decoration-none" (click)="clearAllGameRecipients()">
+                <i class="feather icon-trash me-1"></i> Tout effacer
+              </button>
+            </div>
+            
+            <div class="recipient-list-container border rounded-3 p-2 bg-white" style="max-height: 180px; overflow-y: auto;">
+              @for (email of gameRecipientList(); track $index) {
+                <div class="d-flex align-items-center gap-2 mb-2 p-1 border-bottom">
+                  <span class="badge bg-light-secondary text-dark rounded-circle px-2 py-1 small">{{ $index + 1 }}</span>
+                  <input 
+                    type="email" 
+                    class="form-control form-control-sm border-0 bg-transparent py-0 px-1 font-monospace" 
+                    [value]="email" 
+                    (change)="updateGameRecipient($index, $event)"
+                    [disabled]="isSendingGameEmail()"
+                  />
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-danger border-0 p-1 rounded-circle" 
+                    (click)="removeGameRecipient($index)"
+                    title="Annuler l'envoi pour cet email"
+                    [disabled]="isSendingGameEmail()"
+                  >
+                    <i class="feather icon-x"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="text-center py-3 bg-light rounded-3 mb-3 border border-dashed">
+            <small class="text-muted"><i class="feather icon-users me-1"></i> Aucun destinataire dans la liste. Saisissez un email ou importez un CSV.</small>
+          </div>
+        }
+
+        @if (gameEmailSendStatus()) {
+          <div 
+            class="alert py-2 px-3 mb-3 small d-flex align-items-center gap-2" 
+            [class.alert-success]="gameEmailSendStatus()?.success" 
+            [class.alert-danger]="!gameEmailSendStatus()?.success"
+          >
+            <i class="feather" [class.icon-check-circle]="gameEmailSendStatus()?.success" [class.icon-alert-triangle]="!gameEmailSendStatus()?.success"></i>
+            <span>{{ gameEmailSendStatus()?.message }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="custom-modal-actions d-flex justify-content-end gap-2 border-top pt-3 mt-2">
+        <button class="btn btn-light px-4" (click)="closeGameEmailModal()" [disabled]="isSendingGameEmail()" style="border-radius: 10px; font-weight: 600;">
+          Annuler
+        </button>
+        <button 
+          class="btn btn-danger px-4" 
+          (click)="sendGameInvitationEmail()" 
+          [disabled]="isSendingGameEmail() || gameRecipientList().length === 0" 
+          style="border-radius: 10px; background: linear-gradient(135deg, #C51414, #9f1010); border: none; font-weight: 600; color: #ffffff;"
+        >
+          @if (isSendingGameEmail()) {
+            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Envoi en cours...
+          } @else {
+            <i class="feather icon-send me-1"></i> Envoyer ({{ gameRecipientList().length }})
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
