@@ -14,7 +14,7 @@
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 20px;
-    font-size: 14px;
+    font-size: 0.875rem;
 
     &.error {
       background: #fef2f2;
@@ -57,14 +57,14 @@
     margin-bottom: 28px;
 
     h1 {
-      font-size: 26px;
+      font-size: 1.625rem;
       font-weight: 700;
       color: #1e293b;
       margin: 0 0 4px 0;
     }
 
     .subtitle {
-      font-size: 14px;
+      font-size: 0.875rem;
       color: #64748b;
       margin: 0;
     }
@@ -83,7 +83,7 @@
       border-radius: 6px;
       background: #fff;
       color: #475569;
-      font-size: 13px;
+      font-size: 0.8125rem;
       cursor: pointer;
       transition: all 0.15s;
       margin-bottom: 12px;
@@ -125,7 +125,7 @@
       justify-content: center;
       flex-shrink: 0;
 
-      i { font-size: 20px; color: #fff; }
+      i { font-size: 1.25rem; color: #fff; }
 
       &.blue { background: linear-gradient(135deg, #C51414, #e54444); box-shadow: 0 4px 12px rgba(197, 20, 20, 0.35); }
       &.purple { background: linear-gradient(135deg, #9f1010, #e54444); box-shadow: 0 4px 12px rgba(159, 16, 16, 0.35); }
@@ -140,13 +140,13 @@
     }
 
     .kpi-value {
-      font-size: 22px;
+      font-size: 1.375rem;
       font-weight: 700;
       color: #1e293b;
     }
 
     .kpi-label {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
       margin-top: 2px;
     }
@@ -177,10 +177,49 @@
     }
 
     h3 {
-      font-size: 15px;
+      font-size: 0.9375rem;
       font-weight: 700;
       color: #1e293b;
-      margin: 0 0 16px 0;
+      margin: 0;
+    }
+
+    .btn-chart-info {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+
+      &:hover,
+      &:focus-visible {
+        background: #f1f5f9;
+        color: #C51414;
+        border-color: #fca5a5;
+        outline: 2px solid #C51414;
+      }
+    }
+
+    .chart-details-panel {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 16px;
+
+      .details-title {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+      }
     }
   }
 
@@ -199,7 +238,7 @@
     }
 
     h3 {
-      font-size: 15px;
+      font-size: 0.9375rem;
       font-weight: 700;
       color: #1e293b;
       margin: 0 0 16px 0;
@@ -213,7 +252,7 @@
   .dash-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 0.8125rem;
 
     th {
       text-align: left;
@@ -252,7 +291,7 @@
     display: inline-block;
     padding: 3px 12px;
     border-radius: 9999px;
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     background: linear-gradient(135deg, #ede9fe, #ddd6fe);
     color: #7a0d0d;
@@ -267,7 +306,7 @@
 
   .statut-badge {
     font-weight: 600;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
 
   .rate-badge {
@@ -283,7 +322,7 @@
     border-radius: 8px;
     background: #fff;
     color: #C51414;
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -313,7 +352,7 @@
       border: none;
       background: none;
       color: #64748b;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
       border-bottom: 2px solid transparent;
@@ -337,7 +376,7 @@
     text-align: center;
     color: #94a3b8;
     padding: 40px 16px;
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   // AA Grid
@@ -370,13 +409,13 @@
 
     .aa-name {
       font-weight: 600;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #1e293b;
     }
 
     .aa-rate {
       font-weight: 700;
-      font-size: 16px;
+      font-size: 1rem;
     }
 
     .progress-bar {
@@ -394,7 +433,7 @@
     }
 
     .aa-meta {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
     }
   }
@@ -430,7 +469,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #64748b;
       flex-shrink: 0;
@@ -444,12 +483,12 @@
 
     .qid {
       font-weight: 600;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #1e293b;
     }
 
     .q-aa {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
     }
 
@@ -461,11 +500,11 @@
 
     .error-rate {
       font-weight: 700;
-      font-size: 14px;
+      font-size: 0.875rem;
     }
 
     .attempts {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
     }
   }
@@ -503,7 +542,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 700;
       flex-shrink: 0;
     }
@@ -516,18 +555,18 @@
 
     .participant-name {
       font-weight: 600;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #1e293b;
     }
 
     .participant-meta {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
     }
 
     .participant-score {
       font-weight: 700;
-      font-size: 15px;
+      font-size: 0.9375rem;
       color: #C51414;
     }
   }
@@ -543,7 +582,7 @@
       margin-bottom: 20px;
 
       h4 {
-        font-size: 14px;
+        font-size: 0.875rem;
         font-weight: 600;
         color: #475569;
         margin: 0 0 16px 0;
@@ -583,7 +622,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 700;
       color: #64748b;
       flex-shrink: 0;
@@ -603,12 +642,12 @@
 
     .team-name {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 0.875rem;
       color: #1e293b;
     }
 
     .team-author {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #64748b;
     }
 
@@ -624,13 +663,13 @@
     }
 
     .score-label {
-      font-size: 11px;
+      font-size: 0.6875rem;
       color: #64748b;
     }
 
     .score-value {
       font-weight: 700;
-      font-size: 16px;
+      font-size: 1rem;
       color: #1e293b;
     }
   }
@@ -644,7 +683,7 @@
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
 
     h4 {
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 600;
       color: #475569;
       margin: 0 0 16px 0;
@@ -664,7 +703,7 @@
 
     .criteria-name {
       width: 120px;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #475569;
       font-weight: 500;
       flex-shrink: 0;
@@ -688,7 +727,7 @@
     .criteria-value {
       width: 40px;
       text-align: right;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 600;
       color: #1e293b;
     }
@@ -723,24 +762,24 @@
 
     .feedback-author {
       font-weight: 600;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #1e293b;
     }
 
     .feedback-sentiment {
-      font-size: 12px;
+      font-size: 0.75rem;
       font-weight: 600;
     }
 
     .feedback-text {
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: #475569;
       line-height: 1.5;
       margin: 0 0 6px 0;
     }
 
     .feedback-date {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: #94a3b8;
     }
   }
@@ -754,3 +793,193 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   DARK MODE THEME FOR PROF-DASHBOARD COMPONENT
+   ========================================================================== */
+:host-context(.dark-mode) {
+  .prof-dashboard,
+  .prof-dashboard-page {
+    color: #f4f4f5;
+
+    .dash-header {
+      h1 {
+        color: #f4f4f5 !important;
+      }
+      .subtitle {
+        color: #a1a1aa !important;
+      }
+      .btn-back {
+        background: #161c28 !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        color: #d4d4d8 !important;
+        &:hover {
+          background: rgba(255, 255, 255, 0.1) !important;
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    .kpi-card {
+      background: #161c28 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+
+      .kpi-value {
+        color: #f4f4f5 !important;
+      }
+      .kpi-label {
+        color: #a1a1aa !important;
+      }
+    }
+
+    .chart-card,
+    .table-card,
+    .comparison-chart-wrapper,
+    .criteria-section {
+      background: #161c28 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+
+      h3, h4 {
+        color: #f4f4f5 !important;
+      }
+    }
+
+    .dash-table {
+      th {
+        color: #a1a1aa !important;
+        border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+      }
+
+      td {
+        color: #e4e4e7 !important;
+        border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+      }
+
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
+      }
+
+      .session-code {
+        color: #f4f4f5 !important;
+      }
+    }
+
+    .btn-detail {
+      background: #18191e !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #ff4d4d !important;
+
+      &:hover {
+        background: linear-gradient(135deg, #C51414, #9f1010) !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .detail-tabs {
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+
+      button {
+        color: #a1a1aa !important;
+        &:hover { color: #f4f4f5 !important; }
+        &.active {
+          color: #ff4d4d !important;
+          border-bottom-color: #ff4d4d !important;
+        }
+      }
+    }
+
+    .aa-card,
+    .hardest-item,
+    .participant-item,
+    .team-card,
+    .feedback-card {
+      background: #161c28 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+
+      .aa-name, .qid, .participant-name, .team-name, .score-value, .feedback-author, .criteria-name, .criteria-value {
+        color: #f4f4f5 !important;
+      }
+
+      .aa-meta, .q-aa, .attempts, .participant-meta, .team-author, .score-label, .feedback-text, .feedback-date {
+        color: #a1a1aa !important;
+      }
+
+      .rank, .team-rank {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #d4d4d8 !important;
+      }
+
+      .progress-bar, .criteria-track {
+        background: rgba(255, 255, 255, 0.08) !important;
+      }
+    }
+
+    ::ng-deep apx-chart,
+    ::ng-deep .apexcharts-canvas {
+      text, tspan,
+      .apexcharts-text,
+      .apexcharts-text tspan,
+      .apexcharts-legend-text,
+      .apexcharts-xaxis-label,
+      .apexcharts-xaxis-label tspan,
+      .apexcharts-yaxis-label,
+      .apexcharts-yaxis-label tspan,
+      .apexcharts-datalabel,
+      .apexcharts-datalabel tspan {
+        fill: #cbd5e1 !important;
+        color: #cbd5e1 !important;
+        font-weight: 500 !important;
+      }
+
+      line.apexcharts-gridline,
+      line.apexcharts-xaxis-tick {
+        stroke: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   MOBILE ACCESSIBILITY & RESPONSIVE FIXES FOR PROF DASHBOARD
+   ========================================================================== */
+@media (max-width: 991px) {
+  .prof-dashboard,
+  .prof-dashboard-page {
+    padding: 12px 8px;
+
+    .dash-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .kpi-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .btn-detail,
+    .btn-back,
+    .btn-refresh {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .table-card {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      
+      .dash-table {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+

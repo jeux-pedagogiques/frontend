@@ -12,6 +12,7 @@ interface ModuleAnalysis {
   module_title: string;
   key_concepts: string[];
   keywords: string[];
+  learning_outcomes?: any[];
   created_at?: string;
 }
 
@@ -69,6 +70,7 @@ export class CasEtudeComponent implements OnInit {
 
   nbRoles = 3;
   formatRestitution = 'oral';
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
 
   casResult = signal<CasEtudeData | null>(null);
   activeTab = signal<'scenario' | 'roles' | 'questions' | 'grille'>('scenario');
@@ -116,7 +118,8 @@ export class CasEtudeComponent implements OnInit {
     const body = {
       module_id: analysis.id,
       nb_roles: this.nbRoles,
-      format_restitution: this.formatRestitution
+      format_restitution: this.formatRestitution,
+      model: this.selectedModel(),
     };
 
     this.http.post<any>(`${this.apiUrl}/cas-etude/generate`, body).subscribe({

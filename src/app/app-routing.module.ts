@@ -113,6 +113,14 @@ const routes: Routes = [
         path: 'mindmap',
         canActivate: [authGuard],
         loadComponent: () => import('./demo/pages/mindmap/mindmap.component').then((c) => c.MindMapComponent)
+      },
+      {
+        path: 'debat-structure',
+        loadComponent: () => import('./demo/pages/debat-structure/debat-structure.component').then((c) => c.DebatStructureComponent)
+      },
+      {
+        path: 'negociation',
+        loadComponent: () => import('./demo/pages/negociation/negociation.component').then((c) => c.NegociationComponent)
       }
     ]
   }

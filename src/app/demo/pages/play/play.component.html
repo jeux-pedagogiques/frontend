@@ -1,3 +1,5 @@
+<div class="visually-hidden" aria-live="assertive" role="alert">{{ audioAlertService.liveAnnouncement() }}</div>
+
 <!-- ─── LOADING STATE ─── -->
 <div class="play-page" *ngIf="pageState() === 'loading'">
   <div class="play-card text-center">
@@ -62,18 +64,18 @@
       <span class="player-name">
         <i class="feather icon-user text-danger"></i> {{ studentName() }}
       </span>
-      <span class="game-timer">
-        <i class="feather icon-clock text-danger"></i> {{ formatTime(elapsedSeconds()) }}
+      <span class="game-timer" aria-live="polite" aria-label="Temps écoulé">
+        <i class="feather icon-clock text-danger" aria-hidden="true"></i> {{ formatTime(elapsedSeconds()) }}
       </span>
     </div>
   </div>
 
   <!-- ── QUIZ ── -->
   <div class="play-card game-card mt-5" *ngIf="gameType() === 'quiz' && quizQuestions().length > 0">
-    <div class="progress mb-3" style="height: 6px;">
+    <div class="progress mb-3" style="height: 6px;" role="progressbar" [attr.aria-valuenow]="quizProgress()" aria-valuemin="0" aria-valuemax="100" aria-label="Progression du quiz">
       <div class="progress-bar bg-gradient-primary" [style.width.%]="quizProgress()"></div>
     </div>
-    <div class="question-counter mb-2">
+    <div class="question-counter mb-2" aria-live="polite">
       Question {{ quizCurrentIndex() + 1 }} / {{ quizQuestions().length }}
     </div>
 
@@ -92,11 +94,17 @@
         (click)="selectQuizAnswer(option)"
       >
         <span class="option-letter">{{ ['A','B','C','D','E','F'][i] }}</span>
-        <span>{{ option }}</span>
+        <span class="option-text me-auto">{{ option }}</span>
+        <span class="feedback-badge correct-badge ms-2" *ngIf="quizAnswered() && isCorrectAnswer(quizQuestions()[quizCurrentIndex()], option)">
+          <i class="feather icon-check-circle me-1" aria-hidden="true"></i> Correct !
+        </span>
+        <span class="feedback-badge wrong-badge ms-2" *ngIf="quizAnswered() && quizSelectedAnswer() === option && !isCorrectAnswer(quizQuestions()[quizCurrentIndex()], option)">
+          <i class="feather icon-x-circle me-1" aria-hidden="true"></i> Incorrect
+        </span>
       </button>
     </div>
 
-    <div class="score-display mt-4">
+    <div class="score-display mt-4" aria-live="polite">
       Score actuel : <strong class="text-light">{{ quizScore() }}</strong> / {{ quizCurrentIndex() + (quizAnswered() ? 1 : 0) }}
     </div>
   </div>
@@ -110,7 +118,15 @@
       Carte {{ flashcardIndex() + 1 }} / {{ flashcards().length }}
     </div>
 
-    <div class="flip-container" (click)="flipCard()" [class.flipped]="flashcardFlipped()">
+    <div class="flip-container"
+         (click)="flipCard()"
+         [class.flipped]="flashcardFlipped()"
+         role="button"
+         tabindex="0"
+         aria-label="Retourner la carte mémoire"
+         [attr.aria-expanded]="flashcardFlipped()"
+         (keydown.enter)="flipCard()"
+         (keydown.space)="flipCard(); $event.preventDefault()">
       <div class="flip-card">
         <div class="flip-front">
           <div class="card-label">Question</div>
@@ -139,8 +155,8 @@
     <div class="progress mb-3" style="height: 6px;">
       <div class="progress-bar bg-gradient-warning" [style.width.%]="enigmaProgress()"></div>
     </div>
-    <div class="question-counter mb-2">
-      <i class="feather icon-lock me-1"></i> Énigme {{ enigmaIndex() + 1 }} / {{ enigmas().length }}
+    <div class="question-counter mb-2" aria-live="polite">
+      <i class="feather icon-lock me-1" aria-hidden="true"></i> Énigme {{ enigmaIndex() + 1 }} / {{ enigmas().length }}
     </div>
 
     <h4 class="text-light fw-bold mb-3">{{ enigmas()[enigmaIndex()].titre || enigmas()[enigmaIndex()].title }}</h4>
@@ -150,11 +166,12 @@
       class="btn btn-sm btn-outline-warning mb-3"
       *ngIf="enigmas()[enigmaIndex()].indice || enigmas()[enigmaIndex()].hint"
       (click)="toggleEnigmaHint()"
+      aria-label="Afficher ou masquer l'indice"
     >
-      <i class="feather icon-help-circle me-1"></i> {{ enigmaHintShown() ? 'Masquer' : 'Voir' }} l'indice
+      <i class="feather icon-help-circle me-1" aria-hidden="true"></i> {{ enigmaHintShown() ? 'Masquer' : 'Voir' }} l'indice
     </button>
-    <div class="hint-box mb-3" *ngIf="enigmaHintShown()">
-      <i class="feather icon-info me-1"></i> {{ enigmas()[enigmaIndex()].indice || enigmas()[enigmaIndex()].hint }}
+    <div class="hint-box mb-3" *ngIf="enigmaHintShown()" aria-live="polite">
+      <i class="feather icon-info me-1" aria-hidden="true"></i> {{ enigmas()[enigmaIndex()].indice || enigmas()[enigmaIndex()].hint }}
     </div>
 
     <div class="enigma-input mt-3">
@@ -162,6 +179,7 @@
         type="text"
         class="form-control glass-input mb-2"
         placeholder="Code ou réponse de déverrouillage..."
+        aria-label="Code de déverrouillage"
         [(ngModel)]="enigmaAnswerInput"
         (ngModelChange)="enigmaAnswer.set($event)"
         (keyup.enter)="checkEnigmaAnswer()"
@@ -169,15 +187,15 @@
         [class.is-invalid]="enigmaFeedback() === 'wrong'"
       />
       <button class="btn btn-warning w-100 py-2 fw-bold" (click)="checkEnigmaAnswer()">
-        <i class="feather icon-unlock me-1"></i> Valider la réponse
+        <i class="feather icon-unlock me-1" aria-hidden="true"></i> Valider la réponse
       </button>
     </div>
 
-    <div class="feedback-msg mt-2 text-center" *ngIf="enigmaFeedback() === 'correct'">
-      <span class="text-success fw-bold"><i class="feather icon-check-circle me-1"></i> Code correct ! Bravo !</span>
+    <div class="feedback-msg mt-2 text-center" *ngIf="enigmaFeedback() === 'correct'" aria-live="polite">
+      <span class="text-success fw-bold"><i class="feather icon-check-circle me-1" aria-hidden="true"></i> Code correct ! Bravo !</span>
     </div>
-    <div class="feedback-msg mt-2 text-center" *ngIf="enigmaFeedback() === 'wrong'">
-      <span class="text-danger fw-bold"><i class="feather icon-x-circle me-1"></i> Mauvaise réponse, réessayez !</span>
+    <div class="feedback-msg mt-2 text-center" *ngIf="enigmaFeedback() === 'wrong'" aria-live="polite">
+      <span class="text-danger fw-bold"><i class="feather icon-x-circle me-1" aria-hidden="true"></i> Mauvaise réponse, réessayez !</span>
     </div>
   </div>
 
@@ -356,11 +374,55 @@
       <i class="feather icon-send me-1"></i> Soumettre la Carte Mentale
     </button>
   </div>
+
+  <div class="play-card game-card mt-5" *ngIf="gameType() === 'debat'">
+    <h4 class="text-light fw-bold mb-2"><i class="feather icon-users text-danger me-2"></i>{{ gameTitle() || "Débat Structuré" }}</h4>
+    <p class="text-light-50 mb-4 small">Vous êtes invité(e) à un débat structuré. Voici le sujet et les rôles qui seront joués en séance.</p>
+
+    <!-- Problématique -->
+    <div class="team-card mb-4 text-center p-4">
+      <small class="badge bg-danger mb-2">PROBLÉMATIQUE</small>
+      <h3 class="text-light fw-bold mb-0">{{ gameData()?.problematique }}</h3>
+    </div>
+
+    <!-- Camps -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="subject-card p-3 rounded-3 h-100">
+          <span class="badge bg-success mb-2">CAMP POUR</span>
+          <ul class="text-start mb-0 ps-3 text-light-50 small">
+            <li *ngFor="let a of (gameData()?.camp_pour || [])">{{ a }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="subject-card p-3 rounded-3 h-100">
+          <span class="badge bg-danger mb-2">CAMP CONTRE</span>
+          <ul class="text-start mb-0 ps-3 text-light-50 small">
+            <li *ngFor="let a of (gameData()?.camp_contre || [])">{{ a }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rôles -->
+    <div class="d-flex flex-column gap-2 mb-4 text-start" *ngIf="(gameData()?.roles || []).length > 0">
+      <h6 class="text-light small fw-bold mb-1">Rôles en jeu :</h6>
+      <div *ngFor="let r of gameData()?.roles" class="subject-card p-2 rounded-3">
+        <span class="text-light small fw-bold">{{ r.nom_role }}</span>
+        <span class="text-light-50 small" *ngIf="r.description"> — {{ r.description }}</span>
+      </div>
+    </div>
+
+    <button class="btn btn-glow w-100 py-3 mt-2" (click)="completeGame()">
+      <i class="feather icon-check me-1"></i> J'ai pris connaissance du sujet
+    </button>
+  </div>
 </div>
 
 <!-- ─── COMPLETED STATE ─── -->
 <div class="play-page" *ngIf="pageState() === 'completed'">
-  <div class="play-card completion-card text-center">
+  <div class="play-card completion-card text-center" aria-live="assertive" role="alert">
     <div class="celebration text-danger mb-3">
       <i class="feather icon-award" style="font-size: 3.5rem;"></i>
     </div>

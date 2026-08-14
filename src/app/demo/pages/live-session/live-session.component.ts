@@ -20,6 +20,8 @@ interface PeerDetail {
   isProf?: boolean;
 }
 
+import { AudioAlertService } from 'src/app/theme/shared/service/audio-alert.service';
+
 @Component({
   selector: 'app-live-session',
   standalone: true,
@@ -32,6 +34,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   private cd = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  public audioAlertService = inject(AudioAlertService);
 
   // Session state: 'lobby' | 'live'
   sessionState = signal<'lobby' | 'live'>('lobby');
@@ -1793,13 +1796,19 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       this.quizTimerInterval = setInterval(() => {
         const current = this.quizTimer();
         if (current > 0) {
-          this.quizTimer.set(current - 1);
-        } else {
-          clearInterval(this.quizTimerInterval);
-          if (this.isProf()) {
-            this.onProfessorTimerEnd();
-          } else {
-            this.onStudentTimerEnd();
+          const next = current - 1;
+          this.quizTimer.set(next);
+
+          if (next === 10) {
+            this.audioAlertService.playWarningAlert("Attention : il reste 10 secondes pour répondre !");
+          } else if (next === 0) {
+            this.audioAlertService.playTimesUpAlert("Temps écoulé ! Validation des réponses.");
+            clearInterval(this.quizTimerInterval);
+            if (this.isProf()) {
+              this.onProfessorTimerEnd();
+            } else {
+              this.onStudentTimerEnd();
+            }
           }
         }
         this.cd.detectChanges();

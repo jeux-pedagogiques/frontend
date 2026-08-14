@@ -1,33 +1,11 @@
 <ul class="navbar-nav ms-auto align-items-center flex-row gap-3 mb-0" style="display: flex; flex-direction: row; align-items: center; white-space: nowrap;">
   <li class="nav-item d-flex align-items-center">
-    <div class="dropdown drp-user" ngbDropdown placement="auto">
-      <a href="javascript:void(0)" ngbDropdownToggle class="d-inline-flex align-items-center gap-1 text-decoration-none" style="display: flex !important; align-items: center !important; flex-direction: row !important; white-space: nowrap;">
-        <img [src]="getAvatar() || 'assets/images/user/avatar-1.jpg'" class="img-radius wid-36" alt="User Profile" style="object-fit: cover; width: 36px; height: 36px; border-radius: 50%; display: block;" />
-      </a>
-      <div class="dropdown-menu dropdown-menu-end profile-notification" ngbDropdownMenu>
-        <div class="pro-head">
-          <img [src]="getAvatar() || 'assets/images/user/avatar-1.jpg'" class="img-radius" alt="User-Profile-Image" style="object-fit: cover; width: 40px; height: 40px;" />
-          <span>{{ getUsername() }}</span>
-          <a href="javascript:void(0)" (click)="logout()" class="dud-logout" title="Logout">
-            <i class="feather icon-log-out"></i>
-          </a>
-        </div>
-        <ul class="pro-body">
-          <li>
-            <a [routerLink]="['/profile']" class="dropdown-item">
-              <i class="feather icon-user"></i>
-              Profile
-            </a>
-          </li>
-          <li>
-            <a href="javascript:void(0)" (click)="logout()" class="dropdown-item">
-              <i class="feather icon-log-out"></i>
-              Logout
-            </a>
-          </li>
-        </ul>
+    <a [routerLink]="['/profile']" class="d-inline-flex align-items-center text-decoration-none profile-avatar-btn" [title]="'Voir le profil de ' + getUsername()" [attr.aria-label]="'Voir le profil de ' + getUsername()">
+      <div class="avatar-ring-container">
+        <img [src]="getAvatar() || 'assets/images/user/avatar-1.jpg'" class="img-radius avatar-img" [alt]="'Photo de profil de ' + getUsername()" />
+        <span class="status-indicator-dot" title="En ligne"></span>
       </div>
-    </div>
+    </a>
   </li>
 </ul>
 

@@ -446,9 +446,53 @@ $glow-secondary: #8C0A10;
 
 // ─── Responsive ───
 @media (max-width: 576px) {
-  .play-card { padding: 28px 20px; border-radius: 18px; }
-  .play-header { padding: 10px 16px; }
-  .flip-container { height: 220px; }
-  .result-stats { gap: 20px; }
-  .star-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+  .play-page {
+    padding: 16px 10px;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  .play-card {
+    padding: 24px 16px;
+    border-radius: 18px;
+    max-width: 100%;
+  }
+  .play-header {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .glass-input {
+    font-size: 16px !important;
+    min-height: 48px !important;
+  }
+  .btn-glow {
+    min-height: 48px !important;
+    font-size: 1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .option-btn {
+    min-height: 48px !important;
+    padding: 14px 16px !important;
+  }
+  .flip-container {
+    height: 230px;
+  }
+  .result-stats {
+    gap: 16px;
+  }
+  .star-btn {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    font-size: 1.2rem;
+  }
+  .review-buttons {
+    gap: 12px;
+    .btn {
+      min-height: 48px !important;
+    }
+  }
 }

@@ -100,6 +100,7 @@ export class EscapeRoomComponent implements OnInit {
   mode = 'collaboratif';
   dureeTotale = 45;
   nbEquipes = 3;
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
 
   // Quiz generation parameters
   quizQuestionsCount = 5;
@@ -127,12 +128,12 @@ export class EscapeRoomComponent implements OnInit {
 
   // Bloom level display info
   bloomLevels: Record<string, { label: string; color: string; icon: string }> = {
-    'memoriser': { label: 'Mémoriser', color: '#ef4444', icon: '🧠' },
-    'comprendre': { label: 'Comprendre', color: '#f97316', icon: '💡' },
-    'appliquer': { label: 'Appliquer', color: '#eab308', icon: '⚙️' },
-    'analyser': { label: 'Analyser', color: '#22c55e', icon: '🔍' },
-    'evaluer': { label: 'Évaluer', color: '#3b82f6', icon: '⚖️' },
-    'creer': { label: 'Créer', color: '#9f1010', icon: '🎨' }
+    'memoriser': { label: '[L1] Mémoriser', color: '#ef4444', icon: '🧠' },
+    'comprendre': { label: '[L2] Comprendre', color: '#f97316', icon: '💡' },
+    'appliquer': { label: '[L3] Appliquer', color: '#facc15', icon: '⚙️' },
+    'analyser': { label: '[L4] Analyser', color: '#22c55e', icon: '🔍' },
+    'evaluer': { label: '[L5] Évaluer', color: '#3b82f6', icon: '⚖️' },
+    'creer': { label: '[L6] Créer', color: '#9f1010', icon: '🎨' }
   };
 
   // Bloom level numeric mapping
@@ -239,6 +240,7 @@ export class EscapeRoomComponent implements OnInit {
       mode: this.mode,
       duree_totale: this.dureeTotale,
       nb_equipes: this.nbEquipes,
+      model: this.selectedModel(),
     };
 
     this.http.post<EscapeRoomResponse>(`${this.apiUrl}/escape-rooms/generate`, payload).subscribe({

@@ -1,18 +1,18 @@
 <div class="scan-page">
 
-  <!-- Messages -->
+  <!-- Live Alert Messages -->
   @if (successMessage()) {
-    <div class="scan-alert success">
-      <i class="feather icon-check-circle"></i>
+    <div class="scan-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
       <span>{{ successMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
   @if (errorMessage()) {
-    <div class="scan-alert error">
-      <i class="feather icon-alert-triangle"></i>
+    <div class="scan-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
       <span>{{ errorMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
@@ -31,24 +31,24 @@
               <p class="panel-subtitle">Sélectionnez la source du document et définissez les paramètres d'analyse.</p>
             </div>
             <!-- Source Tabs -->
-            <div class="source-tabs">
-              <button type="button" class="source-tab" [class.active]="activeTab() === 'upload'" (click)="setActiveTab('upload')">
-                <i class="feather icon-upload"></i> Télécharger un fichier
+            <nav class="source-tabs" aria-label="Source du document" role="tablist">
+              <button type="button" class="source-tab" role="tab" [attr.aria-selected]="activeTab() === 'upload'" aria-controls="source-panel" (click)="setActiveTab('upload')">
+                <i class="feather icon-upload" aria-hidden="true"></i> Télécharger un fichier
               </button>
-              <button type="button" class="source-tab" [class.active]="activeTab() === 'editor'" (click)="setActiveTab('editor')">
-                <i class="feather icon-edit-3"></i> Saisie directe
+              <button type="button" class="source-tab" role="tab" [attr.aria-selected]="activeTab() === 'editor'" aria-controls="source-panel" (click)="setActiveTab('editor')">
+                <i class="feather icon-edit-3" aria-hidden="true"></i> Saisie directe
               </button>
-            </div>
+            </nav>
             <!-- FILE UPLOAD DROPZONE -->
             @if (activeTab() === 'upload') {
-              <div class="source-content">
-                <div class="drop-zone" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
+              <div class="source-content" id="source-panel" role="tabpanel">
+                <div class="drop-zone" role="region" aria-label="Zone de dépôt de fichier" [class.drag-over]="isDragOver()" [class.has-file]="!!selectedFile"
                   (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
-                  <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" style="display: none;">
+                  <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" style="display: none;" aria-label="Sélectionner un fichier PDF, DOCX ou TXT">
                   @if (!selectedFile) {
                     <div class="drop-zone-empty">
                       <div class="cloud-upload-icon-wrapper">
-                        <i class="feather icon-upload-cloud"></i>
+                        <i class="feather icon-upload-cloud" aria-hidden="true"></i>
                       </div>
                       <p class="drop-text">Cliquez ou glissez un fichier ici</p>
                       <span class="drop-formats">(PDF, DOCX, TXT - MAX 10MB)</span>
@@ -56,13 +56,13 @@
                   }
                   @if (selectedFile) {
                     <div class="selected-file-info" (click)="$event.stopPropagation()">
-                      <div class="file-icon"><i [class]="getFileIcon()"></i></div>
+                      <div class="file-icon"><i [class]="getFileIcon()" aria-hidden="true"></i></div>
                       <div class="file-details">
                         <span class="file-name">{{ selectedFile.name }}</span>
                         <span class="file-size">{{ getFileSize() }}</span>
                       </div>
-                      <button type="button" class="file-remove" (click)="removeFile(); $event.stopPropagation()">
-                        <i class="feather icon-x"></i>
+                      <button type="button" class="file-remove" (click)="removeFile(); $event.stopPropagation()" aria-label="Supprimer le fichier sélectionné">
+                        <i class="feather icon-x" aria-hidden="true"></i>
                       </button>
                     </div>
                   }
@@ -71,17 +71,17 @@
             }
             <!-- RAW CONTENT / EDITOR -->
             @if (activeTab() === 'editor') {
-              <div class="source-content">
+              <div class="source-content" id="source-panel" role="tabpanel">
                 <div class="editor-field">
-                  <label class="field-label">Titre du module <span class="optional">(optionnel)</span></label>
-                  <input type="text" class="scan-input" [(ngModel)]="editorTitle" name="editorTitle"
+                  <label for="import-editor-title" class="field-label">Titre du module <span class="optional">(optionnel)</span></label>
+                  <input type="text" id="import-editor-title" class="scan-input" [(ngModel)]="editorTitle" name="editorTitle"
                     placeholder="Ex: Introduction à l'Intelligence Artificielle">
                 </div>
                 <div class="editor-field">
-                  <label class="field-label">Contenu de la fiche module</label>
-                  <textarea class="scan-textarea" [(ngModel)]="editorContent" name="editorContent" rows="6"
-                  placeholder="Saisissez ou collez ici le contenu de votre fiche module..."></textarea>
-                  <span class="char-count">{{ editorContent.length }} caractères</span>
+                  <label for="import-editor-content" class="field-label">Contenu de la fiche module</label>
+                  <textarea id="import-editor-content" class="scan-textarea" [(ngModel)]="editorContent" name="editorContent" rows="6"
+                  placeholder="Saisissez ou collez ici le contenu de votre fiche module..." aria-required="true"></textarea>
+                  <span class="char-count" aria-live="polite">{{ editorContent.length }} caractères</span>
                 </div>
               </div>
             }
@@ -95,13 +95,13 @@
             <div class="param-group">
               <div class="param-row-header">
                 <span class="param-label">Précision</span>
-                <div class="seg-toggle-container">
-                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'standard'" (click)="sensitivity = 'standard'">Standard</button>
-                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'high' || sensitivity === 'elevee'" (click)="sensitivity = 'high'">Élevée</button>
+                <div class="seg-toggle-container" role="group" aria-label="Niveau de précision">
+                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'standard'" [attr.aria-pressed]="sensitivity === 'standard'" (click)="sensitivity = 'standard'">Standard</button>
+                  <button type="button" class="seg-btn" [class.active]="sensitivity === 'high' || sensitivity === 'elevee'" [attr.aria-pressed]="sensitivity === 'high' || sensitivity === 'elevee'" (click)="sensitivity = 'high'">Élevée</button>
                 </div>
               </div>
               <div class="slider-wrapper">
-                <input type="range" class="red-range-slider" min="1" max="100" [value]="sensitivity === 'high' ? 85 : 45" (input)="sensitivity = $any($event.target).value > 60 ? 'high' : 'standard'">
+                <input type="range" class="red-range-slider" role="slider" aria-label="Ajuster la précision de l'analyse" min="1" max="100" [value]="sensitivity === 'high' ? 85 : 45" [attr.aria-valuenow]="sensitivity === 'high' ? 85 : 45" aria-valuemin="1" aria-valuemax="100" [attr.aria-valuetext]="sensitivity === 'high' ? 'Élevée' : 'Standard'" (input)="sensitivity = $any($event.target).value > 60 ? 'high' : 'standard'">
               </div>
             </div>
 
@@ -109,17 +109,49 @@
             <div class="param-group mt-3">
               <div class="param-row-header">
                 <span class="param-label">Format de Sortie</span>
-                <div class="format-pills">
-                  <button type="button" class="format-pill" [class.active]="outputFormat === 'json'" (click)="outputFormat = 'json'">JSON Dataset</button>
-                  <button type="button" class="format-pill" [class.active]="outputFormat === 'csv'" (click)="outputFormat = 'csv'">CSV</button>
-                  <button type="button" class="format-pill" [class.active]="outputFormat === 'pdf' || outputFormat === 'detailed'" (click)="outputFormat = 'pdf'">PDF Rapport</button>
+                <div class="format-pills" role="group" aria-label="Format de sortie du rapport">
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'json'" [attr.aria-pressed]="outputFormat === 'json'" (click)="outputFormat = 'json'">JSON Dataset</button>
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'csv'" [attr.aria-pressed]="outputFormat === 'csv'" (click)="outputFormat = 'csv'">CSV</button>
+                  <button type="button" class="format-pill" [class.active]="outputFormat === 'pdf' || outputFormat === 'detailed'" [attr.aria-pressed]="outputFormat === 'pdf' || outputFormat === 'detailed'" (click)="outputFormat = 'pdf'">PDF Rapport</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODÈLE IA SELECTION -->
+            <div class="param-group mt-3">
+              <div class="param-row-header">
+                <span class="param-label"><i class="feather icon-cpu me-1 text-danger" aria-hidden="true"></i> Modèle IA</span>
+              </div>
+              <div class="model-select-wrapper mt-2" ngbDropdown>
+                <button type="button" class="btn model-dropdown-btn w-100 d-flex align-items-center justify-content-between text-start" ngbDropdownToggle aria-haspopup="listbox" [attr.aria-label]="'Modèle IA sélectionné : ' + getSelectedModelLabel()">
+                  <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                    <i class="feather icon-cpu text-danger" aria-hidden="true"></i>
+                    <span class="fw-semibold text-truncate">{{ getSelectedModelLabel() }}</span>
+                  </div>
+                  <i class="feather icon-chevron-down small text-muted" aria-hidden="true"></i>
+                </button>
+                <div ngbDropdownMenu class="model-dropdown-menu shadow-lg w-100 p-1" role="listbox" aria-label="Modèles IA disponibles">
+                  @for (model of availableModels; track model.value) {
+                    <button type="button" ngbDropdownItem class="model-dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-3 mb-1"
+                      role="option"
+                      [attr.aria-selected]="selectedModel() === model.value"
+                      [class.active]="selectedModel() === model.value"
+                      (click)="selectedModel.set(model.value)">
+                      <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                        <i class="feather" [class.icon-check]="selectedModel() === model.value" [class.icon-cpu]="selectedModel() !== model.value" aria-hidden="true"></i>
+                        <span class="text-truncate">{{ model.label }}</span>
+                      </div>
+                      <span class="badge bg-danger-subtle text-danger rounded-pill flex-shrink-0" style="font-size: 0.68rem;">{{ model.provider }}</span>
+                    </button>
+                  }
                 </div>
               </div>
             </div>
 
             <!-- Main Action Pill Button -->
             <button type="button" class="btn-lancer-ia mt-4" (click)="activeTab() === 'upload' ? uploadFile() : submitEditorContent()"
-              [disabled]="isLoading() || (activeTab() === 'upload' && !selectedFile) || (activeTab() === 'editor' && !editorContent.trim())">
+              [disabled]="isLoading() || (activeTab() === 'upload' && !selectedFile) || (activeTab() === 'editor' && !editorContent.trim())"
+              aria-label="Lancer l'analyse IA du module">
               @if (!isLoading()) {
                 <span>Lancer l'analyse IA</span>
               }
@@ -141,7 +173,7 @@
                   <span class="doc-mock-subtitle">Génération de l'aperçu en rapport</span>
                 </div>
                 <div class="doc-mock-brand">
-                  <img src="assets/images/logo-icon.png" alt="Esprit" class="doc-logo-img" />
+                  <img src="assets/images/logo-icon.png" alt="Esprit" width="28" height="28" class="doc-logo-img" />
                   <span class="doc-brand-text">Esprit</span>
                 </div>
               </div>
@@ -221,8 +253,8 @@
 
               <!-- Centered Spinner Overlay (Active during analysis loading) -->
               @if (isLoading()) {
-                <div class="preview-overlay">
-                  <div class="red-dots-spinner"></div>
+                <div class="preview-overlay" role="status" aria-live="polite" aria-atomic="true">
+                  <div class="red-dots-spinner" aria-hidden="true"></div>
                   <span class="preview-loading-text">Génération de l'aperçu en cours...</span>
                 </div>
               }
@@ -245,25 +277,25 @@
           </div>
           <div class="history-controls">
             <div class="search-box">
-              <i class="feather icon-search"></i>
-              <input type="text" placeholder="Rechercher..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" name="searchQuery">
+              <i class="feather icon-search" aria-hidden="true"></i>
+              <input type="text" placeholder="Rechercher..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" name="searchQuery" aria-label="Rechercher dans l'historique des analyses">
             </div>
-            <button class="filter-btn" (click)="loadHistory()">
-              <i class="feather icon-refresh-cw"></i> Actualiser
+            <button type="button" class="filter-btn" (click)="loadHistory()" aria-label="Actualiser l'historique">
+              <i class="feather icon-refresh-cw" aria-hidden="true"></i> Actualiser
             </button>
           </div>
         </div>
         <!-- Table -->
         <div class="scan-table-container">
-          <table class="scan-table">
+          <table class="scan-table" aria-label="Historique des analyses de modules">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>DATE</th>
-                <th>NOM DU MODULE</th>
-                <th>ACQUIS</th>
-                <th>STATUT</th>
-                <th>ACTIONS</th>
+                <th scope="col">ID</th>
+                <th scope="col">DATE</th>
+                <th scope="col">NOM DU MODULE</th>
+                <th scope="col">ACQUIS</th>
+                <th scope="col">STATUT</th>
+                <th scope="col">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -271,7 +303,7 @@
                 <tr>
                   <td colspan="6" class="empty-row">
                     <div class="empty-table-state">
-                      <i class="feather icon-inbox"></i>
+                      <i class="feather icon-inbox" aria-hidden="true"></i>
                       <p>Aucun historique disponible. Importez et confirmez une fiche module pour commencer.</p>
                     </div>
                   </td>
@@ -279,9 +311,9 @@
               }
               @if (isLoading() && historyList().length === 0) {
                 <tr>
-                  <td colspan="6" class="empty-row">
-                    <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                    <span class="ms-2">Chargement...</span>
+                  <td colspan="6" class="empty-row" role="status" aria-live="polite" aria-atomic="true">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status" aria-hidden="true"></div>
+                    <span class="ms-2">Chargement de l'historique...</span>
                   </td>
                 </tr>
               }
@@ -291,18 +323,18 @@
                   <td class="timestamp">{{ item.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
                   <td>
                     <div class="file-name-cell">
-                      <i class="feather icon-file-text file-dot"></i>
+                      <i class="feather icon-file-text file-dot" aria-hidden="true"></i>
                       <span class="module-title-link">{{ item.module_title }}</span>
                     </div>
                   </td>
                   <td><span class="format-tag">{{ item.learning_outcomes?.length || 0 }} AA</span></td>
-                  <td><span class="status-badge completed"><i class="feather icon-check-circle"></i> Complété</span></td>
+                  <td><span class="status-badge completed"><i class="feather icon-check-circle" aria-hidden="true"></i> Complété</span></td>
                   <td class="actions-cell" (click)="$event.stopPropagation()">
-                    <button class="action-btn load" (click)="loadResultFromHistory(item); $event.stopPropagation()" title="Ouvrir le module & Générer Quiz">
-                      <i class="feather icon-eye"></i>
+                    <button type="button" class="action-btn load" (click)="loadResultFromHistory(item); $event.stopPropagation()" aria-label="Ouvrir le module et générer le quiz" title="Ouvrir le module & Générer Quiz">
+                      <i class="feather icon-eye" aria-hidden="true"></i>
                     </button>
-                    <button class="action-btn delete" (click)="deleteHistory(item.id, $event); $event.stopPropagation()" title="Supprimer">
-                      <i class="feather icon-trash-2"></i>
+                    <button type="button" class="action-btn delete" (click)="deleteHistory(item.id, $event); $event.stopPropagation()" aria-label="Supprimer cette analyse" title="Supprimer">
+                      <i class="feather icon-trash-2" aria-hidden="true"></i>
                     </button>
                   </td>
                 </tr>
@@ -312,10 +344,10 @@
         </div>
         <!-- Pagination -->
         <div class="table-footer">
-          <span class="record-count">Affichage de {{ paginatedHistoryList().length }} sur {{ filteredHistoryList().length }} enregistrements</span>
-          <div class="pagination-controls">
-            <button class="page-btn" [disabled]="currentPage() <= 1" (click)="prevPage()">Précédent</button>
-            <button class="page-btn active-page" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Suivant</button>
+          <span class="record-count" aria-live="polite">Affichage de {{ paginatedHistoryList().length }} sur {{ filteredHistoryList().length }} enregistrements</span>
+          <div class="pagination-controls" role="navigation" aria-label="Pagination historique">
+            <button type="button" class="page-btn" [disabled]="currentPage() <= 1" (click)="prevPage()" aria-label="Page précédente">Précédent</button>
+            <button type="button" class="page-btn active-page" [disabled]="currentPage() >= totalPages()" (click)="nextPage()" aria-label="Page suivante">Suivant</button>
           </div>
         </div>
       </div>
@@ -499,7 +531,7 @@
                 @for (concept of analysisResult()!.key_concepts; track concept; let i = $index) {
                   <div class="tag concept">
                     <span>{{ concept }}</span>
-                    <button type="button" (click)="removeConcept(i)"><i class="feather icon-x"></i></button>
+                    <button type="button" (click)="removeConcept(i)" [attr.aria-label]="'Supprimer le concept ' + concept"><i class="feather icon-x" aria-hidden="true"></i></button>
                   </div>
                 }
               </div>
@@ -507,14 +539,14 @@
           </div>
           <div class="card">
             <div class="card-head">
-              <h3><i class="feather icon-hash"></i> Mots-clés</h3>
+              <h3><i class="feather icon-hash" aria-hidden="true"></i> Mots-clés</h3>
             </div>
             <div class="card-body">
               <div class="tags">
                 @for (keyword of analysisResult()!.keywords; track keyword; let i = $index) {
                   <div class="tag keyword">
                     <span>{{ keyword }}</span>
-                    <button type="button" (click)="removeKeyword(i)"><i class="feather icon-x"></i></button>
+                    <button type="button" (click)="removeKeyword(i)" [attr.aria-label]="'Supprimer le mot-clé ' + keyword"><i class="feather icon-x" aria-hidden="true"></i></button>
                   </div>
                 }
               </div>
@@ -603,57 +635,58 @@
 
         <!-- Generated Quiz Results Container -->
         @if (generatedQuiz() && !isGeneratingQuiz()) {
-          <div class="card" id="quiz-results-container">
-            <div class="card-head d-flex justify-content-between align-items-center">
+          <div class="card quiz-results-card" id="quiz-results-container">
+            <div class="card-head quiz-card-head d-flex justify-content-between align-items-center p-3">
               <div>
-                <span class="badge bg-primary px-3 py-1 mb-1">QUIZ CHRONOMÉTRÉ</span>
-                <h4 class="fw-bold mb-0 text-dark">{{ generatedQuiz().titre_quiz }}</h4>
-                <small class="text-muted">{{ generatedQuiz().questions.length }} Questions</small>
+                <span class="badge bg-danger px-3 py-1 mb-1">QUIZ CHRONOMÉTRÉ</span>
+                <h4 class="fw-bold mb-0 quiz-title">{{ generatedQuiz().titre_quiz || 'Quiz Généré' }}</h4>
+                <small class="text-muted">{{ generatedQuiz().questions?.length || 0 }} Questions</small>
               </div>
               <div class="d-flex gap-2">
-                <button type="button" class="btn btn-ghost btn-sm" (click)="shareGame()">
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="shareGame()">
                   <i class="feather icon-share-2 me-1"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
                 </button>
-                <button type="button" class="btn btn-ghost btn-sm" (click)="viewResults()">
+                <button type="button" class="btn btn-outline-info btn-sm" (click)="viewResults()">
                   <i class="feather icon-bar-chart-2 me-1"></i> Résultats
                 </button>
               </div>
             </div>
             <!-- Quiz Sub-tabs -->
             <div class="card-body">
-              <div class="quiz-tabs d-flex gap-2 border-bottom pb-2 mb-3">
-                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'questions'" [class.btn-ghost]="quizActiveTab() !== 'questions'" (click)="quizActiveTab.set('questions')">
-                  <i class="feather icon-list me-1"></i> Questions
+              <div class="quiz-nav-tabs d-flex gap-2 border-bottom pb-2 mb-3">
+                <button type="button" class="quiz-tab-btn btn btn-sm" [class.active]="quizActiveTab() === 'questions'" (click)="quizActiveTab.set('questions')">
+                  <i class="feather icon-list me-1"></i> Questions ({{ generatedQuiz().questions?.length || 0 }})
                 </button>
-                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'animateur'" [class.btn-ghost]="quizActiveTab() !== 'animateur'" (click)="quizActiveTab.set('animateur')">
+                <button type="button" class="quiz-tab-btn btn btn-sm" [class.active]="quizActiveTab() === 'animateur'" (click)="quizActiveTab.set('animateur')">
                   <i class="feather icon-user me-1"></i> Fiche Animateur
                 </button>
-                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'participant'" [class.btn-ghost]="quizActiveTab() !== 'participant'" (click)="quizActiveTab.set('participant')">
+                <button type="button" class="quiz-tab-btn btn btn-sm" [class.active]="quizActiveTab() === 'participant'" (click)="quizActiveTab.set('participant')">
                   <i class="feather icon-users me-1"></i> Fiche Participant
                 </button>
-                <button type="button" class="quiz-tab btn btn-sm" [class.btn-primary]="quizActiveTab() === 'debriefing'" [class.btn-ghost]="quizActiveTab() !== 'debriefing'" (click)="quizActiveTab.set('debriefing')">
+                <button type="button" class="quiz-tab-btn btn btn-sm" [class.active]="quizActiveTab() === 'debriefing'" (click)="quizActiveTab.set('debriefing')">
                   <i class="feather icon-check-square me-1"></i> Débriefing
                 </button>
               </div>
+
               <div class="quiz-tab-content">
                 @if (quizActiveTab() === 'questions') {
-                  <div>
-                    @for (q of generatedQuiz().questions; track q; let i = $index) {
-                      <div class="p-3 mb-3 border rounded-3 bg-light">
+                  <div class="quiz-questions-list">
+                    @for (q of (generatedQuiz().questions || []); track $index; let i = $index) {
+                      <div class="quiz-q-item p-3 mb-3 border rounded-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                          <span class="fw-bold">Question {{ i + 1 }}</span>
+                          <span class="fw-bold q-num text-danger">Question {{ i + 1 }}</span>
                           <div class="d-flex gap-2">
                             <span class="badge bg-info text-dark">Bloom {{ q.niveau_bloom }}</span>
                             <span class="badge bg-secondary">{{ q.type | uppercase }}</span>
                             <span class="badge bg-warning text-dark"><i class="feather icon-clock me-1"></i>{{ q.duree_secondes }}s</span>
                           </div>
                         </div>
-                        <h5 class="fw-bold text-dark mb-3">{{ q.enonce }}</h5>
+                        <h5 class="fw-bold quiz-q-statement mb-3">{{ q.enonce }}</h5>
                         @if (q.options && q.options.length > 0) {
                           <div class="row g-2 mb-3">
                             @for (opt of q.options; track opt) {
                               <div class="col-md-6">
-                                <div class="p-2 border rounded" [class.bg-success-subtle]="opt === q.bonne_reponse" [class.border-success]="opt === q.bonne_reponse">
+                                <div class="p-2 border rounded quiz-opt-box" [class.correct]="opt === q.bonne_reponse">
                                   @if (opt === q.bonne_reponse) { <span class="me-1">✅</span> }
                                   {{ opt }}
                                 </div>
@@ -662,26 +695,31 @@
                           </div>
                         }
                         <div class="small text-muted border-top pt-2 mt-2">
-                          <div><strong>Réponse attendue :</strong> <span class="text-success fw-bold">{{ q.bonne_reponse }}</span></div>
-                          <div><strong>Explication :</strong> {{ q.explication }}</div>
+                          <div><strong>Réponse attendue :</strong> <span class="text-success fw-bold me-2">{{ q.bonne_reponse }}</span></div>
+                          @if (q.explication) {
+                            <div><strong>Explication :</strong> {{ q.explication }}</div>
+                          }
                         </div>
                       </div>
                     }
                   </div>
                 }
+
                 @if (quizActiveTab() === 'animateur') {
-                  <div class="p-3 border rounded bg-light font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_animateur }}</div>
+                  <div class="p-3 border rounded quiz-sheet-box font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_animateur }}</div>
                 }
+
                 @if (quizActiveTab() === 'participant') {
-                  <div class="p-3 border rounded bg-light font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_participant }}</div>
+                  <div class="p-3 border rounded quiz-sheet-box font-monospace small" style="white-space: pre-wrap;">{{ generatedQuiz().fiche_participant }}</div>
                 }
+
                 @if (quizActiveTab() === 'debriefing') {
                   <div>
                     <h5 class="fw-bold mb-3"><i class="feather icon-award me-2 text-warning"></i>Critères de débriefing final</h5>
                     <div class="d-flex flex-column gap-2">
-                      @for (critere of generatedQuiz().grille_debriefing.criteres; track critere; let i = $index) {
-                        <div class="p-3 border rounded bg-light d-flex align-items-center gap-3">
-                          <span class="badge bg-primary rounded-circle" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">{{ i + 1 }}</span>
+                      @for (critere of (generatedQuiz().grille_debriefing?.criteres || []); track $index; let i = $index) {
+                        <div class="p-3 border rounded quiz-crit-item d-flex align-items-center gap-3">
+                          <span class="badge bg-danger rounded-circle" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">{{ i + 1 }}</span>
                           <span>{{ critere }}</span>
                         </div>
                       }

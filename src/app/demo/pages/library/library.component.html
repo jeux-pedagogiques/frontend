@@ -1,4 +1,4 @@
-<div class="library-container p-4">
+<div class="library-container p-2 p-sm-3 p-md-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h4 class="mb-1">Bibliothèque de Jeux</h4>
@@ -8,9 +8,9 @@
 
   <!-- Share Link Display (Futuristic V2 Banner) -->
   @if (shareLink()) {
-    <div class="share-link-banner mb-4 p-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 shadow-sm rounded-4">
+    <div class="share-link-banner mb-4 p-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 shadow-sm rounded-4" role="status" aria-live="polite" aria-atomic="true">
       <div class="d-flex align-items-center gap-2.5 flex-grow-1 overflow-hidden">
-        <div class="banner-icon-wrapper rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; flex-shrink: 0;">
+        <div class="banner-icon-wrapper rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; flex-shrink: 0;" aria-hidden="true">
           <i class="feather icon-link fs-5 text-danger"></i>
         </div>
         <div class="overflow-hidden" style="flex: 1;">
@@ -19,24 +19,24 @@
         </div>
       </div>
       <div class="d-flex align-items-center gap-2 text-nowrap">
-        <button class="btn btn-sm btn-v2-copy" [class.copied]="shareCopied()" (click)="copyShareLink()">
-          <i class="feather me-1" [class.icon-check]="shareCopied()" [class.icon-copy]="!shareCopied()"></i>
+        <button type="button" class="btn btn-sm btn-v2-copy" [class.copied]="shareCopied()" (click)="copyShareLink()" aria-label="Copier le lien public du jeu">
+          <i class="feather me-1" [class.icon-check]="shareCopied()" [class.icon-copy]="!shareCopied()" aria-hidden="true"></i>
           <span>{{ shareCopied() ? 'Copié !' : 'Copier le lien' }}</span>
         </button>
-        <button class="btn btn-sm btn-icon-close" (click)="closeShareLink()" title="Fermer">✕</button>
+        <button type="button" class="btn btn-sm btn-icon-close" (click)="closeShareLink()" aria-label="Fermer la bannière de lien" title="Fermer">✕</button>
       </div>
     </div>
   }
 
   <!-- Futuristic V2 Glass Panel Container -->
-  <div class="futuristic-library-panel p-3 p-md-4 mb-4">
+  <div class="futuristic-library-panel p-2 p-sm-3 p-md-4 mb-4">
     
     <!-- Top Filter Control Bar -->
     <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-3">
       <!-- Search Bar -->
       <div class="search-input-wrapper flex-grow-1" style="max-width: 420px;">
-        <i class="feather icon-search search-icon"></i>
-        <input type="text" class="form-control ps-5" placeholder="Search games, modules, concepts..." [value]="searchQuery()" (input)="onSearch($event)">
+        <i class="feather icon-search search-icon" aria-hidden="true"></i>
+        <input type="text" class="form-control ps-5" placeholder="Search games, modules, concepts..." [value]="searchQuery()" (input)="onSearch($event)" aria-label="Rechercher des jeux, modules ou concepts">
       </div>
 
       <!-- Right Side Dropdowns & Action Controls -->
@@ -44,17 +44,17 @@
 
         <!-- All Modules Dropdown -->
         <div ngbDropdown class="d-inline-block">
-          <button class="btn btn-v2-dropdown" id="moduleDropdown" ngbDropdownToggle>
+          <button type="button" class="btn btn-v2-dropdown" id="moduleDropdown" ngbDropdownToggle aria-haspopup="true" aria-label="Filtrer par module">
             <span>{{ getModuleName(selectedModuleId()) }}</span>
-            <i class="feather icon-chevron-down ms-1 small"></i>
+            <i class="feather icon-chevron-down ms-1 small" aria-hidden="true"></i>
           </button>
-          <div ngbDropdownMenu aria-labelledby="moduleDropdown" class="shadow-sm">
-            <button ngbDropdownItem [class.active]="selectedModuleId() === null" (click)="selectModule(null)">
+          <div ngbDropdownMenu aria-labelledby="moduleDropdown" class="shadow-sm" role="menu">
+            <button type="button" ngbDropdownItem role="menuitem" [class.active]="selectedModuleId() === null" (click)="selectModule(null)">
               All Modules
             </button>
             <div class="dropdown-divider"></div>
             @for (mod of modules(); track mod.id) {
-              <button ngbDropdownItem [class.active]="selectedModuleId() === mod.id" (click)="selectModule(mod.id)">
+              <button type="button" ngbDropdownItem role="menuitem" [class.active]="selectedModuleId() === mod.id" (click)="selectModule(mod.id)">
                 {{ mod.module_title }}
               </button>
             }
@@ -63,24 +63,24 @@
 
         <!-- Bloom Dropdown -->
         <div ngbDropdown class="d-inline-block">
-          <button class="btn btn-v2-dropdown" id="bloomDropdown" ngbDropdownToggle>
+          <button type="button" class="btn btn-v2-dropdown" id="bloomDropdown" ngbDropdownToggle aria-haspopup="true" aria-label="Filtrer par taxonomie de Bloom">
             <span>Bloom {{ selectedBloomLevels().length > 0 ? '(' + selectedBloomLevels().length + ')' : '' }}</span>
-            <i class="feather icon-chevron-down ms-1 small"></i>
+            <i class="feather icon-chevron-down ms-1 small" aria-hidden="true"></i>
           </button>
-          <div ngbDropdownMenu aria-labelledby="bloomDropdown" class="p-2 shadow-sm" style="min-width: 210px;">
+          <div ngbDropdownMenu aria-labelledby="bloomDropdown" class="p-2 shadow-sm" style="min-width: 210px;" role="menu">
             <div class="d-flex justify-content-between align-items-center mb-2 px-2 pb-1 border-bottom">
               <span class="small fw-bold text-muted">Taxonomie de Bloom</span>
               @if (selectedBloomLevels().length > 0) {
-                <button class="btn btn-link btn-sm p-0 text-danger text-decoration-none small" (click)="selectedBloomLevels.set([]); currentPage.set(1); loadItems()">Effacer</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-danger text-decoration-none small" (click)="selectedBloomLevels.set([]); currentPage.set(1); loadItems()" aria-label="Effacer les filtres Bloom">Effacer</button>
               }
             </div>
             @for (level of bloomLevels; track level.value) {
-              <button ngbDropdownItem class="d-flex align-items-center justify-content-between rounded py-1 px-2 mb-1"
+              <button type="button" ngbDropdownItem role="menuitemcheckbox" [attr.aria-checked]="selectedBloomLevels().includes(level.value)" class="d-flex align-items-center justify-content-between rounded py-1 px-2 mb-1"
                 [class.bg-light]="selectedBloomLevels().includes(level.value)"
                 (click)="toggleBloomLevel(level.value); $event.stopPropagation()">
                 <span>{{ level.emoji }} {{ level.label }}</span>
                 @if (selectedBloomLevels().includes(level.value)) {
-                  <i class="feather icon-check text-danger ms-2"></i>
+                  <i class="feather icon-check text-danger ms-2" aria-hidden="true"></i>
                 }
               </button>
             }
@@ -88,18 +88,18 @@
         </div>
 
         <!-- Sort Button -->
-        <button class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" title="Trier">
-          <i class="feather" [class.icon-arrow-down]="sortOrder() === 'desc'" [class.icon-arrow-up]="sortOrder() === 'asc'"></i>
+        <button type="button" class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" [attr.aria-pressed]="sortOrder() === 'asc'" aria-label="Trier par ordre chronologique" title="Trier">
+          <i class="feather" [class.icon-arrow-down]="sortOrder() === 'desc'" [class.icon-arrow-up]="sortOrder() === 'asc'" aria-hidden="true"></i>
         </button>
 
         <!-- Calendar Button -->
-        <button class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" title="Date">
-          <i class="feather icon-calendar"></i>
+        <button type="button" class="btn btn-v2-icon-btn" (click)="toggleSortOrder()" aria-label="Trier par date" title="Date">
+          <i class="feather icon-calendar" aria-hidden="true"></i>
         </button>
 
         <!-- Archived Pill Button -->
-        <button class="btn btn-v2-archive-pill" [class.active-archive]="showArchived()" (click)="toggleArchived()">
-          <i class="feather icon-archive me-1"></i>
+        <button type="button" class="btn btn-v2-archive-pill" [class.active-archive]="showArchived()" [attr.aria-pressed]="showArchived()" (click)="toggleArchived()" aria-label="Basculer l'affichage des jeux archivés">
+          <i class="feather icon-archive me-1" aria-hidden="true"></i>
           <span>{{ showArchived() ? 'Active' : 'Archived' }}</span>
         </button>
 
@@ -107,20 +107,21 @@
     </div>
 
     <!-- Segmented Tab Navigation -->
-    <div class="v2-segmented-tabs mb-4">
-      <button class="v2-tab-item" [class.active]="selectedGameType() === null" (click)="toggleGameType('')">
-        <i class="feather icon-grid me-1.5"></i>
+    <nav class="v2-segmented-tabs mb-4" aria-label="Filtrer par type de jeu" role="tablist">
+      <button type="button" class="v2-tab-item" role="tab" [attr.aria-selected]="selectedGameType() === null" [class.active]="selectedGameType() === null" (click)="toggleGameType('')">
+        <i class="feather icon-grid me-1.5" aria-hidden="true"></i>
         <span>All Games</span>
       </button>
       @for (type of gameTypes; track type.value) {
-        <button class="v2-tab-item"
+        <button type="button" class="v2-tab-item" role="tab"
+          [attr.aria-selected]="selectedGameType() === type.value"
           [class.active]="selectedGameType() === type.value"
           (click)="toggleGameType(type.value)">
-          <i [class]="type.icon" class="me-1.5"></i>
+          <i [class]="type.icon" class="me-1.5" aria-hidden="true"></i>
           <span>{{ type.label }}</span>
         </button>
       }
-    </div>
+    </nav>
 
     <!-- Cards Grid -->
     @if (isLoading()) {
@@ -140,7 +141,14 @@
         <div class="row g-3">
           @for (item of items(); track item.game_id) {
             <div class="col-12 col-sm-6 col-lg-3">
-              <div class="card h-100 v2-game-card">
+              <div class="card h-100 v2-game-card"
+                   [class.selected]="selectedCardId() === item.game_id"
+                   (click)="toggleSelectCard(item.game_id, $event)"
+                   tabindex="0"
+                   role="region"
+                   [attr.aria-expanded]="selectedCardId() === item.game_id"
+                   (keydown.enter)="toggleSelectCard(item.game_id, $event)"
+                   (keydown.space)="toggleSelectCard(item.game_id, $event); $event.preventDefault()">
                 <!-- Card Header -->
                 <div class="card-header border-0 bg-transparent pt-3 px-3 pb-2 d-flex justify-content-between align-items-center">
                   <span class="v2-type-tag" [style.color]="getGameTypeInfo(item.game_type).color">
@@ -151,7 +159,7 @@
                 </div>
 
                 <!-- Card Body -->
-                <div class="card-body cursor-pointer px-3 py-1" (click)="consultGame(item, consultModal)">
+                <div class="card-body cursor-pointer px-3 py-1" (click)="consultGame(item, consultModal); $event.stopPropagation()">
                   <h6 class="v2-card-title">{{ cleanTitle(item.titre || item.title) }}</h6>
                   
                   <!-- Concept Tags -->
@@ -167,24 +175,24 @@
 
                 <!-- Card Bottom Action Toolbar -->
                 <div class="card-footer border-top-0 bg-transparent p-2 px-3 pt-3">
-                  <div class="v2-action-toolbar d-flex align-items-center justify-content-around py-1">
-                    <button class="v2-action-btn" (click)="consultGame(item, consultModal)" title="Consulter le jeu">
-                      <i class="feather icon-eye"></i>
+                  <div class="v2-action-toolbar d-flex align-items-center justify-content-around py-1" role="toolbar" aria-label="Actions du jeu">
+                    <button type="button" class="v2-action-btn" (click)="consultGame(item, consultModal); $event.stopPropagation()" aria-label="Consulter le jeu" title="Consulter le jeu">
+                      <i class="feather icon-eye" aria-hidden="true"></i>
                     </button>
-                    <button class="v2-action-btn" (click)="openGameEmailModal(item)" title="Envoyer par email (CSV / SMTP)">
-                      <i class="feather icon-mail"></i>
+                    <button type="button" class="v2-action-btn" (click)="openGameEmailModal(item); $event.stopPropagation()" aria-label="Envoyer par email" title="Envoyer par email (CSV / SMTP)">
+                      <i class="feather icon-mail" aria-hidden="true"></i>
                     </button>
-                    <button class="v2-action-btn" (click)="shareGame(item)" title="Partager le lien public">
-                      <i class="feather icon-share-2"></i>
+                    <button type="button" class="v2-action-btn" (click)="shareGame(item); $event.stopPropagation()" aria-label="Partager le lien public du jeu" title="Partager le lien public">
+                      <i class="feather icon-share-2" aria-hidden="true"></i>
                     </button>
-                    <button class="v2-action-btn" (click)="viewResults(item, resultsModal)" title="Résultats étudiants">
-                      <i class="feather icon-bar-chart-2"></i>
+                    <button type="button" class="v2-action-btn" (click)="viewResults(item, resultsModal); $event.stopPropagation()" aria-label="Consulter les résultats des étudiants" title="Résultats étudiants">
+                      <i class="feather icon-bar-chart-2" aria-hidden="true"></i>
                     </button>
-                    <button class="v2-action-btn" (click)="openRegenerateModal(item, regenerateModal)" title="Régénérer par IA">
-                      <i class="feather icon-refresh-cw"></i>
+                    <button type="button" class="v2-action-btn" (click)="openRegenerateModal(item, regenerateModal); $event.stopPropagation()" aria-label="Régénérer le jeu avec l'IA" title="Régénérer par IA">
+                      <i class="feather icon-refresh-cw" aria-hidden="true"></i>
                     </button>
-                    <button class="v2-action-btn btn-delete-icon" (click)="openDeleteModal(item, deleteModal)" title="Supprimer le jeu">
-                      <i class="feather icon-trash-2"></i>
+                    <button type="button" class="v2-action-btn btn-delete-icon" (click)="openDeleteModal(item, deleteModal); $event.stopPropagation()" aria-label="Supprimer le jeu" title="Supprimer le jeu">
+                      <i class="feather icon-trash-2" aria-hidden="true"></i>
                     </button>
                   </div>
                 </div>
@@ -212,14 +220,14 @@
 <!-- Modal Régénérer avec IA -->
 <ng-template #regenerateModal let-modal>
   <div class="modal-header">
-    <h5 class="modal-title">Régénérer avec IA</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+    <h5 class="modal-title" id="modal-regen-title">Régénérer avec IA</h5>
+    <button type="button" class="btn-close" aria-label="Fermer la fenêtre" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
     <p class="mb-2">Jeu : <strong>{{ regeneratingItem()?.titre || regeneratingItem()?.title }}</strong></p>
     <div class="mb-3">
-      <label class="form-label">Consignes de régénération</label>
-      <textarea class="form-control" rows="4"
+      <label for="regen-consignes-input" class="form-label">Consignes de régénération</label>
+      <textarea id="regen-consignes-input" class="form-control" rows="4"
         placeholder="Décrivez les modifications souhaitées..."
         [ngModel]="regenerateConsignes()"
         (ngModelChange)="regenerateConsignes.set($event)">
@@ -227,9 +235,10 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()" [disabled]="isRegenerating()">Annuler</button>
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()" [disabled]="isRegenerating()" aria-label="Annuler la régénération">Annuler</button>
     <button type="button" class="btn btn-primary" (click)="confirmRegenerate(modal)"
-      [disabled]="isRegenerating() || !regenerateConsignes()">
+      [disabled]="isRegenerating() || !regenerateConsignes()"
+      aria-label="Confirmer la régénération avec IA">
       @if (isRegenerating()) {
         <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
       }

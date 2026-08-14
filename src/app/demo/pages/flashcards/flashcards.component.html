@@ -1,31 +1,31 @@
 <div class="flashcards-page">
 
   <!-- Main Top Navigation Tabs -->
-  <div class="fc-top-nav">
-    <button class="nav-tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
-      <i class="feather icon-plus-circle"></i> Générer des Flashcards
+  <nav class="fc-top-nav" aria-label="Navigation des cartes mémoire" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [attr.aria-selected]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer des Flashcards
     </button>
-    <button class="nav-tab" [class.active]="pageState() === 'history' || pageState() === 'consult'" (click)="loadHistory()">
-      <i class="feather icon-clock"></i> Mes Flashcards
+    <button type="button" class="nav-tab" role="tab" [attr.aria-selected]="pageState() === 'history' || pageState() === 'consult'" (click)="loadHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Flashcards
       @if (historyList().length > 0) {
-        <span class="count-badge">{{ historyList().length }}</span>
+        <span class="count-badge" aria-label="{{ historyList().length }} jeux enregistrés">{{ historyList().length }}</span>
       }
     </button>
-  </div>
+  </nav>
 
   <!-- Messages -->
   @if (successMessage()) {
-    <div class="fc-alert success">
-      <i class="feather icon-check-circle"></i>
+    <div class="fc-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
       <span>{{ successMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
   @if (errorMessage()) {
-    <div class="fc-alert error">
-      <i class="feather icon-alert-triangle"></i>
+    <div class="fc-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
       <span>{{ errorMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
@@ -33,9 +33,9 @@
   <!-- STATE: GENERATING                                                  -->
   <!-- ================================================================= -->
   @if (pageState() === 'generating') {
-    <div class="generating-state">
+    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
       <div class="generating-content">
-        <div class="spinner-large"></div>
+        <div class="spinner-large" aria-hidden="true"></div>
         <h3>Génération des flashcards...</h3>
         <p>L'IA crée des cartes de révision basées sur vos acquis d'apprentissage.</p>
         <p class="subtle">Cela peut prendre quelques instants.</p>
@@ -47,10 +47,10 @@
   <!-- STATE: SELECT                                                      -->
   <!-- ================================================================= -->
   @if (pageState() === 'select') {
-    <div class="config-section">
+    <div class="config-section" id="fc-panel" role="tabpanel">
 
       <div class="section-header">
-        <div class="header-icon">
+        <div class="header-icon" aria-hidden="true">
           <i class="feather icon-layers"></i>
         </div>
         <div>
@@ -59,78 +59,178 @@
         </div>
       </div>
 
-      <!-- Step 1: Select Analysis -->
-      <div class="config-card">
-        <div class="card-header">
-          <span class="step-badge">1</span>
-          <h4>Sélectionner une fiche module analysée</h4>
-        </div>
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Select Analysis -->
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Sélectionner une fiche module analysée</h4>
+            </div>
 
-        @if (isAnalysesLoading()) {
-          <div class="empty-state">
-            <div class="spinner-large" style="width: 32px; height: 32px;"></div>
-            <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
-          </div>
-        } @else if (analyses().length === 0) {
-          <div class="empty-state">
-            <i class="feather icon-file-text"></i>
-            <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
-            <a routerLink="/import-module" class="btn-primary">
-              <i class="feather icon-upload-cloud"></i> Importer une fiche
-            </a>
-          </div>
-        } @else {
-          <div class="analyses-grid">
-            @for (analysis of analyses(); track analysis.id) {
-              <div class="analysis-card"
-                   [class.selected]="selectedAnalysis()?.id === analysis.id"
-                   (click)="selectAnalysis(analysis)">
-                <div class="analysis-header">
-                  <h5>{{ analysis.module_title }}</h5>
-                  <div class="analysis-header-actions">
-                    <span class="aa-badge">{{ analysis.learning_outcomes.length }} AA</span>
-                    <button class="btn-view-scan" (click)="viewAnalysis(analysis, $event)" title="Voir les résultats du scan">
-                      <i class="feather icon-eye"></i>
-                    </button>
+            @if (isAnalysesLoading()) {
+              <div class="empty-state" role="status" aria-live="polite">
+                <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+                <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
+              </div>
+            } @else if (analyses().length === 0) {
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
+              </div>
+            } @else {
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Liste des fiches modules analysées">
+                @for (analysis of analyses(); track analysis.id) {
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === analysis.id ? 'true' : 'false'"
+                       aria-label="Sélectionner la fiche module {{ analysis.module_title }}"
+                       [class.selected]="selectedAnalysis()?.id === analysis.id"
+                       (click)="selectAnalysis(analysis)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-layers"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge primary">Fiche Module</span>
+                        <button type="button" class="ucc-btn-icon" (click)="viewAnalysis(analysis, $event)" [attr.aria-label]="'Voir les détails du scan pour ' + analysis.module_title" title="Voir les détails du scan">
+                          <i class="feather icon-eye" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h4 class="ucc-title">{{ analysis.module_title }}</h4>
+
+                    <div class="ucc-meta-row">
+                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ analysis.learning_outcomes.length }} AA</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ analysis.key_concepts.length }} concepts</span>
+                    </div>
+
+                    <div class="categories">
+                      @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
+                        <span>{{ concept }}</span>
+                      }
+                      @if (analysis.key_concepts.length > 3) {
+                        <span class="more">+{{ analysis.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === analysis.id"></i>
+                        {{ selectedAnalysis()?.id === analysis.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(analysis); $event.stopPropagation()">
+                        <i class="feather icon-zap"></i> Choisir
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div class="analysis-tags">
-                  @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
-                    <span class="tag">{{ concept }}</span>
-                  }
-                  @if (analysis.key_concepts.length > 3) {
-                    <span class="tag more">+{{ analysis.key_concepts.length - 3 }}</span>
-                  }
-                </div>
+                }
               </div>
             }
+          </div>
+        </div>
+
+        <!-- Step 2: Parameters -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres des flashcards</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Nombre de cartes</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbCartes = clamp(nbCartes - 5, 5, 50)">-</button>
+                    <span class="param-value">{{ nbCartes }}</span>
+                    <button class="btn-sm" (click)="nbCartes = clamp(nbCartes + 5, 5, 50)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Votre nom (pour le suivi)</label>
+                  <input type="text" class="text-input" [(ngModel)]="participantName"
+                         placeholder="Professeur" maxlength="100">
+                </div>
+              </div>
+
+              <!-- Selected Analysis Summary -->
+              @if (selectedAnalysis()) {
+                <div class="selected-summary">
+                  <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
+                  <div class="outcomes-preview">
+                    @for (lo of selectedAnalysis()!.learning_outcomes; track lo.id) {
+                      <div class="outcome-chip">
+                        <span class="bloom-dot" [style.background]="getBloomInfo(lo.bloom_level).color"></span>
+                        <span>AA{{ lo.id }}: {{ lo.description | slice:0:60 }}{{ lo.description.length > 60 ? '...' : '' }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
+              <div class="action-bar">
+                <button class="btn-generate" (click)="generateFlashcards()" [disabled]="isLoading()">
+                  <i class="feather icon-layers"></i>
+                  <span>Générer les Flashcards</span>
+                </button>
+              </div>
+            </div>
           </div>
         }
       </div>
 
       <!-- Analysis Detail Overlay -->
       @if (viewingAnalysis()) {
-        <div class="analysis-detail-overlay" (click)="closeAnalysisDetail()">
+        <div class="analysis-detail-overlay" (click)="closeAnalysisDetail()" role="dialog" aria-modal="true" aria-labelledby="fc-detail-modal-title">
           <div class="analysis-detail-panel" (click)="$event.stopPropagation()">
             <div class="detail-header">
               <div class="detail-title">
-                <i class="feather icon-file-text"></i>
-                <h3>{{ viewingAnalysis()!.module_title }}</h3>
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <h3 id="fc-detail-modal-title">{{ viewingAnalysis()!.module_title }}</h3>
               </div>
-              <button class="btn-close-detail" (click)="closeAnalysisDetail()">
-                <i class="feather icon-x"></i>
+              <button type="button" class="btn-close-detail" (click)="closeAnalysisDetail()" aria-label="Fermer la fenêtre de détails">
+                <i class="feather icon-x" aria-hidden="true"></i>
               </button>
             </div>
 
             @if (viewingAnalysis()!.module_summary) {
               <div class="detail-section">
-                <h4><i class="feather icon-book"></i> Résumé du module</h4>
+                <h4><i class="feather icon-book" aria-hidden="true"></i> Résumé du module</h4>
                 <p class="detail-text">{{ viewingAnalysis()!.module_summary }}</p>
               </div>
             }
 
             <div class="detail-section">
-              <h4><i class="feather icon-target"></i> Acquis d'apprentissage ({{ viewingAnalysis()!.learning_outcomes.length }})</h4>
+              <h4><i class="feather icon-target" aria-hidden="true"></i> Acquis d'apprentissage ({{ viewingAnalysis()!.learning_outcomes.length }})</h4>
               <div class="detail-outcomes">
                 @for (lo of viewingAnalysis()!.learning_outcomes; track lo.id) {
                   <div class="detail-outcome-card">
@@ -147,7 +247,7 @@
             </div>
 
             <div class="detail-section">
-              <h4><i class="feather icon-lightbulb"></i> Concepts clés</h4>
+              <h4><i class="feather icon-lightbulb" aria-hidden="true"></i> Concepts clés</h4>
               <div class="detail-tags">
                 @for (concept of viewingAnalysis()!.key_concepts; track concept) {
                   <span class="detail-tag concept">{{ concept }}</span>
@@ -156,7 +256,7 @@
             </div>
 
             <div class="detail-section">
-              <h4><i class="feather icon-key"></i> Mots-clés</h4>
+              <h4><i class="feather icon-key" aria-hidden="true"></i> Mots-clés</h4>
               <div class="detail-tags">
                 @for (kw of viewingAnalysis()!.keywords; track kw) {
                   <span class="detail-tag keyword">{{ kw }}</span>
@@ -165,69 +265,11 @@
             </div>
 
             <div class="detail-actions">
-              <button class="btn-use-analysis" (click)="useAnalysisFromDetail()">
-                <i class="feather icon-check"></i> Utiliser cette fiche
+              <button type="button" class="btn-use-analysis" (click)="useAnalysisFromDetail()" aria-label="Utiliser cette fiche module pour générer les cartes">
+                <i class="feather icon-check" aria-hidden="true"></i> Utiliser cette fiche
               </button>
             </div>
           </div>
-        </div>
-      }
-
-      <!-- Step 2: Parameters -->
-      @if (selectedAnalysis()) {
-        <div class="config-card">
-          <div class="card-header">
-            <span class="step-badge">2</span>
-            <h4>Paramètres des flashcards</h4>
-          </div>
-
-          <div class="params-grid">
-            <div class="param-group">
-              <label>Nombre de cartes</label>
-              <div class="param-control">
-                <button class="btn-sm" (click)="nbCartes = clamp(nbCartes - 5, 5, 50)">-</button>
-                <span class="param-value">{{ nbCartes }}</span>
-                <button class="btn-sm" (click)="nbCartes = clamp(nbCartes + 5, 5, 50)">+</button>
-              </div>
-            </div>
-
-            <div class="param-group">
-              <label>Votre nom (pour le suivi)</label>
-              <input type="text" class="text-input" [(ngModel)]="participantName"
-                     placeholder="Professeur" maxlength="100">
-            </div>
-          </div>
-
-          <!-- Selected Analysis Summary -->
-          @if (selectedAnalysis()) {
-            <div class="selected-summary">
-              <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
-              <div class="outcomes-preview">
-                @for (lo of selectedAnalysis()!.learning_outcomes; track lo.id) {
-                  <div class="outcome-chip">
-                    <span class="bloom-dot" [style.background]="getBloomInfo(lo.bloom_level).color"></span>
-                    <span>AA{{ lo.id }}: {{ lo.description | slice:0:60 }}{{ lo.description.length > 60 ? '...' : '' }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          <div class="action-bar">
-            <button class="btn-generate" (click)="generateFlashcards()" [disabled]="isLoading()">
-              <i class="feather icon-layers"></i>
-              <span>Générer les Flashcards</span>
-            </button>
-          </div>
-        </div>
-      }
-
-      <!-- History Link -->
-      @if (historyList().length > 0) {
-        <div class="history-link">
-          <button class="btn-text" (click)="loadHistory()">
-            <i class="feather icon-clock"></i> Consulter mes {{ historyList().length }} jeux de flashcards générés
-          </button>
         </div>
       }
     </div>
@@ -280,29 +322,39 @@
         </div>
       }
 
-      <div class="history-grid">
+      <div class="unified-challenge-card-grid">
         @for (set of getFilteredHistory(); track set.id) {
-          <div class="history-card">
-            <div class="card-top">
-              <h4>{{ set.titre }}</h4>
-              <button class="btn-delete" (click)="deleteSet(set.id, $event)" title="Supprimer">
-                <i class="feather icon-trash-2"></i>
-              </button>
-            </div>
-            <div class="card-meta">
-              <span><i class="feather icon-book"></i> {{ set.module_title || 'Module' }}</span>
-              <span><i class="feather icon-layers"></i> {{ set.nb_cartes }} cartes</span>
-            </div>
-            <div class="card-tags mb-3">
-              <span class="tag-date">{{ formatDate(set.created_at) }}</span>
+          <div class="unified-challenge-card" (click)="consultSetFromHistory(set, $event)">
+            <div class="ucc-header">
+              <div class="ucc-icon-badge" aria-hidden="true">
+                <i class="feather icon-layers"></i>
+              </div>
+              <div class="ucc-header-actions">
+                <span class="ucc-badge primary">Flashcards</span>
+                <button type="button" class="ucc-btn-icon" (click)="deleteSet(set.id, $event)" title="Supprimer">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </div>
             </div>
 
-            <!-- Action buttons: Consult & Review -->
-            <div class="card-actions-row">
-              <button class="btn-card-action btn-consult" (click)="consultSetFromHistory(set, $event)">
+            <h4 class="ucc-title">{{ set.titre }}</h4>
+
+            <div class="ucc-meta-row">
+              @if (set.module_title) {
+                <span class="ucc-meta-pill"><i class="feather icon-book text-primary"></i> {{ set.module_title }}</span>
+              }
+              <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ set.nb_cartes }} cartes</span>
+            </div>
+
+            <div class="categories">
+              <span class="cyan">{{ formatDate(set.created_at) }}</span>
+            </div>
+
+            <div class="ucc-footer">
+              <button type="button" class="ucc-btn-outline" (click)="consultSetFromHistory(set, $event)">
                 <i class="feather icon-eye"></i> Consulter
               </button>
-              <button class="btn-card-action btn-session" (click)="viewSetFromHistory(set)">
+              <button type="button" class="ucc-btn-primary" (click)="viewSetFromHistory(set); $event.stopPropagation()">
                 <i class="feather icon-play"></i> Réviser
               </button>
             </div>

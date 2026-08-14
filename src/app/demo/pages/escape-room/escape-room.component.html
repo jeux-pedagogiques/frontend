@@ -1,18 +1,31 @@
 <div class="escape-room-page">
 
+  <!-- Main Top Navigation Tabs -->
+  <nav class="er-top-nav" aria-label="Navigation Escape Room" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [attr.aria-selected]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer un Escape Room
+    </button>
+    <button type="button" class="nav-tab" role="tab" [attr.aria-selected]="pageState() === 'history'" (click)="loadHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Escape Rooms
+      @if (historyList().length > 0) {
+        <span class="count-badge" aria-label="{{ historyList().length }} escape rooms enregistrés">{{ historyList().length }}</span>
+      }
+    </button>
+  </nav>
+
   <!-- Messages -->
   @if (successMessage()) {
-    <div class="er-alert success">
-      <i class="feather icon-check-circle"></i>
+    <div class="er-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
       <span>{{ successMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
   @if (errorMessage()) {
-    <div class="er-alert error">
-      <i class="feather icon-alert-triangle"></i>
+    <div class="er-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
       <span>{{ errorMessage() }}</span>
-      <button class="alert-close" (click)="clearMessages()"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
@@ -20,9 +33,9 @@
   <!-- STATE: GENERATING (Loading)                                        -->
   <!-- ================================================================= -->
   @if (pageState() === 'generating') {
-    <div class="generating-state">
+    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
       <div class="generating-content">
-        <div class="spinner-large"></div>
+        <div class="spinner-large" aria-hidden="true"></div>
         <h3>Génération de l'escape room...</h3>
         <p>L'IA crée des énigmes pédagogiques basées sur vos acquis d'apprentissage.</p>
         <p class="subtle">Cela peut prendre jusqu'à 2 minutes.</p>
@@ -34,10 +47,10 @@
   <!-- STATE: SELECT (Configuration + Analysis Selection)                 -->
   <!-- ================================================================= -->
   @if (pageState() === 'select') {
-    <div class="config-section">
+    <div class="config-section" id="er-panel" role="tabpanel">
 
       <div class="section-header">
-        <div class="header-icon">
+        <div class="header-icon" aria-hidden="true">
           <i class="feather icon-lock"></i>
         </div>
         <div>
@@ -46,48 +59,179 @@
         </div>
       </div>
 
-      <!-- Step 1: Select Analysis -->
-      <div class="config-card">
-        <div class="card-header">
-          <span class="step-badge">1</span>
-          <h4>Sélectionner une fiche module analysée</h4>
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Select Analysis -->
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Sélectionner une fiche module analysée</h4>
+            </div>
+
+            @if (analyses().length === 0 && !isLoading()) {
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
+              </div>
+            }
+
+            @if (analyses().length > 0) {
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
+                @for (analysis of analyses(); track analysis) {
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === analysis.id ? 'true' : 'false'"
+                       aria-label="Sélectionner la fiche module {{ analysis.module_title }}"
+                       [class.selected]="selectedAnalysis()?.id === analysis.id"
+                       (click)="selectAnalysis(analysis)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-lock"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge emerald">{{ analysis.learning_outcomes.length }} AA</span>
+                        <button type="button" class="ucc-btn-icon" (click)="viewAnalysis(analysis, $event)" [attr.aria-label]="'Voir les résultats du scan pour ' + analysis.module_title" title="Voir les résultats du scan">
+                          <i class="feather icon-eye" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h5 class="ucc-title">{{ analysis.module_title }}</h5>
+
+                    <div class="ucc-meta-row">
+                      @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
+                        <span class="ucc-meta-pill">{{ concept }}</span>
+                      }
+                      @if (analysis.key_concepts.length > 3) {
+                        <span class="ucc-bloom-tag more">+{{ analysis.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        {{ selectedAnalysis()?.id === analysis.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(analysis); $event.stopPropagation()">
+                        <i class="feather icon-check"></i> Choisir
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
 
-        @if (analyses().length === 0 && !isLoading()) {
-          <div class="empty-state">
-            <i class="feather icon-file-text"></i>
-            <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
-            <a routerLink="/import-module" class="btn btn-primary">
-              <i class="feather icon-upload-cloud"></i> Importer une fiche
-            </a>
-          </div>
-        }
+        <!-- Step 2: Parameters -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres de l'escape room</h4>
+                </div>
+                <button class="btn-close-panel" (click)="selectedAnalysis.set(null)" title="Fermer la configuration">
+                  <i class="feather icon-x"></i> Fermer
+                </button>
+              </div>
 
-        @if (analyses().length > 0) {
-          <div class="analyses-grid">
-            @for (analysis of analyses(); track analysis) {
-              <div class="analysis-card"
-                   [class.selected]="selectedAnalysis()?.id === analysis.id"
-                   (click)="selectAnalysis(analysis)">
-                <div class="analysis-header">
-                  <h5>{{ analysis.module_title }}</h5>
-                  <div class="analysis-header-actions">
-                    <span class="aa-badge">{{ analysis.learning_outcomes.length }} AA</span>
-                    <button class="btn-view-scan" (click)="viewAnalysis(analysis, $event)" title="Voir les résultats du scan">
-                      <i class="feather icon-eye"></i>
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Nombre d'énigmes</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbEnigmes = clamp(nbEnigmes - 1, 3, 10)">-</button>
+                    <span class="param-value">{{ nbEnigmes }}</span>
+                    <button class="btn-sm" (click)="nbEnigmes = clamp(nbEnigmes + 1, 3, 10)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Difficulté</label>
+                  <div class="param-buttons">
+                    <button [class.active]="difficulte === 'facile'" (click)="difficulte = 'facile'"
+                            [style.--btn-color]="'#22c55e'">Facile</button>
+                    <button [class.active]="difficulte === 'moyen'" (click)="difficulte = 'moyen'"
+                            [style.--btn-color]="'#eab308'">Moyen</button>
+                    <button [class.active]="difficulte === 'difficile'" (click)="difficulte = 'difficile'"
+                            [style.--btn-color]="'#ef4444'">Difficile</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Mode</label>
+                  <div class="param-buttons">
+                    <button [class.active]="mode === 'collaboratif'" (click)="mode = 'collaboratif'">
+                      <i class="feather icon-users"></i> Collaboratif
+                    </button>
+                    <button [class.active]="mode === 'competitif'" (click)="mode = 'competitif'">
+                      <i class="feather icon-zap"></i> Compétitif
                     </button>
                   </div>
                 </div>
-                <div class="analysis-tags">
-                  @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
-                    <span class="tag">{{ concept }}</span>
-                  }
-                  @if (analysis.key_concepts.length > 3) {
-                    <span class="tag more">+{{ analysis.key_concepts.length - 3 }}</span>
-                  }
+
+                <div class="param-group">
+                  <label>Durée totale (minutes)</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="dureeTotale = clamp(dureeTotale - 5, 15, 120)">-</button>
+                    <span class="param-value">{{ dureeTotale }} min</span>
+                    <button class="btn-sm" (click)="dureeTotale = clamp(dureeTotale + 5, 15, 120)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Nombre d'équipes</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbEquipes = clamp(nbEquipes - 1, 2, 8)">-</button>
+                    <span class="param-value">{{ nbEquipes }}</span>
+                    <button class="btn-sm" (click)="nbEquipes = clamp(nbEquipes + 1, 2, 8)">+</button>
+                  </div>
                 </div>
               </div>
-            }
+
+              <!-- Selected Analysis Summary -->
+              @if (selectedAnalysis()) {
+                <div class="selected-summary">
+                  <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
+                  <div class="outcomes-preview">
+                    @for (lo of selectedAnalysis()!.learning_outcomes; track lo) {
+                      <div class="outcome-chip">
+                        <span class="bloom-dot" [style.background]="getBloomInfo(lo.bloom_level).color"></span>
+                        <span>AA{{ lo.id }}: {{ lo.description | slice:0:60 }}{{ lo.description.length > 60 ? '...' : '' }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
+              <!-- Generate Button -->
+              <div class="action-bar">
+                <button class="btn-generate" (click)="generateEscapeRoom()" [disabled]="isLoading()">
+                  <i class="feather icon-lock"></i>
+                  <span>Générer l'Escape Room</span>
+                </button>
+              </div>
+            </div>
           </div>
         }
       </div>
@@ -196,166 +340,6 @@
           </div>
         </div>
       }
-
-      <!-- Step 2: Parameters -->
-      @if (selectedAnalysis()) {
-        <div class="config-card">
-          <div class="card-header">
-            <span class="step-badge">2</span>
-            <h4>Paramètres de l'escape room</h4>
-          </div>
-
-          <div class="params-grid">
-            <div class="param-group">
-              <label>Nombre d'énigmes</label>
-              <div class="param-control">
-                <button class="btn-sm" (click)="nbEnigmes = clamp(nbEnigmes - 1, 3, 10)">-</button>
-                <span class="param-value">{{ nbEnigmes }}</span>
-                <button class="btn-sm" (click)="nbEnigmes = clamp(nbEnigmes + 1, 3, 10)">+</button>
-              </div>
-            </div>
-
-            <div class="param-group">
-              <label>Difficulté</label>
-              <div class="param-buttons">
-                <button [class.active]="difficulte === 'facile'" (click)="difficulte = 'facile'"
-                        [style.--btn-color]="'#22c55e'">Facile</button>
-                <button [class.active]="difficulte === 'moyen'" (click)="difficulte = 'moyen'"
-                        [style.--btn-color]="'#eab308'">Moyen</button>
-                <button [class.active]="difficulte === 'difficile'" (click)="difficulte = 'difficile'"
-                        [style.--btn-color]="'#ef4444'">Difficile</button>
-              </div>
-            </div>
-
-            <div class="param-group">
-              <label>Mode</label>
-              <div class="param-buttons">
-                <button [class.active]="mode === 'collaboratif'" (click)="mode = 'collaboratif'">
-                  <i class="feather icon-users"></i> Collaboratif
-                </button>
-                <button [class.active]="mode === 'competitif'" (click)="mode = 'competitif'">
-                  <i class="feather icon-zap"></i> Compétitif
-                </button>
-              </div>
-            </div>
-
-            <div class="param-group">
-              <label>Durée totale (minutes)</label>
-              <div class="param-control">
-                <button class="btn-sm" (click)="dureeTotale = clamp(dureeTotale - 5, 15, 120)">-</button>
-                <span class="param-value">{{ dureeTotale }} min</span>
-                <button class="btn-sm" (click)="dureeTotale = clamp(dureeTotale + 5, 15, 120)">+</button>
-              </div>
-            </div>
-
-            <div class="param-group">
-              <label>Nombre d'équipes</label>
-              <div class="param-control">
-                <button class="btn-sm" (click)="nbEquipes = clamp(nbEquipes - 1, 2, 8)">-</button>
-                <span class="param-value">{{ nbEquipes }}</span>
-                <button class="btn-sm" (click)="nbEquipes = clamp(nbEquipes + 1, 2, 8)">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Selected Analysis Summary -->
-          @if (selectedAnalysis()) {
-            <div class="selected-summary">
-              <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
-              <div class="outcomes-preview">
-                @for (lo of selectedAnalysis()!.learning_outcomes; track lo) {
-                  <div class="outcome-chip">
-                    <span class="bloom-dot" [style.background]="getBloomInfo(lo.bloom_level).color"></span>
-                    <span>AA{{ lo.id }}: {{ lo.description | slice:0:60 }}{{ lo.description.length > 60 ? '...' : '' }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          <!-- Generate Buttons -->
-          <div class="action-bar dual-actions">
-            <button class="btn-generate" (click)="generateEscapeRoom()" [disabled]="isLoading() || isGeneratingQuiz()">
-              <i class="feather icon-lock"></i>
-              <span>Générer l'Escape Room</span>
-            </button>
-            <button class="btn-generate-quiz" (click)="generateQuiz()" [disabled]="isLoading() || isGeneratingQuiz()">
-              <i class="feather icon-help-circle"></i>
-              <span>Générer le Quiz</span>
-            </button>
-          </div>
-
-          <!-- Quiz Parameters (collapsible) -->
-          <div class="quiz-params-section">
-            <div class="quiz-params-header" (click)="quizParamsExpanded.set(!quizParamsExpanded())">
-              <i class="feather" [class.icon-chevron-down]="!quizParamsExpanded()" [class.icon-chevron-up]="quizParamsExpanded()"></i>
-              <span>Paramètres du Quiz</span>
-            </div>
-            @if (quizParamsExpanded()) {
-              <div class="quiz-params-body">
-                <div class="params-grid">
-                  <div class="param-group">
-                    <label>Nombre de questions</label>
-                    <div class="param-control">
-                      <button class="btn-sm" (click)="quizQuestionsCount = clamp(quizQuestionsCount - 1, 3, 20)">-</button>
-                      <span class="param-value">{{ quizQuestionsCount }}</span>
-                      <button class="btn-sm" (click)="quizQuestionsCount = clamp(quizQuestionsCount + 1, 3, 20)">+</button>
-                    </div>
-                  </div>
-
-                  <div class="param-group">
-                    <label>Durée par question (sec)</label>
-                    <div class="param-control">
-                      <button class="btn-sm" (click)="quizDurationPerQuestion = clamp(quizDurationPerQuestion - 5, 10, 120)">-</button>
-                      <span class="param-value">{{ quizDurationPerQuestion }}s</span>
-                      <button class="btn-sm" (click)="quizDurationPerQuestion = clamp(quizDurationPerQuestion + 5, 10, 120)">+</button>
-                    </div>
-                  </div>
-
-                  <div class="param-group">
-                    <label>Mode du quiz</label>
-                    <div class="param-buttons">
-                      <button [class.active]="quizMode === 'formatif'" (click)="quizMode = 'formatif'">
-                        <i class="feather icon-book"></i> Formatif
-                      </button>
-                      <button [class.active]="quizMode === 'competitif'" (click)="quizMode = 'competitif'">
-                        <i class="feather icon-zap"></i> Compétitif
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="param-group">
-                    <label>Types de questions</label>
-                    <div class="param-buttons types-grid">
-                      <label class="checkbox-btn" [class.checked]="quizQuestionTypes.qcm">
-                        <input type="checkbox" [(ngModel)]="quizQuestionTypes.qcm"> QCM
-                      </label>
-                      <label class="checkbox-btn" [class.checked]="quizQuestionTypes.vrai_faux">
-                        <input type="checkbox" [(ngModel)]="quizQuestionTypes.vrai_faux"> Vrai/Faux
-                      </label>
-                      <label class="checkbox-btn" [class.checked]="quizQuestionTypes.question_ouverte">
-                        <input type="checkbox" [(ngModel)]="quizQuestionTypes.question_ouverte"> Ouverte
-                      </label>
-                      <label class="checkbox-btn" [class.checked]="quizQuestionTypes.association">
-                        <input type="checkbox" [(ngModel)]="quizQuestionTypes.association"> Association
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- History Button -->
-      @if (analyses().length > 0) {
-        <div class="history-link">
-          <button class="btn-text" (click)="loadHistory()">
-            <i class="feather icon-clock"></i> Voir les escape rooms générés
-          </button>
-        </div>
-      }
     </div>
   }
 
@@ -384,26 +368,41 @@
         </div>
       }
 
-      <div class="history-grid">
+      <div class="unified-challenge-card-grid">
         @for (room of historyList(); track room) {
-          <div class="history-card" (click)="viewRoom(room)">
-            <div class="card-top">
-              <h4>{{ room.titre_escape_room }}</h4>
-              <button class="btn-delete" (click)="deleteRoom(room.id, $event)" title="Supprimer">
-                <i class="feather icon-trash-2"></i>
-              </button>
+          <div class="unified-challenge-card" (click)="viewRoom(room)">
+            <div class="ucc-header">
+              <div class="ucc-icon-badge" aria-hidden="true">
+                <i class="feather icon-key"></i>
+              </div>
+              <div class="ucc-header-actions">
+                <span class="ucc-badge emerald">{{ room.mode === 'collaboratif' ? 'Collaboratif' : 'Compétitif' }}</span>
+                <button type="button" class="ucc-btn-icon" (click)="deleteRoom(room.id, $event)" title="Supprimer l'escape room">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </div>
             </div>
-            <div class="card-meta">
-              <span><i class="feather icon-book"></i> {{ room.module_title || 'N/A' }}</span>
-              <span><i class="feather icon-clock"></i> {{ room.duree_estimee_minutes }} min</span>
-              <span><i class="feather icon-help-circle"></i> {{ room.nb_enigmes }} énigmes</span>
+
+            <h4 class="ucc-title">{{ room.titre_escape_room }}</h4>
+
+            <div class="ucc-meta-row">
+              <span class="ucc-meta-pill"><i class="feather icon-book text-primary"></i> {{ room.module_title || 'N/A' }}</span>
+              <span class="ucc-meta-pill"><i class="feather icon-clock text-amber"></i> {{ room.duree_estimee_minutes }} min</span>
+              <span class="ucc-meta-pill"><i class="feather icon-help-circle text-info"></i> {{ room.nb_enigmes }} énigmes</span>
             </div>
-            <div class="card-tags">
-              <span class="tag-difficulty" [style.color]="getDifficultyColor(room.difficulte)">
+
+            <div class="ucc-meta-row">
+              <span class="ucc-bloom-tag" [style.background]="getDifficultyColor(room.difficulte) + '18'" [style.color]="getDifficultyColor(room.difficulte)">
                 {{ getDifficultyLabel(room.difficulte) }}
               </span>
-              <span class="tag-mode">{{ room.mode === 'collaboratif' ? 'Collaboratif' : 'Compétitif' }}</span>
-              <span class="tag-date">{{ formatDate(room.created_at) }}</span>
+              <span class="ucc-meta-pill text-muted ms-auto"><i class="feather icon-calendar"></i> {{ formatDate(room.created_at) }}</span>
+            </div>
+
+            <div class="ucc-footer">
+              <span class="text-muted small">ID: #{{ room.id }}</span>
+              <button type="button" class="ucc-btn-primary" (click)="viewRoom(room); $event.stopPropagation()">
+                <i class="feather icon-eye"></i> Consulter
+              </button>
             </div>
           </div>
         }
@@ -457,7 +456,7 @@
           <i class="feather icon-book"></i> Scénario
         </button>
         <button [class.active]="activeTab() === 'enigmes'" (click)="activeTab.set('enigmes')">
-          <i class="feather icon-lock"></i> Énigmes ({{ generatedRoom()!.escape_room_data.enigmes?.length || 0 }})
+          <i class="feather icon-lock"></i> Énigmes ({{ generatedRoom()!.escape_room_data.enigmes.length || 0 }})
         </button>
         <button [class.active]="activeTab() === 'animateur'" (click)="activeTab.set('animateur')">
           <i class="feather icon-users"></i> Fiche Animateur
@@ -591,149 +590,7 @@
     </div>
   }
 
-  <!-- ================================================================= -->
-  <!-- STATE: QUIZ RESULT                                                 -->
-  <!-- ================================================================= -->
-  @if (pageState() === 'quiz-result' && generatedQuiz()) {
-    <div class="result-section">
 
-      <div class="section-header">
-        <div class="header-icon quiz-icon">
-          <i class="feather icon-help-circle"></i>
-        </div>
-        <div>
-          <h2>{{ generatedQuiz()!.titre_quiz }}</h2>
-          <p class="subtitle">{{ selectedAnalysis()?.module_title || 'Quiz Pédagogique' }}</p>
-        </div>
-        <div class="header-actions">
-          <button class="btn-back" (click)="backToSelectFromQuiz()">
-            <i class="feather icon-arrow-left"></i> Retour
-          </button>
-        </div>
-      </div>
-
-      <!-- Quiz Tabs -->
-      <div class="result-tabs">
-        <button [class.active]="quizActiveTab() === 'questions'" (click)="quizActiveTab.set('questions')">
-          <i class="feather icon-help-circle"></i> Questions ({{ generatedQuiz()!.questions?.length || 0 }})
-        </button>
-        <button [class.active]="quizActiveTab() === 'animateur'" (click)="quizActiveTab.set('animateur')">
-          <i class="feather icon-users"></i> Fiche Animateur
-        </button>
-        <button [class.active]="quizActiveTab() === 'participant'" (click)="quizActiveTab.set('participant')">
-          <i class="feather icon-user"></i> Fiche Participant
-        </button>
-        <button [class.active]="quizActiveTab() === 'debriefing'" (click)="quizActiveTab.set('debriefing')">
-          <i class="feather icon-message-circle"></i> Débriefing
-        </button>
-      </div>
-
-      <!-- Quiz Tab: Questions -->
-      @if (quizActiveTab() === 'questions') {
-        <div class="tab-content">
-          <div class="enigmes-list">
-            @for (q of generatedQuiz()!.questions; track q; let i = $index) {
-              <div class="enigme-card">
-                <div class="enigme-header" (click)="toggleEnigme('q-' + i)">
-                  <div class="enigme-left">
-                    <span class="enigme-number">{{ i + 1 }}</span>
-                    <div class="enigme-info">
-                      <h4>{{ q.aa_source }} — <span class="bloom-tag" [style.color]="getBloomInfo(q.bloom_level || '').color">{{ getBloomInfo(q.bloom_level || '').label }}</span></h4>
-                      <div class="enigme-type-badge">
-                        <span>{{ q.type }}</span>
-                        @if (q.duree_secondes) {
-                          <span>{{ q.duree_secondes }}s</span>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <i class="feather" [class.icon-chevron-down]="expandedEnigme() !== 'q-' + i" [class.icon-chevron-up]="expandedEnigme() === 'q-' + i"></i>
-                </div>
-
-                @if (expandedEnigme() === 'q-' + i) {
-                  <div class="enigme-body">
-                    <div class="enigme-enonce">
-                      <h5>Énoncé</h5>
-                      <p>{{ q.enonce }}</p>
-                    </div>
-
-                    @if (q.options && q.options.length > 0) {
-                      <div class="quiz-options">
-                        <h5>Options</h5>
-                        @for (opt of q.options; track opt) {
-                          <div class="quiz-option">{{ opt }}</div>
-                        }
-                      </div>
-                    }
-
-                    <div class="enigme-solution">
-                      <h5><i class="feather icon-check-circle"></i> Bonne réponse</h5>
-                      <div class="solution-box">{{ q.bonne_reponse }}</div>
-                    </div>
-
-                    @if (q.explication) {
-                      <div class="enigme-hint">
-                        <h5><i class="feather icon-info"></i> Explication</h5>
-                        <p class="hint-text">{{ q.explication }}</p>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Quiz Tab: Fiche Animateur -->
-      @if (quizActiveTab() === 'animateur') {
-        <div class="tab-content">
-          <div class="content-card">
-            <div class="card-title">
-              <i class="feather icon-users"></i>
-              <h3>Fiche Animateur</h3>
-            </div>
-            <div class="formatted-text" [innerHTML]="formatNewlines(generatedQuiz()!.fiche_animateur)"></div>
-          </div>
-        </div>
-      }
-
-      <!-- Quiz Tab: Fiche Participant -->
-      @if (quizActiveTab() === 'participant') {
-        <div class="tab-content">
-          <div class="content-card">
-            <div class="card-title">
-              <i class="feather icon-user"></i>
-              <h3>Fiche Participant</h3>
-            </div>
-            <div class="formatted-text" [innerHTML]="formatNewlines(generatedQuiz()!.fiche_participant)"></div>
-          </div>
-        </div>
-      }
-
-      <!-- Quiz Tab: Debriefing -->
-      @if (quizActiveTab() === 'debriefing') {
-        <div class="tab-content">
-          <div class="content-card">
-            <div class="card-title">
-              <i class="feather icon-message-circle"></i>
-              <h3>Grille de Débriefing</h3>
-            </div>
-            @if (generatedQuiz()!.grille_debriefing) {
-              <div class="eval-criteria">
-                @for (critere of generatedQuiz()!.grille_debriefing.criteres; track critere; let i = $index) {
-                  <div class="criteria-item">
-                    <span class="criteria-num">{{ i + 1 }}</span>
-                    <span>{{ critere }}</span>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        </div>
-      }
-    </div>
-  }
 
   <!-- Share Link Display -->
   @if (shareLink()) {

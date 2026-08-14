@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
@@ -44,6 +44,7 @@ interface PitchingData {
   fiche_animateur: string;
   fiche_participant: string;
   module_title?: string;
+  module_id?: number;
 }
 
 @Component({
@@ -57,7 +58,9 @@ export class PitchingChallengeComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
   private shareService = inject(ShareService);
+  private route = inject(ActivatedRoute);
 
+  pitchingMode = signal<'individuel' | 'equipe'>('equipe');
   pageState = signal<'select' | 'generating' | 'result' | 'history'>('select');
   isLoading = signal(false);
   errorMessage = signal('');
@@ -73,6 +76,7 @@ export class PitchingChallengeComponent implements OnInit {
 
   nbEquipes = 4;
   dureePreparation = 10;
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
   dureePitch = 3;
   dureeFeedback = 5;
 
@@ -102,6 +106,16 @@ export class PitchingChallengeComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const mode = params['mode'];
+      if (mode === 'individuel') {
+        this.pitchingMode.set('individuel');
+        this.nbEquipes = 1;
+      } else if (mode === 'equipe') {
+        this.pitchingMode.set('equipe');
+        this.nbEquipes = 4;
+      }
+    });
     this.loadAnalyses();
     this.loadSavedSessions();
   }
@@ -187,6 +201,10 @@ export class PitchingChallengeComponent implements OnInit {
     this.selectedAnalysis.set(analysis);
     this.pageState.set('select');
     this.cd.detectChanges();
+    setTimeout(() => {
+      const el = document.querySelector('.gen-panel');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
   }
 
   openOverlay(analysis: ModuleAnalysis): void {
@@ -213,6 +231,22 @@ export class PitchingChallengeComponent implements OnInit {
     return this.bloomColors[level] || '#6b7280';
   }
 
+  modeTitle(): string {
+    return this.pitchingMode() === 'individuel' ? 'Pitching Individuel' : 'Pitching par Équipe';
+  }
+
+  modeSubtitle(): string {
+    return this.pitchingMode() === 'individuel'
+      ? 'Chaque participant présente un pitch individuel sur son propre sujet.'
+      : 'Des équipes préparent et présentent un pitch collectif sur un sujet commun.';
+  }
+
+  switchMode(mode: 'individuel' | 'equipe'): void {
+    this.pitchingMode.set(mode);
+    this.nbEquipes = mode === 'individuel' ? 1 : 4;
+    this.pageState.set('select');
+  }
+
   isConfirmed = signal(false);
   isSaving = signal(false);
 
@@ -229,9 +263,11 @@ export class PitchingChallengeComponent implements OnInit {
     const body = {
       module_id: analysis.id,
       nb_equipes: this.nbEquipes,
+      mode: this.pitchingMode(),
       duree_preparation: this.dureePreparation,
       duree_pitch: this.dureePitch,
-      duree_feedback: this.dureeFeedback
+      duree_feedback: this.dureeFeedback,
+      model: this.selectedModel(),
     };
 
     this.http.post<PitchingData>(`${this.apiUrl}/pitching/generate`, body).subscribe({
@@ -255,13 +291,14 @@ export class PitchingChallengeComponent implements OnInit {
   confirmAndSave(): void {
     const result = this.pitchingResult();
     const analysis = this.selectedAnalysis();
-    if (!result || !analysis) return;
+    const moduleId = analysis?.id || result?.module_id;
+    if (!result || !moduleId) return;
 
     this.isSaving.set(true);
     this.errorMessage.set('');
 
     const body = {
-      module_id: analysis.id,
+      module_id: moduleId,
       titre_challenge: result.titre_challenge,
       sujet_principal: result.sujet_principal,
       sujets_par_equipe: result.sujets_par_equipe || [],

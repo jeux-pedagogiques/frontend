@@ -86,6 +86,22 @@ export class ImportModuleComponent implements OnInit {
   // Analysis Parameters
   sensitivity = 'standard';
   outputFormat = 'json';
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
+
+  availableModels = [
+    { value: 'groq/llama-3.3-70b-versatile', label: 'Groq Llama 3.3 70B (0.2s - Ultra Rapide)', provider: 'Groq' },
+    { value: 'github/Llama-3.3-70B-Instruct', label: 'GitHub Llama 3.3 70B (0.4s - GitHub Models)', provider: 'GitHub' },
+    { value: 'github/gpt-4o', label: 'GitHub GPT-4o (Azure High Intel)', provider: 'GitHub' },
+    { value: 'groq/llama-3.1-8b-instant', label: 'Groq Llama 3.1 8B (0.17s - Instantané)', provider: 'Groq' },
+    { value: 'openrouter/openai/gpt-4o', label: 'OpenRouter GPT-4o (Pro Intelligence)', provider: 'OpenRouter' },
+    { value: 'openrouter/openai/gpt-4o-mini', label: 'OpenRouter GPT-4o Mini (Rapide)', provider: 'OpenRouter' },
+    { value: 'gemini/gemma-4-26b-a4b-it', label: 'Google Gemma 4 26B (Google Gemini)', provider: 'Google' }
+  ];
+
+  getSelectedModelLabel(): string {
+    const found = this.availableModels.find(m => m.value === this.selectedModel());
+    return found ? found.label : 'Groq Llama 3.3 70B (0.2s - Ultra Rapide)';
+  }
 
   private apiUrl = `${environment.apiUrl}/api/modules`;
 
@@ -382,7 +398,7 @@ export class ImportModuleComponent implements OnInit {
     this.analysisError.set('');
     this.cd.detectChanges();
 
-    const payload = { content, title };
+    const payload = { content, title, model: this.selectedModel() };
 
     this.http.post<AnalysisResult>(`${this.apiUrl}/analyze`, payload).subscribe({
       next: (result) => {
@@ -591,7 +607,8 @@ export class ImportModuleComponent implements OnInit {
       duree_par_question: this.quizDurationPerQuestion,
       mode: this.quizMode,
       question_types: types,
-      force: true
+      force: true,
+      model: this.selectedModel()
     };
 
     this.http.post<any>(`${this.apiUrl}/history/${id}/quiz`, payload).subscribe({

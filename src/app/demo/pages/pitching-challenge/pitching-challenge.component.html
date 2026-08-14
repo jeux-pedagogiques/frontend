@@ -2,43 +2,43 @@
 
   <!-- Success -->
   @if (successMessage()) {
-    <div class="pc-alert success">
-      <i class="feather icon-check-circle"></i>
+    <div class="pc-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
       <span>{{ successMessage() }}</span>
-      <button class="alert-close" (click)="successMessage.set('')"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
   <!-- Loading -->
   @if (errorMessage()) {
-    <div class="pc-alert error">
-      <i class="feather icon-alert-triangle"></i>
+    <div class="pc-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
       <span>{{ errorMessage() }}</span>
-      <button class="alert-close" (click)="errorMessage.set('')"><i class="feather icon-x"></i></button>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
   <!-- Loading -->
   @if (isLoading() && pageState() === 'generating') {
-    <div class="generating-state">
-      <div class="spinner-large"></div>
-      <p>Generation du pitching challenge en cours...</p>
-      <span class="generating-sub">L'IA prepare les sujets, criteres et grilles de feedback</span>
+    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
+      <div class="spinner-large" aria-hidden="true"></div>
+      <p>Génération du pitching challenge en cours...</p>
+      <span class="generating-sub">L'IA prépare les sujets, critères et grilles de feedback</span>
     </div>
   }
 
   <!-- Top Navigation Tabs -->
-  <div class="pc-top-nav mb-4">
-    <button class="nav-tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="pageState.set('select')">
-      <i class="feather icon-zap"></i> Générer un Pitching Challenge
+  <nav class="pc-top-nav mb-4" aria-label="Navigation Pitching Challenge" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" [attr.aria-selected]="pageState() === 'select' || pageState() === 'generating'" (click)="pageState.set('select')">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer un Pitching Challenge
     </button>
-    <button class="nav-tab" [class.active]="pageState() === 'history'" (click)="switchToHistory()">
-      <i class="feather icon-archive"></i> Mes Pitching Challenges
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'history'" [attr.aria-selected]="pageState() === 'history'" (click)="switchToHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Pitching Challenges
       @if (historyList().length > 0) {
-        <span class="count-badge">{{ historyList().length }}</span>
+        <span class="count-badge" aria-label="{{ historyList().length }} défis enregistrés">{{ historyList().length }}</span>
       }
     </button>
-  </div>
+  </nav>
 
   <!-- ================================================================== -->
   <!-- SELECT MODULE                                                       -->
@@ -46,87 +46,157 @@
   @if (pageState() === 'select') {
     <div class="select-section">
       <div class="section-header">
-        <div class="header-icon">
+        <div class="header-icon" aria-hidden="true">
           <i class="feather icon-mic"></i>
         </div>
         <div>
-          <h1>Pitching Challenge</h1>
-          <p class="subtitle">Generez un sujet de pitch et des grilles d'evaluation a partir de vos acquis d'apprentissage.</p>
+          <h1>{{ modeTitle() }}</h1>
+          <p class="subtitle">{{ modeSubtitle() }}</p>
         </div>
-      </div>
-      <!-- Selected module + params -->
-      @if (selectedAnalysis()) {
-        <div class="gen-panel">
-          <div class="gen-panel-header">
-            <div class="gen-panel-info">
-              <h3>{{ selectedAnalysis()!.module_title }}</h3>
-              <span class="aa-count">{{ selectedAnalysis()!.learning_outcomes.length }} AA</span>
-            </div>
-            <button class="btn-change" (click)="selectedAnalysis.set(null)">
-              <i class="feather icon-x"></i> Changer
-            </button>
-          </div>
-          <div class="gen-params">
-            <div class="param-group">
-              <label>Nombre d'equipes</label>
-              <input type="number" [(ngModel)]="nbEquipes" min="2" max="12" class="param-input">
-            </div>
-            <div class="param-group">
-              <label>Preparation (min)</label>
-              <input type="number" [(ngModel)]="dureePreparation" min="5" max="30" class="param-input">
-            </div>
-            <div class="param-group">
-              <label>Pitch (min)</label>
-              <input type="number" [(ngModel)]="dureePitch" min="1" max="10" class="param-input">
-            </div>
-            <div class="param-group">
-              <label>Feedback (min)</label>
-              <input type="number" [(ngModel)]="dureeFeedback" min="2" max="15" class="param-input">
-            </div>
-          </div>
-          <button class="btn-generate" (click)="generateChallenge()" [disabled]="isLoading()">
-            <i class="feather icon-zap"></i> Generer le Challenge
+        <div class="mode-toggle" role="group" aria-label="Mode du Pitching">
+          <button type="button" class="mode-btn" [class.active]="pitchingMode() === 'individuel'" (click)="switchMode('individuel')">
+            <i class="feather icon-user"></i> Individuel
+          </button>
+          <button type="button" class="mode-btn" [class.active]="pitchingMode() === 'equipe'" (click)="switchMode('equipe')">
+            <i class="feather icon-users"></i> Équipe
           </button>
         </div>
-      }
-      <!-- Module list -->
-      @if (!selectedAnalysis()) {
-        <div class="module-grid">
-          @for (a of analyses(); track a) {
-            <div class="module-card" (click)="selectAnalysis(a)">
-              <div class="module-card-header">
-                <div class="module-icon">
-                  <i class="feather icon-mic"></i>
+      </div>
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Sélection du module -->
+          <div class="config-card mb-4">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Étape 1 : Choisir une fiche module analysée</h4>
+            </div>
+
+            <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
+              @for (a of analyses(); track a.id) {
+                <div class="unified-challenge-card"
+                     role="option"
+                     tabindex="0"
+                     [attr.aria-selected]="selectedAnalysis()?.id === a.id ? 'true' : 'false'"
+                     [attr.aria-label]="'Sélectionner le module ' + a.module_title"
+                     [class.selected]="selectedAnalysis()?.id === a.id"
+                     (click)="selectAnalysis(a)">
+                  <div class="ucc-header">
+                    <div class="ucc-icon-badge" aria-hidden="true">
+                      <i class="feather icon-mic"></i>
+                    </div>
+                    <div class="ucc-header-actions">
+                      <span class="ucc-badge primary">Fiche Module</span>
+                      <button type="button" class="ucc-btn-icon" (click)="openOverlay(a); $event.stopPropagation()" [attr.aria-label]="'Voir les détails du scan pour ' + a.module_title" title="Voir les détails du scan">
+                        <i class="feather icon-eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <h4 class="ucc-title">{{ a.module_title }}</h4>
+
+                  <div class="ucc-meta-row">
+                    <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ a.learning_outcomes.length }} AA</span>
+                    <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ a.key_concepts.length }} concepts</span>
+                  </div>
+
+                  <div class="ucc-meta-row mt-auto pt-2">
+                    @for (lo of a.learning_outcomes.slice(0, 4); track lo) {
+                      <span class="ucc-bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
+                        {{ getBloomLabel(lo.bloom_level) }}
+                      </span>
+                    }
+                    @if (a.learning_outcomes.length > 4) {
+                      <span class="ucc-bloom-tag more">+{{ a.learning_outcomes.length - 4 }}</span>
+                    }
+                  </div>
+
+                  <div class="ucc-footer">
+                    <span class="text-muted small fw-medium">
+                      <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === a.id"></i>
+                      {{ selectedAnalysis()?.id === a.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                    </span>
+                    <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(a); $event.stopPropagation()">
+                      <i class="feather icon-zap"></i> Choisir
+                    </button>
+                  </div>
                 </div>
-                <button class="btn-eye" (click)="openOverlay(a); $event.stopPropagation()">
-                  <i class="feather icon-eye"></i>
+              }
+              @if (analyses().length === 0 && !isLoading()) {
+                <div class="empty-state">
+                  <i class="feather icon-inbox"></i>
+                  <p>Aucun module analysé. Importez une fiche module d'abord.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Paramètres du Pitching Challenge -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card gen-panel config-panel-sticky">
+              <div class="card-header gen-panel-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <div class="gen-panel-info">
+                    <h4>Étape 2 : Paramètres du Pitching Challenge — <span class="module-highlight">{{ selectedAnalysis()!.module_title }}</span></h4>
+                    <span class="aa-count ms-2">{{ selectedAnalysis()!.learning_outcomes.length }} AA</span>
+                  </div>
+                </div>
+                <button class="btn-close-panel" (click)="selectedAnalysis.set(null)" title="Fermer la configuration">
+                  <i class="feather icon-x"></i> Fermer
                 </button>
               </div>
-              <h4 class="module-title">{{ a.module_title }}</h4>
-              <div class="module-meta">
-                <span>{{ a.learning_outcomes.length }} AA</span>
-                <span>{{ a.key_concepts.length }} concepts</span>
-              </div>
-              <div class="bloom-tags">
-                @for (lo of a.learning_outcomes.slice(0, 4); track lo) {
-                  <span class="bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
-                    {{ getBloomLabel(lo.bloom_level) }}
-                  </span>
+
+              <div class="gen-params">
+                @if (pitchingMode() === 'equipe') {
+                  <div class="param-group">
+                    <label>Nombre d'équipes</label>
+                    <input type="number" [(ngModel)]="nbEquipes" min="2" max="12" class="param-input">
+                  </div>
+                } @else {
+                  <div class="param-group">
+                    <label>Mode</label>
+                    <input type="text" value="Individuel (1 sujet par participant)" readonly class="param-input">
+                  </div>
                 }
-                @if (a.learning_outcomes.length > 4) {
-                  <span class="bloom-tag more">+{{ a.learning_outcomes.length - 4 }}</span>
-                }
+                <div class="param-group">
+                  <label>Préparation (min)</label>
+                  <input type="number" [(ngModel)]="dureePreparation" min="5" max="30" class="param-input">
+                </div>
+                <div class="param-group">
+                  <label>Pitch (min)</label>
+                  <input type="number" [(ngModel)]="dureePitch" min="1" max="10" class="param-input">
+                </div>
+                <div class="param-group">
+                  <label>Feedback (min)</label>
+                  <input type="number" [(ngModel)]="dureeFeedback" min="2" max="15" class="param-input">
+                </div>
               </div>
+
+              <!-- Model Selector -->
+              <div class="param-group mt-3 mb-3">
+                <label class="param-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
+              <button class="btn-generate" (click)="generateChallenge()" [disabled]="isLoading()">
+                <i class="feather icon-zap"></i> Générer le Challenge
+              </button>
             </div>
-          }
-          @if (analyses().length === 0 && !isLoading()) {
-            <div class="empty-state">
-              <i class="feather icon-inbox"></i>
-              <p>Aucun module analyse. Importez une fiche module d'abord.</p>
-            </div>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     </div>
   }
 
@@ -162,23 +232,33 @@
             placeholder="Rechercher par titre de challenge ou de module...">
         </div>
 
-        <div class="history-grid">
+        <div class="unified-challenge-card-grid">
           @for (item of historyList(); track item.id) {
-            <div class="history-card" (click)="consultSession(item.id)">
-              <div class="card-top">
-                <h4>{{ item.titre }}</h4>
-                <button class="btn-delete" (click)="deleteSession(item.id, $event)" title="Supprimer">
-                  <i class="feather icon-trash-2"></i>
-                </button>
+            <div class="unified-challenge-card" (click)="consultSession(item.id)">
+              <div class="ucc-header">
+                <div class="ucc-icon-badge" aria-hidden="true">
+                  <i class="feather icon-award"></i>
+                </div>
+                <div class="ucc-header-actions">
+                  <span class="ucc-badge primary">Pitch Challenge</span>
+                  <button type="button" class="ucc-btn-icon" (click)="deleteSession(item.id, $event)" title="Supprimer le challenge">
+                    <i class="feather icon-trash-2"></i>
+                  </button>
+                </div>
               </div>
-              <div class="card-meta mb-2">
+
+              <h4 class="ucc-title">{{ item.titre }}</h4>
+
+              <div class="ucc-meta-row">
                 @if (item.module_title) {
-                  <span><i class="feather icon-book"></i> {{ item.module_title }}</span>
+                  <span class="ucc-meta-pill"><i class="feather icon-book text-primary"></i> {{ item.module_title }}</span>
                 }
-                <span><i class="feather icon-calendar"></i> {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span class="ucc-meta-pill"><i class="feather icon-calendar text-muted"></i> {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
-              <div class="card-actions-row">
-                <button class="btn-card-action btn-consult" (click)="consultSession(item.id); $event.stopPropagation()">
+
+              <div class="ucc-footer">
+                <span class="text-muted small">ID: #{{ item.id }}</span>
+                <button type="button" class="ucc-btn-primary" (click)="consultSession(item.id); $event.stopPropagation()">
                   <i class="feather icon-eye"></i> Consulter
                 </button>
               </div>

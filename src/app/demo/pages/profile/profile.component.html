@@ -1,97 +1,274 @@
-<div class="cyber-profile-wrapper">
+<div class="cyber-profile-wrapper" [attr.data-theme]="selectedTheme()">
   <!-- Top Pill Nav Bar -->
-  <div class="cyber-nav-pill">
-    <span class="cmd-prompt"><i class="feather icon-terminal"></i> COMMAND:</span>
-    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'home'" (click)="activeNav.set('home')">
-      <i class="feather icon-home"></i> HOME
+  <nav class="cyber-nav-pill" aria-label="Menu des sections profil" role="tablist">
+    <span class="cmd-prompt"><i class="feather icon-terminal" aria-hidden="true"></i> COMMAND:</span>
+    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'home'" role="tab" [attr.aria-selected]="activeNav() === 'home'" (click)="activeNav.set('home')">
+      <i class="feather icon-home" aria-hidden="true"></i> HOME
     </button>
-    <span class="divider">|</span>
-    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'security'" (click)="activeNav.set('security')">
-      <i class="feather icon-shield"></i> SECURITY
+    <span class="divider" aria-hidden="true">|</span>
+    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'security'" role="tab" [attr.aria-selected]="activeNav() === 'security'" (click)="activeNav.set('security')">
+      <i class="feather icon-shield" aria-hidden="true"></i> SECURITY
     </button>
-    <span class="divider">|</span>
-    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'preferences'" (click)="activeNav.set('preferences')">
-      <i class="feather icon-sliders"></i> PREFERENCES
+    <span class="divider" aria-hidden="true">|</span>
+    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'preferences'" role="tab" [attr.aria-selected]="activeNav() === 'preferences'" (click)="activeNav.set('preferences')">
+      <i class="feather icon-sliders" aria-hidden="true"></i> PREFERENCES
     </button>
-    <span class="divider">|</span>
-    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'notifications'" (click)="activeNav.set('notifications')">
-      <i class="feather icon-bell"></i> NOTIFICATIONS
+    <span class="divider" aria-hidden="true">|</span>
+    <button type="button" class="nav-item-btn" [class.active]="activeNav() === 'notifications'" role="tab" [attr.aria-selected]="activeNav() === 'notifications'" (click)="activeNav.set('notifications')">
+      <i class="feather icon-bell" aria-hidden="true"></i> NOTIFICATIONS
     </button>
-    <span class="divider">|</span>
+    <span class="divider" aria-hidden="true">|</span>
     <div class="user-status-online">
-      <i class="feather icon-user"></i> {{ (username || 'ALEX CHEN').toUpperCase() }} (ONLINE)
+      <i class="feather icon-user" aria-hidden="true"></i> {{ (username || 'ALEX CHEN').toUpperCase() }} (ONLINE)
     </div>
-  </div>
+  </nav>
 
-  <!-- Main Frosted Glass Card Container -->
-  <div class="cyber-glass-card">
+  <!-- Main Glass Card Container -->
+  <div class="cyber-glass-card" id="profile-panel" role="tabpanel">
     <!-- Success & Error Alerts -->
     @if (successMessage()) {
-      <div class="cyber-alert success">
-        <i class="feather icon-check-circle"></i> {{ successMessage() }}
+      <div class="cyber-alert success" role="status" aria-live="polite">
+        <i class="feather icon-check-circle" aria-hidden="true"></i> {{ successMessage() }}
       </div>
     }
     @if (errorMessage()) {
-      <div class="cyber-alert error">
-        <i class="feather icon-alert-triangle"></i> {{ errorMessage() }}
+      <div class="cyber-alert error" role="alert" aria-live="assertive">
+        <i class="feather icon-alert-triangle" aria-hidden="true"></i> {{ errorMessage() }}
       </div>
     }
 
-    <form (submit)="onSubmit($event)" class="cyber-profile-form">
-      <!-- Left Column: Avatar & User Identity -->
-      <div class="cyber-avatar-col">
-        <div class="avatar-aura-ring">
-          <div class="avatar-img-box">
-            @if (!avatar()) {
-              <div class="avatar-initials">
-                <span>{{ getInitials() }}</span>
-              </div>
-            }
-            @if (avatar()) {
-              <img [src]="avatar()" alt="User Avatar" class="avatar-img">
-            }
+    <!-- TAB 1: HOME (PROFILE EDIT) -->
+    @if (activeNav() === 'home') {
+      <form (submit)="onSubmit($event)" class="cyber-profile-form" aria-label="Formulaire de profil utilisateur">
+        <!-- Left Column: Avatar & User Identity -->
+        <div class="cyber-avatar-col">
+          <div class="avatar-aura-ring">
+            <div class="avatar-img-box">
+              @if (!avatar()) {
+                <div class="avatar-initials">
+                  <span>{{ getInitials() }}</span>
+                </div>
+              }
+              @if (avatar()) {
+                <img [src]="avatar()" [alt]="'Photo de profil de ' + (username || 'l\'utilisateur')" class="avatar-img">
+              }
+            </div>
+            <label for="avatar-upload-cyber" class="avatar-edit-overlay" title="Upload Photo" aria-label="Télécharger ou modifier la photo de profil">
+              <i class="feather icon-camera" aria-hidden="true"></i>
+            </label>
+            <input type="file" id="avatar-upload-cyber" (change)="onFileSelected($event)" accept="image/*" style="display: none;" aria-hidden="true">
           </div>
-          <label for="avatar-upload-cyber" class="avatar-edit-overlay" title="Upload Photo">
-            <i class="feather icon-camera"></i>
-          </label>
-          <input type="file" id="avatar-upload-cyber" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+          
+          <h3 class="user-display-name">{{ (username || 'ALEX CHEN').toUpperCase() }}</h3>
+          <span class="user-status-text">ONLINE - FUTURE SYSTEM</span>
         </div>
-        
-        <h3 class="user-display-name">{{ (username || 'ALEX CHEN').toUpperCase() }}</h3>
-        <span class="user-status-text">ONLINE - FUTURE SYSTEM</span>
+
+        <!-- Right Column: Form Input Fields -->
+        <div class="cyber-fields-col">
+          <div class="form-group-cyber">
+            <label for="profile-username" class="field-label-cyber">Display Name</label>
+            <input type="text" id="profile-username" class="cyber-input" [(ngModel)]="username" name="username" placeholder="Alex Chen" required>
+          </div>
+
+          <div class="form-group-cyber">
+            <label for="profile-email" class="field-label-cyber">Email</label>
+            <input type="email" id="profile-email" class="cyber-input glow-focused" [(ngModel)]="email" name="email" placeholder="alex.chen@future.net" required autocomplete="email">
+          </div>
+
+          <div class="form-group-cyber">
+            <label for="profile-address" class="field-label-cyber">Location</label>
+            <input type="text" id="profile-address" class="cyber-input" [(ngModel)]="address" name="address" placeholder="Neo-Tokyo, District 9">
+          </div>
+
+          <div class="form-group-cyber">
+            <label for="profile-bio" class="field-label-cyber">Bio</label>
+            <input type="text" id="profile-bio" class="cyber-input" [(ngModel)]="bio" name="bio" placeholder="Exploring the digital frontier. AI Enthusiast. #FutureTech">
+          </div>
+
+          <div class="form-group-cyber">
+            <label for="profile-role" class="field-label-cyber">Role</label>
+            <input type="text" id="profile-role" class="cyber-input" [(ngModel)]="role" name="role" placeholder="System Architect">
+          </div>
+
+          <button type="submit" class="cyber-save-btn">
+            SAVE CHANGES
+          </button>
+        </div>
+      </form>
+    }
+
+    <!-- TAB 2: SECURITY -->
+    @if (activeNav() === 'security') {
+      <div class="tab-section-content">
+        <h3 class="section-title"><i class="feather icon-shield"></i> Security & Authentication</h3>
+        <p class="section-desc">Manage your password, authentication methods, and account security.</p>
+
+        <form (submit)="onUpdateSecurity($event)" class="cyber-sub-form">
+          <div class="form-group-cyber">
+            <label for="current-password" class="field-label-cyber">Current Password</label>
+            <input type="password" id="current-password" class="cyber-input" [(ngModel)]="currentPassword" name="currentPassword" placeholder="••••••••">
+          </div>
+          <div class="form-group-cyber">
+            <label for="new-password" class="field-label-cyber">New Password</label>
+            <input type="password" id="new-password" class="cyber-input" [(ngModel)]="newPassword" name="newPassword" placeholder="••••••••">
+          </div>
+          <div class="form-group-cyber">
+            <label for="confirm-password" class="field-label-cyber">Confirm New Password</label>
+            <input type="password" id="confirm-password" class="cyber-input" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="••••••••">
+          </div>
+
+          <div class="toggle-setting-box mt-3">
+            <div class="toggle-info">
+              <span class="toggle-title">Two-Factor Authentication (2FA)</span>
+              <span class="toggle-desc">Add an extra security layer requiring an authenticator code.</span>
+            </div>
+            <label class="cyber-switch">
+              <input type="checkbox" [(ngModel)]="enable2FA" name="enable2FA">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <button type="submit" class="cyber-save-btn mt-4">
+            UPDATE SECURITY
+          </button>
+        </form>
       </div>
+    }
 
-      <!-- Right Column: Form Input Fields -->
-      <div class="cyber-fields-col">
-        <div class="form-group-cyber">
-          <label class="field-label-cyber">Display Name</label>
-          <input type="text" class="cyber-input" [(ngModel)]="username" name="username" placeholder="Alex Chen" required>
+    <!-- TAB 3: PREFERENCES & THEMES -->
+    @if (activeNav() === 'preferences') {
+      <div class="tab-section-content">
+        <h3 class="section-title"><i class="feather icon-sliders"></i> Interface Preferences & Theme Switcher</h3>
+        <p class="section-desc">Choose your active display theme, language, and workspace behavior.</p>
+
+        <!-- Theme Selector Cards -->
+        <div class="theme-selection-container mb-4">
+          <span class="field-label-cyber">SELECT THEME MODE</span>
+          <div class="theme-cards-grid">
+            <div class="theme-card"
+                 [class.selected]="selectedTheme() === 'light'"
+                 (click)="setTheme('light')"
+                 role="button"
+                 tabindex="0"
+                 [attr.aria-selected]="selectedTheme() === 'light'"
+                 aria-label="Activer le thème Clair"
+                 (keydown.enter)="setTheme('light')"
+                 (keydown.space)="setTheme('light'); $event.preventDefault()">
+              <div class="theme-preview light-preview">
+                <div class="preview-bar"></div>
+                <div class="preview-box"></div>
+              </div>
+              <span class="theme-name"><i class="feather icon-sun" aria-hidden="true"></i> Light Glass</span>
+            </div>
+
+            <div class="theme-card"
+                 [class.selected]="selectedTheme() === 'dark'"
+                 (click)="setTheme('dark')"
+                 role="button"
+                 tabindex="0"
+                 [attr.aria-selected]="selectedTheme() === 'dark'"
+                 aria-label="Activer le thème Sombre"
+                 (keydown.enter)="setTheme('dark')"
+                 (keydown.space)="setTheme('dark'); $event.preventDefault()">
+              <div class="theme-preview dark-preview">
+                <div class="preview-bar"></div>
+                <div class="preview-box"></div>
+              </div>
+              <span class="theme-name"><i class="feather icon-moon" aria-hidden="true"></i> Cyber Dark</span>
+            </div>
+
+            <div class="theme-card"
+                 [class.selected]="selectedTheme() === 'neon'"
+                 (click)="setTheme('neon')"
+                 role="button"
+                 tabindex="0"
+                 [attr.aria-selected]="selectedTheme() === 'neon'"
+                 aria-label="Activer le thème Néon"
+                 (keydown.enter)="setTheme('neon')"
+                 (keydown.space)="setTheme('neon'); $event.preventDefault()">
+              <div class="theme-preview neon-preview">
+                <div class="preview-bar"></div>
+                <div class="preview-box"></div>
+              </div>
+              <span class="theme-name"><i class="feather icon-zap" aria-hidden="true"></i> Midnight Neon</span>
+            </div>
+          </div>
         </div>
 
         <div class="form-group-cyber">
-          <label class="field-label-cyber">Email</label>
-          <input type="email" class="cyber-input glow-focused" [(ngModel)]="email" name="email" placeholder="alex.chen@future.net" required>
+          <label for="pref-language" class="field-label-cyber">Interface Language</label>
+          <select id="pref-language" class="cyber-input cyber-select" [(ngModel)]="language" name="language">
+            <option value="en">English (US)</option>
+            <option value="fr">Français (FR)</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+          </select>
         </div>
 
-        <div class="form-group-cyber">
-          <label class="field-label-cyber">Location</label>
-          <input type="text" class="cyber-input" [(ngModel)]="address" name="address" placeholder="Neo-Tokyo, District 9">
+        <div class="toggle-setting-box mt-3">
+          <div class="toggle-info">
+            <span class="toggle-title">System Sound Effects</span>
+            <span class="toggle-desc">Enable audio feedback on user actions and command execution.</span>
+          </div>
+          <label class="cyber-switch">
+            <input type="checkbox" [(ngModel)]="soundEnabled" name="soundEnabled">
+            <span class="slider round"></span>
+          </label>
         </div>
 
-        <div class="form-group-cyber">
-          <label class="field-label-cyber">Bio</label>
-          <input type="text" class="cyber-input" [(ngModel)]="bio" name="bio" placeholder="Exploring the digital frontier. AI Enthusiast. #FutureTech">
-        </div>
-
-        <div class="form-group-cyber">
-          <label class="field-label-cyber">Role</label>
-          <input type="text" class="cyber-input" [(ngModel)]="role" name="role" placeholder="System Architect">
-        </div>
-
-        <button type="submit" class="cyber-save-btn">
-          SAVE CHANGES
+        <button type="button" (click)="savePreferences()" class="cyber-save-btn mt-4">
+          APPLY PREFERENCES
         </button>
       </div>
-    </form>
+    }
+
+    <!-- TAB 4: NOTIFICATIONS -->
+    @if (activeNav() === 'notifications') {
+      <div class="tab-section-content">
+        <h3 class="section-title"><i class="feather icon-bell"></i> Notification Settings</h3>
+        <p class="section-desc">Manage system alerts and notification preferences.</p>
+
+        <div class="toggles-list">
+          <div class="toggle-setting-box mb-3">
+            <div class="toggle-info">
+              <span class="toggle-title">Email Notifications</span>
+              <span class="toggle-desc">Receive email notifications for important system events.</span>
+            </div>
+            <label class="cyber-switch">
+              <input type="checkbox" [(ngModel)]="notifyEmail" name="notifyEmail">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="toggle-setting-box mb-3">
+            <div class="toggle-info">
+              <span class="toggle-title">Security & Intrusion Alerts</span>
+              <span class="toggle-desc">Get instant notifications about new logins or security alerts.</span>
+            </div>
+            <label class="cyber-switch">
+              <input type="checkbox" [(ngModel)]="notifySecurity" name="notifySecurity">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="toggle-setting-box mb-3">
+            <div class="toggle-info">
+              <span class="toggle-title">Weekly Digest</span>
+              <span class="toggle-desc">Receive a weekly summary report of activity and stats.</span>
+            </div>
+            <label class="cyber-switch">
+              <input type="checkbox" [(ngModel)]="notifyDigest" name="notifyDigest">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <button type="button" (click)="saveNotifications()" class="cyber-save-btn mt-4">
+          SAVE NOTIFICATION PREFERENCES
+        </button>
+      </div>
+    }
   </div>
 </div>
+
+

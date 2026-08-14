@@ -1,39 +1,63 @@
 <div class="admin-layout" [class.dark-mode]="isSidebarDarkMode()" [class.light-mode]="!isSidebarDarkMode()">
   @if (isLoggedIn()) {
-    <aside class="sidebar" [class.dark-mode]="isSidebarDarkMode()" [class.light-mode]="!isSidebarDarkMode()" [class.collapsed]="navCollapsed" [class.mobile-open]="navCollapsedMob">
+    <aside class="sidebar" aria-label="Navigation principale" [class.dark-mode]="isSidebarDarkMode()" [class.light-mode]="!isSidebarDarkMode()" [class.collapsed]="navCollapsed" [class.mobile-open]="navCollapsedMob">
       <div class="sidebar-header">
-        <a [routerLink]="['/analytics']" class="sidebar-brand">
+        <a [routerLink]="['/analytics']" class="sidebar-brand" aria-label="ESPRIT AI Accueil">
           <div class="brand-icon-box">
-            <i class="feather icon-file-text"></i>
+            <i class="feather icon-file-text" aria-hidden="true"></i>
           </div>
           @if (!navCollapsed) {
             <span class="brand-title">ESPRIT AI</span>
           }
         </a>
       </div>
-      <app-navigation />
+      <div class="sidebar-body">
+        <app-navigation />
+      </div>
+      <div class="sidebar-footer">
+        <button type="button" class="sidebar-logout-btn" (click)="logout()" aria-label="Déconnexion" [title]="navCollapsed ? 'Déconnexion' : ''">
+          <div class="logout-icon-box" aria-hidden="true">
+            <i class="feather icon-log-out"></i>
+          </div>
+          @if (!navCollapsed) {
+            <span class="logout-text">Déconnexion</span>
+          }
+        </button>
+      </div>
     </aside>
   }
-  <div class="main-content" [class.sidebar-collapsed]="navCollapsed">
+  <main class="main-content" role="main" [class.sidebar-collapsed]="navCollapsed">
     @if (isLoggedIn()) {
-      <header class="top-bar" [class.dark-mode]="isSidebarDarkMode()" [class.light-mode]="!isSidebarDarkMode()">
+      <header class="top-bar" role="banner" [class.dark-mode]="isSidebarDarkMode()" [class.light-mode]="!isSidebarDarkMode()">
         <div class="top-bar-content">
           <div class="top-bar-left">
-            <button type="button" class="mobile-menu-btn" (click)="navMobClick()" title="Toggle Sidebar">
-              <i class="feather icon-menu"></i>
+            <button type="button" class="mobile-menu-btn" (click)="navMobClick()" [attr.aria-expanded]="navCollapsedMob" aria-label="Basculer le menu latéral" title="Toggle Sidebar">
+              <i class="feather icon-menu" aria-hidden="true"></i>
             </button>
             <div class="top-brand">
-              <img src="assets/images/logo-icon.png" alt="Esprit Logo" class="top-logo-img" />
+              <img src="assets/images/logo-icon.png" alt="Esprit AI Logo" width="32" height="32" class="top-logo-img" />
               <span class="top-brand-name">Esprit</span>
             </div>
           </div>
           <div class="top-bar-right">
             <div class="nav-search-pill">
-              <i class="feather icon-search"></i>
-              <input type="text" placeholder="Rechercher..." />
+              <i class="feather icon-search" aria-hidden="true"></i>
+              <input type="text" placeholder="Rechercher..." aria-label="Rechercher dans l'application" />
             </div>
-            <button type="button" class="topbar-theme-toggle-btn" (click)="toggleSidebarTheme()" [title]="isSidebarDarkMode() ? 'Sidebar : Mode Clair' : 'Sidebar : Mode Sombre'">
-              <i class="feather" [class.icon-sun]="isSidebarDarkMode()" [class.icon-moon]="!isSidebarDarkMode()" [class.text-warning]="isSidebarDarkMode()"></i>
+            <!-- Font-size accessibility control -->
+            <div class="font-size-control" role="group" aria-label="Taille du texte" title="Taille du texte">
+              <button type="button" class="fs-btn" (click)="fontSizeService.decrease()" [disabled]="fontSizeService.isMin()" aria-label="Réduire la taille du texte" title="Réduire la taille du texte">
+                A−
+              </button>
+              <button type="button" class="fs-btn fs-btn-reset" (click)="fontSizeService.reset()" aria-label="Réinitialiser la taille du texte (100%)" title="Réinitialiser la taille du texte">
+                {{ fontSizeService.currentPercent() }}%
+              </button>
+              <button type="button" class="fs-btn" (click)="fontSizeService.increase()" [disabled]="fontSizeService.isMax()" aria-label="Augmenter la taille du texte" title="Augmenter la taille du texte">
+                A+
+              </button>
+            </div>
+            <button type="button" class="topbar-theme-toggle-btn" (click)="toggleSidebarTheme()" [attr.aria-pressed]="isSidebarDarkMode()" aria-label="Basculer le thème du menu latéral" [title]="isSidebarDarkMode() ? 'Sidebar : Mode Clair' : 'Sidebar : Mode Sombre'">
+              <i class="feather" [class.icon-sun]="isSidebarDarkMode()" [class.icon-moon]="!isSidebarDarkMode()" [class.text-warning]="isSidebarDarkMode()" aria-hidden="true"></i>
             </button>
             <app-nav-right />
           </div>
@@ -45,7 +69,9 @@
         <router-outlet />
       </div>
     </div>
-  </div>
-  <div class="pc-menu-overlay" [class.active]="navCollapsedMob" (click)="closeMenu()" (keydown)="handleKeyDown($event)" tabindex="0"></div>
+  </main>
+  <div class="pc-menu-overlay" [class.active]="navCollapsedMob" (click)="closeMenu()" (keydown)="handleKeyDown($event)" role="button" tabindex="0" aria-label="Fermer le menu mobile"></div>
+  <div class="visually-hidden" aria-live="assertive" role="alert">{{ audioAlertService.liveAnnouncement() }}</div>
 </div>
+
 

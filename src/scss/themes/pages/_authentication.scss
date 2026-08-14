@@ -70,13 +70,13 @@
   box-shadow: 0 8px 32px rgba(64, 153, 255, 0.35);
 
   i {
-    font-size: 28px;
+    font-size: 1.75rem;
     color: #fff;
   }
 }
 
 .brand-title {
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 16px;
@@ -85,7 +85,7 @@
 }
 
 .brand-subtitle {
-  font-size: 16px;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.7;
   margin-bottom: 40px;
@@ -102,11 +102,11 @@
   align-items: center;
   gap: 14px;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
 
   i {
-    font-size: 18px;
+    font-size: 1.125rem;
     color: #C51414;
   }
 }
@@ -188,7 +188,7 @@
 }
 
 .auth-title {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #1a1a2e;
   margin-bottom: 8px;
@@ -196,7 +196,7 @@
 }
 
 .auth-subtitle {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #6c757d;
   margin-bottom: 0;
 }
@@ -217,7 +217,7 @@
   width: 100%;
   padding: 12px 20px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -289,7 +289,7 @@
   }
 
   span {
-    font-size: 13px;
+    font-size: 0.8125rem;
     color: #adb5bd;
     font-weight: 500;
     white-space: nowrap;
@@ -309,7 +309,7 @@
 
 .form-field-label {
   display: block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #495057;
   margin-bottom: 8px;
@@ -324,7 +324,7 @@
 }
 
 .forgot-link {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #C51414 !important;
   font-weight: 500 !important;
   text-decoration: none;
@@ -344,7 +344,7 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 16px;
+    font-size: 1rem;
     color: #adb5bd;
     z-index: 1;
     transition: color 0.2s ease;
@@ -360,7 +360,7 @@
   padding: 12px 16px 12px 46px;
   border: 1.5px solid #e0e4e8;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #1a1a2e;
   background: #f8f9fb;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -404,13 +404,13 @@
   }
 
   i {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
 .field-error {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #ff5370;
   font-weight: 500;
 
@@ -439,7 +439,7 @@
   }
 
   label {
-    font-size: 13px;
+    font-size: 0.8125rem;
     color: #6c757d;
     cursor: pointer;
     margin-bottom: 0;
@@ -464,7 +464,7 @@
   border-radius: 12px;
   background: linear-gradient(135deg, #C51414, #e54444);
   color: #ffffff;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -500,7 +500,7 @@
   }
 
   i {
-    font-size: 16px;
+    font-size: 1rem;
     transition: transform 0.3s ease;
   }
 
@@ -512,7 +512,7 @@
 // ---- Footer Text ----
 .auth-footer-text {
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #6c757d;
   margin: 0;
 }
@@ -571,7 +571,7 @@
       position: relative;
       padding: 0 10px;
       z-index: 5;
-      font-size: 20px;
+      font-size: 1.25rem;
     }
 
     &:after {
@@ -690,7 +690,7 @@
     background-image: none;
 
     h1 {
-      font-size: 87px;
+      font-size: 5.4375rem;
       font-weight: 700;
     }
 

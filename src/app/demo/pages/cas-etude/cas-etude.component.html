@@ -1,191 +1,290 @@
-<div class="cas-etude-container p-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="mb-1 fw-bold">📂 Étude de Cas Gamifiée</h3>
-      <p class="text-muted mb-0">Scénarios immersifs avec distribution asymétrique des rôles & décisions stratégiques</p>
-    </div>
-    @if (pageState() === 'result') {
-      <button class="btn btn-outline-secondary" (click)="backToSelect()">
-        <i class="feather icon-arrow-left me-1"></i> Nouveau scénario
+<div class="cas-etude-page">
+
+  <!-- ===== Top Nav Tabs ===== -->
+  <nav class="ce-top-nav" aria-label="Navigation Étude de cas" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer une Étude de Cas
+    </button>
+    @if (casResult()) {
+      <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'result'" (click)="pageState.set('result')">
+        <i class="feather icon-briefcase" aria-hidden="true"></i> Consultation de l'Étude de Cas
       </button>
     }
-  </div>
+  </nav>
 
+  <!-- ===== Alerts ===== -->
+  @if (successMessage()) {
+    <div class="ce-alert success" role="status" aria-live="polite">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
   @if (errorMessage()) {
-    <div class="alert alert-danger mb-4 alert-dismissible fade show" role="alert">
-      {{ errorMessage() }}
-      <button type="button" class="btn-close" (click)="errorMessage.set('')"></button>
+    <div class="ce-alert error" role="alert" aria-live="assertive">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
     </div>
   }
 
-  <!-- STATE: SELECT -->
+  <!-- ================================================================= -->
+  <!-- STATE: SELECT (Configuration + Module Selection)                  -->
+  <!-- ================================================================= -->
   @if (pageState() === 'select') {
-    <div class="row g-4">
-      <div class="col-12 col-lg-8">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold"><i class="feather icon-book me-2 text-primary"></i>1. Sélectionner un module de cours</h5>
-          </div>
-          <div class="card-body">
+    <div class="config-section" id="ce-panel" role="tabpanel">
+
+      <div class="section-header">
+        <div class="header-icon" aria-hidden="true">
+          <i class="feather icon-briefcase"></i>
+        </div>
+        <div>
+          <h2>Étude de Cas Gamifiée</h2>
+          <p class="subtitle">Scénarios immersifs avec distribution asymétrique des rôles &amp; décisions stratégiques.</p>
+        </div>
+      </div>
+
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Select Analysis -->
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Sélectionner un module de cours analysé</h4>
+            </div>
+
             @if (isLoading()) {
-              <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="text-muted mt-2">Chargement des modules...</p>
+              <div class="empty-state" role="status" aria-live="polite">
+                <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+                <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
               </div>
             } @else if (analyses().length === 0) {
-              <div class="text-center py-5 text-muted">
-                <i class="feather icon-folder display-4 d-block mb-3"></i>
-                <p>Aucun module analysé trouvé. Veuillez d'abord importer un cours.</p>
-                <a routerLink="/import-module" class="btn btn-primary btn-sm mt-2">Importer un cours</a>
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
               </div>
             } @else {
-              <div class="list-group list-group-flush">
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
                 @for (item of analyses(); track item.id) {
-                  <button
-                    type="button"
-                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-bottom"
-                    [class.active]="selectedAnalysis()?.id === item.id"
-                    (click)="selectAnalysis(item)">
-                    <div>
-                      <h6 class="mb-1 fw-bold">{{ item.module_title }}</h6>
-                      <div class="d-flex flex-wrap gap-1 mt-1">
-                        @for (concept of item.key_concepts | slice:0:3; track concept) {
-                          <span class="badge bg-light text-dark border me-1">{{ concept }}</span>
-                        }
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === item.id ? 'true' : 'false'"
+                       aria-label="Sélectionner la fiche module {{ item.module_title }}"
+                       [class.selected]="selectedAnalysis()?.id === item.id"
+                       (click)="selectAnalysis(item)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-folder"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge primary">Fiche Module</span>
                       </div>
                     </div>
-                    <i class="feather" [class.icon-check-circle]="selectedAnalysis()?.id === item.id" [class.icon-circle]="selectedAnalysis()?.id !== item.id"></i>
-                  </button>
+
+                    <h4 class="ucc-title">{{ item.module_title }}</h4>
+
+                    <div class="ucc-meta-row">
+                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ item.learning_outcomes?.length || item.keywords.length || 0 }} Elements</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ item.key_concepts.length }} concepts</span>
+                    </div>
+
+                    <div class="categories">
+                      @for (concept of item.key_concepts.slice(0, 3); track concept) {
+                        <span>{{ concept }}</span>
+                      }
+                      @if (item.key_concepts.length > 3) {
+                        <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === item.id"></i>
+                        {{ selectedAnalysis()?.id === item.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(item); $event.stopPropagation()">
+                        <i class="feather icon-check"></i> Choisir
+                      </button>
+                    </div>
+                  </div>
                 }
               </div>
             }
           </div>
         </div>
-      </div>
 
-      <div class="col-12 col-lg-4">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold"><i class="feather icon-sliders me-2 text-primary"></i>2. Paramètres de l'étude de cas</h5>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Nombre de rôles asymétriques</label>
-              <select class="form-select" [(ngModel)]="nbRoles">
-                <option [ngValue]="2">2 Rôles</option>
-                <option [ngValue]="3">3 Rôles (Recommandé)</option>
-                <option [ngValue]="4">4 Rôles</option>
-              </select>
-              <small class="text-muted">Chaque rôle recevra des informations secrètes exclusives.</small>
+        <!-- Step 2: Parameters -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres de l'étude de cas</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Rôles asymétriques</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbRoles = (nbRoles > 2 ? nbRoles - 1 : 2)">-</button>
+                    <span class="param-value">{{ nbRoles }} rôles</span>
+                    <button class="btn-sm" (click)="nbRoles = (nbRoles < 4 ? nbRoles + 1 : 4)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Format de restitution</label>
+                  <div class="param-buttons">
+                    <button [class.active]="formatRestitution === 'oral'" (click)="formatRestitution = 'oral'">
+                      <i class="feather icon-mic"></i> Oral
+                    </button>
+                    <button [class.active]="formatRestitution === 'ecrit'" (click)="formatRestitution = 'ecrit'">
+                      <i class="feather icon-file-text"></i> Écrit
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Analysis Summary -->
+              @if (selectedAnalysis()) {
+                <div class="selected-summary">
+                  <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
+                  <div class="outcomes-preview">
+                    <div class="outcome-chip">
+                      <span><strong>{{ selectedAnalysis()!.module_title }}</strong></span>
+                    </div>
+                    @for (concept of selectedAnalysis()!.key_concepts.slice(0, 4); track concept) {
+                      <div class="outcome-chip">
+                        <span class="bloom-dot" style="background: #c51414;"></span>
+                        <span>{{ concept }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
+              <!-- Generate Button -->
+              <div class="action-bar">
+                <button type="button" class="btn-generate" (click)="generateCasEtude()" [disabled]="isLoading() || isGenerating()">
+                  <i class="feather icon-briefcase"></i>
+                  <span>Générer l'Étude de Cas</span>
+                </button>
+              </div>
             </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Format de Restitution</label>
-              <select class="form-select" [(ngModel)]="formatRestitution">
-                <option value="oral">Restitution Orale (Présentation)</option>
-                <option value="ecrit">Restitution Écrite (Rapport de synthèse)</option>
-              </select>
-            </div>
-
-            <button
-              class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-              [disabled]="!selectedAnalysis() || isGenerating()"
-              (click)="generateCasEtude()">
-              <i class="feather icon-cpu me-2"></i> Générer l'Étude de Cas avec IA
-            </button>
           </div>
-        </div>
+        }
       </div>
     </div>
   }
 
-  <!-- STATE: GENERATING -->
+  <!-- ================================================================= -->
+  <!-- STATE: GENERATING                                                 -->
+  <!-- ================================================================= -->
   @if (pageState() === 'generating') {
-    <div class="card border-0 shadow-sm text-center py-5">
-      <div class="card-body py-5">
-        <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem;"></div>
-        <h4 class="mt-4 fw-bold">Génération du scénario immersif en cours...</h4>
-        <p class="text-muted">Création des rôles asymétriques, des objectifs secrets et des questions de décision.</p>
+    <div class="generating-state" role="status" aria-live="polite">
+      <div class="generating-content">
+        <div class="spinner-large" aria-hidden="true"></div>
+        <h3>Génération du scénario immersif en cours...</h3>
+        <p>L'IA crée des rôles asymétriques, des objectifs secrets et des questions de décision stratégiques.</p>
+        <p class="subtle">Cela peut prendre quelques instants.</p>
       </div>
     </div>
   }
 
-  <!-- STATE: RESULT -->
+  <!-- ================================================================= -->
+  <!-- STATE: RESULT                                                     -->
+  <!-- ================================================================= -->
   @if (pageState() === 'result' && casResult()) {
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <div>
-          <span class="badge bg-primary mb-1">ÉTUDE DE CAS GAMIFIÉE</span>
-          <h4 class="mb-0 fw-bold">{{ casResult()!.titre }}</h4>
-          <small class="text-muted">{{ casResult()!.module_title }} · Restitution {{ casResult()!.format_restitution | uppercase }}</small>
+    <div class="config-section" id="ce-result-panel">
+      <div class="section-header">
+        <div class="header-icon consult-icon" aria-hidden="true">
+          <i class="feather icon-briefcase"></i>
         </div>
-        <div class="d-flex gap-2">
-          <button class="btn btn-outline-primary" (click)="shareGame()">
-            <i class="feather icon-share-2 me-1"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager avec la classe' }}
+        <div>
+          <h2>{{ casResult()!.titre }}</h2>
+          <p class="subtitle">{{ casResult()!.module_title }} · Restitution {{ casResult()!.format_restitution | uppercase }}</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn-action-outline" (click)="shareGame()">
+            <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
           </button>
-          <button class="btn btn-outline-info" (click)="viewResults()">
-            <i class="feather icon-bar-chart-2 me-1"></i> Résultats des équipes
+          <button type="button" class="btn-action-primary" (click)="viewResults()">
+            <i class="feather icon-bar-chart-2"></i> Résultats des équipes
           </button>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="card-body p-0">
-        <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom">
-          <li class="nav-item">
-            <button class="nav-link" [class.active]="activeTab() === 'scenario'" (click)="activeTab.set('scenario')">
-              📖 Scénario Principal
-            </button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" [class.active]="activeTab() === 'roles'" (click)="activeTab.set('roles')">
-              👥 Rôles Asymétriques ({{ casResult()!.roles.length }})
-            </button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" [class.active]="activeTab() === 'questions'" (click)="activeTab.set('questions')">
-              ⚖️ Decisions à prendre ({{ casResult()!.questions_decisions.length }})
-            </button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" [class.active]="activeTab() === 'grille'" (click)="activeTab.set('grille')">
-              📊 Grille d'Évaluation
-            </button>
-          </li>
-        </ul>
+      <div class="config-card">
+        <!-- Result Tabs -->
+        <div class="result-tabs" role="tablist">
+          <button type="button" class="result-tab-btn" [class.active]="activeTab() === 'scenario'" (click)="activeTab.set('scenario')" role="tab">
+            📖 Scénario Principal
+          </button>
+          <button type="button" class="result-tab-btn" [class.active]="activeTab() === 'roles'" (click)="activeTab.set('roles')" role="tab">
+            👥 Rôles Asymétriques ({{ casResult()!.roles.length }})
+          </button>
+          <button type="button" class="result-tab-btn" [class.active]="activeTab() === 'questions'" (click)="activeTab.set('questions')" role="tab">
+            ⚖️ Décisions à prendre ({{ casResult()!.questions_decisions.length }})
+          </button>
+          <button type="button" class="result-tab-btn" [class.active]="activeTab() === 'grille'" (click)="activeTab.set('grille')" role="tab">
+            📊 Grille d'Évaluation
+          </button>
+        </div>
 
-        <div class="p-4">
+        <div class="tab-content-area">
           <!-- TAB: SCENARIO -->
           @if (activeTab() === 'scenario') {
-            <div class="bg-light p-4 rounded-3 border">
-              <h5 class="fw-bold mb-3"><i class="feather icon-file-text me-2"></i>Contexte Professionnel & Problématique</h5>
-              <p class="lh-lg text-dark mb-0" style="white-space: pre-line;">{{ casResult()!.contexte_scenario }}</p>
+            <div class="scenario-box">
+              <h5><i class="feather icon-file-text me-2"></i>Contexte Professionnel &amp; Problématique</h5>
+              <p class="scenario-text">{{ casResult()!.contexte_scenario }}</p>
             </div>
           }
 
           <!-- TAB: ROLES -->
           @if (activeTab() === 'roles') {
-            <div class="row g-3">
+            <div class="roles-grid">
               @for (role of casResult()!.roles; track role.nom_role) {
-                <div class="col-12 col-md-6 col-lg-4">
-                  <div class="card h-100 border-primary-subtle shadow-sm">
-                    <div class="card-header bg-primary text-white py-2 fw-bold">
-                      🎭 {{ role.nom_role }}
+                <div class="role-card">
+                  <div class="role-card-header">
+                    🎭 {{ role.nom_role }}
+                  </div>
+                  <div class="role-card-body">
+                    <h6>🎯 Objectifs :</h6>
+                    <p class="text-muted-desc">{{ role.objectifs }}</p>
+
+                    <div class="secret-box">
+                      <strong>🔒 Infos Privées (Secrets) :</strong>
+                      <p>{{ role.infos_privees }}</p>
                     </div>
-                    <div class="card-body">
-                      <h6 class="fw-bold text-primary">🎯 Objectifs :</h6>
-                      <p class="small text-muted mb-3">{{ role.objectifs }}</p>
 
-                      <div class="p-2 bg-warning-subtle text-dark rounded mb-2 border border-warning small">
-                        <strong>🔒 Infos Privées (Secrets) :</strong>
-                        <p class="mb-0 mt-1">{{ role.infos_privees }}</p>
-                      </div>
-
-                      <div class="p-2 bg-light rounded text-muted small">
-                        <strong>⚠️ Contraintes Métier :</strong>
-                        <p class="mb-0 mt-1">{{ role.contraintes_secretes }}</p>
-                      </div>
+                    <div class="constraints-box">
+                      <strong>⚠️ Contraintes Métier :</strong>
+                      <p>{{ role.contraintes_secretes }}</p>
                     </div>
                   </div>
                 </div>
@@ -195,24 +294,22 @@
 
           <!-- TAB: QUESTIONS -->
           @if (activeTab() === 'questions') {
-            <div class="d-flex flex-column gap-3">
+            <div class="questions-list">
               @for (q of casResult()!.questions_decisions; track q.id; let i = $index) {
-                <div class="card border shadow-sm">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="badge bg-dark">Question Decision {{ i + 1 }}</span>
-                    </div>
-                    <h5 class="fw-bold text-dark">{{ q.titre }}</h5>
-                    <p class="text-muted mb-3">{{ q.description }}</p>
-
-                    @if (q.choix_possibles && q.choix_possibles.length > 0) {
-                      <div class="d-flex flex-wrap gap-2">
-                        @for (c of q.choix_possibles; track c) {
-                          <span class="badge bg-light text-dark border p-2">{{ c }}</span>
-                        }
-                      </div>
-                    }
+                <div class="question-card">
+                  <div class="q-header">
+                    <span class="q-badge">Question Décision {{ i + 1 }}</span>
                   </div>
+                  <h5 class="q-title">{{ q.titre }}</h5>
+                  <p class="q-desc">{{ q.description }}</p>
+
+                  @if (q.choix_possibles && q.choix_possibles.length > 0) {
+                    <div class="choices-row">
+                      @for (c of q.choix_possibles; track c) {
+                        <span class="choice-chip">{{ c }}</span>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -221,8 +318,8 @@
           <!-- TAB: GRILLE -->
           @if (activeTab() === 'grille') {
             <div class="table-responsive">
-              <table class="table table-bordered align-middle mb-0">
-                <thead class="table-light">
+              <table class="custom-eval-table">
+                <thead>
                   <tr>
                     <th>Critère</th>
                     <th>Poids</th>
@@ -233,8 +330,8 @@
                   @for (c of casResult()!.grille_evaluation; track c.critere) {
                     <tr>
                       <td class="fw-bold">{{ c.critere }}</td>
-                      <td><span class="badge bg-info">x{{ c.poids }}</span></td>
-                      <td class="text-muted">{{ c.description }}</td>
+                      <td><span class="weight-badge">x{{ c.poids }}</span></td>
+                      <td class="text-muted-desc">{{ c.description }}</td>
                     </tr>
                   }
                 </tbody>
@@ -243,45 +340,46 @@
           }
         </div>
       </div>
+
+      <!-- Share Link Alert -->
+      @if (shareLink()) {
+        <div class="share-link-alert mt-3">
+          <i class="feather icon-link"></i>
+          <code>{{ shareLink() }}</code>
+          <button type="button" class="btn-copy" (click)="shareCopied.set(true)">📋 Copier le lien</button>
+        </div>
+      }
+
+      <!-- Student Results Panel -->
+      @if (showResults()) {
+        <div class="results-modal-card mt-3">
+          <div class="results-modal-header">
+            <h5>📊 Décisions &amp; Résultats des Équipes</h5>
+            <button type="button" class="btn-close-modal" (click)="showResults.set(false)">✕</button>
+          </div>
+          <div class="results-modal-body">
+            @if (shareResults().length === 0) {
+              <p class="empty-results-text">Aucun résultat d'équipe pour le moment.</p>
+            } @else {
+              <div class="table-responsive">
+                <table class="custom-eval-table">
+                  <thead><tr><th>Nom Équipe / Étudiant</th><th>Décisions prises</th><th>Date</th></tr></thead>
+                  <tbody>
+                    @for (r of shareResults(); track r.id) {
+                      <tr>
+                        <td><strong>{{ r.student_name }}</strong></td>
+                        <td>{{ r.score }}/{{ r.max_score }}</td>
+                        <td>{{ r.completed_at | date:'short' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
-
-    <!-- Share Link Alert -->
-    @if (shareLink()) {
-      <div class="alert alert-success mb-4 d-flex align-items-center gap-2">
-        <i class="feather icon-link"></i>
-        <code style="flex:1; word-break:break-all;">{{ shareLink() }}</code>
-        <button class="btn btn-sm btn-success" (click)="shareCopied.set(true)">📋 Copier le lien</button>
-      </div>
-    }
-
-    <!-- Student Results Panel -->
-    @if (showResults()) {
-      <div class="card border-info">
-        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 text-white">📊 Décisions & Résultats des Équipes</h5>
-          <button class="btn btn-sm btn-outline-light" (click)="showResults.set(false)">✕</button>
-        </div>
-        <div class="card-body p-0">
-          @if (shareResults().length === 0) {
-            <p class="text-muted text-center p-4 mb-0">Aucun résultat d'équipe pour le moment.</p>
-          } @else {
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead><tr><th>Nom Équipe / Étudiant</th><th>Décisions prises</th><th>Date</th></tr></thead>
-                <tbody>
-                  @for (r of shareResults(); track r.id) {
-                    <tr>
-                      <td><strong>{{ r.student_name }}</strong></td>
-                      <td>{{ r.score }}/{{ r.max_score }}</td>
-                      <td>{{ r.completed_at | date:'short' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      </div>
-    }
   }
 </div>
+

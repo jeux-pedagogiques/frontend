@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 
+import { AudioAlertService } from 'src/app/theme/shared/service/audio-alert.service';
+
 type PageState = 'loading' | 'name-entry' | 'playing' | 'completed' | 'error';
-type GameType = 'quiz' | 'escape_room' | 'flashcards' | 'pitching' | 'cas_etude' | 'mindmap';
+type GameType = 'quiz' | 'escape_room' | 'flashcards' | 'pitching' | 'cas_etude' | 'mindmap' | 'debat' | 'negociation';
 
 @Component({
   selector: 'app-play',
@@ -17,6 +19,7 @@ type GameType = 'quiz' | 'escape_room' | 'flashcards' | 'pitching' | 'cas_etude'
 })
 export class PlayComponent implements OnInit, OnDestroy {
   private apiUrl = `${environment.apiUrl}/api/shares`;
+  public audioAlertService = inject(AudioAlertService);
 
   // Core state
   pageState = signal<PageState>('loading');
@@ -159,6 +162,8 @@ export class PlayComponent implements OnInit, OnDestroy {
         break;
       case 'mindmap':
         this.mindmapBranches.set(data?.branches_suggerees || []);
+        break;
+      case 'debat':
         break;
     }
   }
@@ -392,6 +397,11 @@ export class PlayComponent implements OnInit, OnDestroy {
         maxScore = this.mindmapBranches().length || 1;
         resultData = { nodes: this.mindmapNodes() };
         break;
+      case 'debat':
+        score = 1;
+        maxScore = 1;
+        resultData = { consulted: true };
+        break;
     }
 
     this.http.post(`${this.apiUrl}/${this.shareToken()}/results`, {
@@ -457,12 +467,13 @@ export class PlayComponent implements OnInit, OnDestroy {
       case 'pitching': score = 1; max = 1; break;
       case 'cas_etude': score = Object.keys(this.casEtudeAnswers()).length; max = this.casEtudeQuestions().length || 1; break;
       case 'mindmap': score = this.mindmapNodes().length; max = this.mindmapBranches().length || 1; break;
+      case 'debat': score = 1; max = 1; break;
     }
     return Math.round((score / max) * 100);
   }
 
   isQualitativeGame(): boolean {
-    return this.gameType() === 'cas_etude' || this.gameType() === 'pitching' || this.gameType() === 'mindmap';
+    return this.gameType() === 'cas_etude' || this.gameType() === 'pitching' || this.gameType() === 'mindmap' || this.gameType() === 'debat';
   }
 
   getGameTypeLabel(): string {
@@ -473,6 +484,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       pitching: 'Pitching Challenge',
       cas_etude: "Étude de Cas Gamifiée",
       mindmap: "Mind Map Collaboratif",
+      debat: "Débat Structuré",
     };
     return map[this.gameType()] || this.gameType();
   }

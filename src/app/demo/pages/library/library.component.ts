@@ -38,6 +38,7 @@ export class LibraryComponent implements OnInit {
   isLoading = signal(false);
   searchQuery = signal('');
   selectedGameType = signal<string | null>(null);
+  selectedCardId = signal<number | null>(null);
   selectedModuleId = signal<number | null>(null);
   selectedBloomLevels = signal<string[]>([]);
   showArchived = signal(false);
@@ -160,6 +161,17 @@ export class LibraryComponent implements OnInit {
     }
     this.currentPage.set(1);
     this.loadItems();
+  }
+
+  toggleSelectCard(id: number, event?: Event): void {
+    if (event) {
+      // Don't toggle selection if user clicked directly on an input or button inside
+      const target = event.target as HTMLElement;
+      if (target.closest('button') || target.closest('a') || target.closest('input')) {
+        return;
+      }
+    }
+    this.selectedCardId.update((current) => (current === id ? null : id));
   }
 
   toggleBloomLevel(level: string) {

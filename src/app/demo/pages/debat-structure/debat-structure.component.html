@@ -1,0 +1,673 @@
+<div class="debat-page">
+
+  <!-- Alertes -->
+  @if (successMessage()) {
+    <div class="pc-alert success">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer"><i class="feather icon-x"></i></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="pc-alert error">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer"><i class="feather icon-x"></i></button>
+    </div>
+  }
+
+  <!-- Bascule Prof / Étudiant -->
+  <nav class="pc-top-nav mb-4">
+    @if (isProf) {
+      <button type="button" class="nav-tab" [class.active]="viewMode() === 'host'" (click)="switchViewMode('host')">
+        <i class="feather icon-users"></i> Animer un débat
+      </button>
+    }
+    <button type="button" class="nav-tab" [class.active]="viewMode() === 'join'" (click)="switchViewMode('join')">
+      <i class="feather icon-log-in"></i> Rejoindre un débat
+    </button>
+  </nav>
+
+  <!-- ════════════════════════════════════════════
+       VUE PROFESSEUR
+       ════════════════════════════════════════════ -->
+  @if (viewMode() === 'host') {
+
+    <!-- ── SELECT MODULE ── -->
+    @if (hostState() === 'select') {
+      <div class="section-header">
+        <div class="header-icon"><i class="feather icon-users"></i></div>
+        <div>
+          <h1>Débat Structuré</h1>
+          <p class="subtitle">Générez une problématique, deux camps et des rôles à partir de vos acquis d'apprentissage.</p>
+        </div>
+      </div>
+
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <div class="config-card mb-4">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Choisir une fiche module analysée</h4>
+            </div>
+
+            <div class="unified-challenge-card-grid" role="listbox" aria-label="Liste des fiches modules analysées">
+              @for (a of analyses(); track a.id) {
+                <div class="unified-challenge-card"
+                     role="option" tabindex="0"
+                     [attr.aria-selected]="selectedAnalysis()?.id === a.id ? 'true' : 'false'"
+                     [class.selected]="selectedAnalysis()?.id === a.id"
+                     (click)="selectAnalysis(a)"
+                     (keydown.enter)="selectAnalysis(a)">
+                  <div class="ucc-header">
+                    <div class="ucc-icon-badge" aria-hidden="true">
+                      <i class="feather icon-users"></i>
+                    </div>
+                    <div class="ucc-header-actions">
+                      <span class="ucc-badge primary">Fiche Module</span>
+                      <button type="button" class="ucc-btn-icon" (click)="openOverlay(a); $event.stopPropagation()" [attr.aria-label]="'Voir le détail pour ' + a.module_title" title="Voir le détail">
+                        <i class="feather icon-eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <h4 class="ucc-title">{{ a.module_title }}</h4>
+
+                  <div class="ucc-meta-row">
+                    <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ (a.learning_outcomes || []).length }} AA</span>
+                    <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ (a.key_concepts || []).length }} concepts</span>
+                  </div>
+
+                  <div class="categories">
+                    @for (concept of (a.key_concepts || []).slice(0, 3); track concept) {
+                      <span>{{ concept }}</span>
+                    }
+                    @if ((a.key_concepts || []).length > 3) {
+                      <span class="more">+{{ (a.key_concepts || []).length - 3 }}</span>
+                    }
+                  </div>
+
+                  <div class="ucc-footer">
+                    <span class="text-muted small fw-medium">
+                      <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === a.id"></i>
+                      {{ selectedAnalysis()?.id === a.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                    </span>
+                    <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(a); $event.stopPropagation()">
+                      <i class="feather icon-zap"></i> Choisir
+                    </button>
+                  </div>
+                </div>
+              }
+              @empty {
+                <div class="empty-state">
+                  <p>Aucune fiche module trouvée. Importez et analysez d'abord un module.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="game-config-panel-col">
+          <div class="config-card config-panel-sticky">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <span class="step-badge">2</span>
+                <h4>Paramètres du débat</h4>
+              </div>
+              <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                <i class="feather icon-x" aria-hidden="true"></i> Fermer
+              </button>
+            </div>
+
+            <div class="params-grid">
+              <div class="param-group">
+                <label>Arguments par camp</label>
+                <div class="param-control">
+                  <button class="btn-sm" (click)="nbArguments = (nbArguments > 2 ? nbArguments - 1 : 2)">-</button>
+                  <span class="param-value">{{ nbArguments }}</span>
+                  <button class="btn-sm" (click)="nbArguments = (nbArguments < 5 ? nbArguments + 1 : 5)">+</button>
+                </div>
+              </div>
+
+              <div class="param-group">
+                <label>Durée d'intervention</label>
+                <div class="param-control">
+                  <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention > 30 ? dureeIntervention - 15 : 30)">-</button>
+                  <span class="param-value">{{ dureeIntervention }} s</span>
+                  <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention < 300 ? dureeIntervention + 15 : 300)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected Analysis Summary -->
+            @if (selectedAnalysis()) {
+              <div class="selected-summary">
+                <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
+                <div class="outcomes-preview">
+                  <div class="outcome-chip">
+                    <span><strong>{{ selectedAnalysis()!.module_title }}</strong></span>
+                  </div>
+                  @for (concept of (selectedAnalysis()!.key_concepts || []).slice(0, 4); track concept) {
+                    <div class="outcome-chip">
+                      <span class="bloom-dot" style="background: #c51414;"></span>
+                      <span>{{ concept }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="action-bar">
+              <button type="button" class="btn-generate" [disabled]="!selectedAnalysis() || isLoading()" (click)="generateDebat()">
+                <i class="feather icon-zap"></i>
+                <span>Générer le débat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── GÉNÉRATION ── -->
+    @if (hostState() === 'generating') {
+      <div class="generating-state">
+        <div class="spinner-large"></div>
+        <p>Génération du débat en cours...</p>
+        <span class="generating-sub">L'IA prépare la problématique, les camps et les rôles</span>
+      </div>
+    }
+
+    <!-- ── RÉSULTAT (aperçu) ── -->
+    @if (hostState() === 'result' && debat(); as d) {
+      <div class="debat-preview">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-file-text"></i></div>
+          <div>
+            <h1>Votre débat est prêt</h1>
+            <p class="subtitle">{{ d.module_title }}</p>
+          </div>
+        </div>
+
+        <div class="problematique-card">
+          <span class="prob-label">Problématique</span>
+          <h2>{{ d.problematique }}</h2>
+        </div>
+
+        <div class="camps-grid">
+          <div class="camp-card pour">
+            <div class="camp-head">
+              <i class="feather icon-thumbs-up"></i>
+              <h4>Camp POUR</h4>
+              <span class="badge-pour">{{ d.camp_pour.length }} arguments</span>
+            </div>
+            <ul>
+              @for (arg of d.camp_pour; track $index) {
+                <li><i class="feather icon-check-circle"></i> {{ arg }}</li>
+              }
+            </ul>
+          </div>
+          <div class="camp-card contre">
+            <div class="camp-head">
+              <i class="feather icon-thumbs-down"></i>
+              <h4>Camp CONTRE</h4>
+              <span class="badge-contre">{{ d.camp_contre.length }} arguments</span>
+            </div>
+            <ul>
+              @for (arg of d.camp_contre; track $index) {
+                <li><i class="feather icon-check-circle"></i> {{ arg }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div class="roles-panel">
+          <h4><i class="feather icon-users"></i> Rôles &amp; missions</h4>
+          <div class="roles-grid">
+            @for (r of d.roles; track r.nom_role) {
+              <div class="role-card">
+                <h5>{{ roleLabels[r.nom_role] || r.nom_role }}</h5>
+                <p>{{ r.description }}</p>
+                @if ((r.missions || []).length) {
+                  <ul>
+                    @for (m of r.missions; track $index) {
+                      <li>{{ m }}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="questions-panel">
+          <h4><i class="feather icon-message-circle"></i> Questions de relance</h4>
+          <ul>
+            @for (q of d.questions_relance; track $index) {
+              <li>{{ q }}</li>
+            }
+          </ul>
+        </div>
+
+        <div class="preview-actions">
+          <button type="button" class="btn btn-light" (click)="backToSelect()"><i class="feather icon-arrow-left"></i> Modifier</button>
+          <button type="button" class="btn btn-danger" (click)="connectHostSocket()">
+            <i class="feather icon-play"></i> Lancer le débat
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ── LOBBY (attente des participants) ── -->
+    @if (hostState() === 'lobby') {
+      <div class="lobby-panel">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-wifi"></i></div>
+          <div>
+            <h1>Session créée</h1>
+            <p class="subtitle">Demandez aux étudiants de rejoindre avec le code ci-dessous.</p>
+          </div>
+        </div>
+
+        <div class="join-card">
+          <div class="code-display">
+            <span class="code-label">Code de session</span>
+            <h2 class="session-code">{{ codeSession() }}</h2>
+          </div>
+          <div class="join-url-row">
+            <input type="text" readonly [value]="joinUrl()" />
+            <button type="button" class="btn btn-outline-danger" (click)="copyText(joinUrl())">Copier</button>
+          </div>
+        </div>
+
+        <div class="participants-card">
+          <div class="card-header">
+            <h4><i class="feather icon-users"></i> Participants ({{ roomParticipants().length }})</h4>
+          </div>
+          <div class="participant-list">
+            @for (p of roomParticipants(); track p.id) {
+              <div class="participant-item" [class.inactive]="p.is_active === false">
+                <span class="avatar">{{ (p.pseudo || '?').charAt(0).toUpperCase() }}</span>
+                <span class="name">{{ p.pseudo }}</span>
+                <span class="status" [class.online]="p.is_active !== false"><i class="feather icon-circle"></i></span>
+              </div>
+            }
+            @empty {
+              <p class="empty-text">En attente d'étudiants...</p>
+            }
+          </div>
+        </div>
+
+        <div class="preview-actions">
+          <button type="button" class="btn btn-danger" [disabled]="roomParticipants().length === 0" (click)="launchDebat()">
+            <i class="feather icon-play"></i> Démarrer le débat ({{ roomParticipants().length }} participants)
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ── LIVE (contrôle des tours) ── -->
+    @if (hostState() === 'live') {
+      <div class="live-panel">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-mic"></i></div>
+          <div>
+            <h1>Débat en cours</h1>
+            <p class="subtitle">{{ launched()?.problematique }}</p>
+          </div>
+          <div class="header-actions">
+            <button type="button" class="btn btn-outline-secondary" (click)="shareGame()">
+              <i class="feather icon-share-2"></i> Partager
+            </button>
+            <button type="button" class="btn btn-danger" (click)="endDebate()">
+              <i class="feather icon-square"></i> Terminer
+            </button>
+          </div>
+        </div>
+
+        @if (shareLink()) {
+          <div class="share-bar">
+            <input type="text" readonly [value]="shareLink()" />
+            <button type="button" class="btn btn-success" (click)="copyText(shareLink())">
+              <i class="feather icon-check"></i> {{ shareCopied() ? 'Copié !' : 'Copier le lien' }}
+            </button>
+          </div>
+        }
+
+        <div class="live-grid">
+          <!-- Colonne orateur en cours -->
+          <div class="col-speaker">
+            <div class="speaker-card">
+              @if (currentIntervention(); as cur) {
+                <div class="speaker-active" aria-live="polite">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  <h3>{{ cur.pseudo }}</h3>
+                  <span class="camp-chip" [class.pour]="cur.camp === 'pour'" [class.contre]="cur.camp === 'contre'">
+                    {{ campLabel(cur.camp) }}
+                  </span>
+                  <div class="timer-big" aria-label="Temps de parole restant">{{ formatTime(timerRemaining()) }}</div>
+                  <button type="button" class="btn btn-warning btn-block" (click)="endIntervention()" aria-label="Clôturer l'intervention du participant">
+                    <i class="feather icon-stop-circle" aria-hidden="true"></i> Clôturer l'intervention
+                  </button>
+                </div>
+              } @else {
+                <div class="speaker-idle">
+                  <i class="feather icon-mic-off"></i>
+                  <p>Aucun orateur en cours.</p>
+                  <p class="hint">Sélectionnez un participant pour démarrer son tour.</p>
+                </div>
+              }
+            </div>
+
+            <div class="interventions-card">
+              <h4><i class="feather icon-list"></i> Historique des interventions</h4>
+              <div class="intervention-log">
+                @for (item of interventionLog(); track $index) {
+                  <div class="log-item">
+                    <span class="log-pseudo">{{ item.pseudo }}</span>
+                    <span class="log-camp" [class.pour]="item.camp === 'pour'" [class.contre]="item.camp === 'contre'">{{ campLabel(item.camp) }}</span>
+                    <span class="log-duree">{{ formatTime(item.duree_secondes) }}</span>
+                    @if (item.contenu) {
+                      <p class="log-contenu">"{{ item.contenu }}"</p>
+                    }
+                  </div>
+                }
+                @empty {
+                  <p class="empty-text">Aucune intervention pour l'instant.</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Colonne participants -->
+          <div class="col-participants">
+            <div class="participants-card">
+              <div class="card-header">
+                <h4><i class="feather icon-users"></i> Participants</h4>
+              </div>
+              <div class="participant-list">
+                @for (p of roomParticipants(); track p.id) {
+                  <div class="participant-row">
+                    <div class="participant-meta">
+                      <span class="avatar">{{ (p.pseudo || '?').charAt(0).toUpperCase() }}</span>
+                      <div>
+                        <span class="name">{{ p.pseudo }}</span>
+                        <span class="role-name">{{ roleLabels[participantRole(p.id)] || participantRole(p.id) }}</span>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger"
+                            [disabled]="currentIntervention() !== null"
+                            (click)="startIntervention(p)">
+                      <i class="feather icon-play"></i> Parole
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="notes-card">
+              <h4><i class="feather icon-edit-3"></i> Notes observateur ({{ observerNotes().length }})</h4>
+              <div class="notes-list">
+                @for (n of observerNotes(); track n.note_id) {
+                  <div class="note-item">
+                    <span class="note-pseudo">{{ n.pseudo }}</span>
+                    <p>{{ n.note_texte }}</p>
+                  </div>
+                }
+                @empty {
+                  <p class="empty-text">Aucune note reçue en direct.</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── TERMINÉ (synthèse) ── -->
+    @if (hostState() === 'ended' && synthese(); as s) {
+      <div class="synthese-panel">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-award"></i></div>
+          <div>
+            <h1>Débat terminé</h1>
+            <p class="subtitle">Synthèse générée automatiquement par l'IA.</p>
+          </div>
+        </div>
+
+        <div class="synthese-card">
+          <h4>Résumé du débat</h4>
+          <p>{{ s.resume_debat }}</p>
+
+          <div class="camps-grid">
+            <div class="camp-card pour">
+              <h4>Arguments POUR</h4>
+              <ul>
+                @for (a of s.arguments_pour; track $index) { <li><i class="feather icon-check-circle"></i> {{ a }}</li> }
+              </ul>
+            </div>
+            <div class="camp-card contre">
+              <h4>Arguments CONTRE</h4>
+              <ul>
+                @for (a of s.arguments_contre; track $index) { <li><i class="feather icon-check-circle"></i> {{ a }}</li> }
+              </ul>
+            </div>
+          </div>
+
+          @if ((s.points_cles || []).length) {
+            <div class="points-block">
+              <h4>Points clés</h4>
+              <ul>
+                @for (p of s.points_cles; track $index) { <li>{{ p }}</li> }
+              </ul>
+            </div>
+          }
+
+          <div class="conclusion-block">
+            <h4>Conclusion</h4>
+            <p>{{ s.conclusion }}</p>
+          </div>
+        </div>
+
+        @if (syntheseNotes().length) {
+          <div class="notes-card">
+            <h4><i class="feather icon-edit-3"></i> Notes des observateurs</h4>
+            <div class="notes-list">
+              @for (n of syntheseNotes(); track n.id) {
+                <div class="note-item">
+                  <span class="note-pseudo">{{ n.pseudo }}</span>
+                  <p>{{ n.note_texte }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ════════════════════════════════════════════
+       VUE ÉTUDIANT
+       ════════════════════════════════════════════ -->
+  @if (viewMode() === 'join') {
+
+    <!-- ── REJOINDRE ── -->
+    @if (joinState() === 'join') {
+      <div class="join-entry">
+        <div class="join-card form">
+          <div class="header-icon center"><i class="feather icon-git-branch"></i></div>
+          <h1>Rejoindre un débat</h1>
+          <p class="subtitle">Renseignez le code fourni par votre enseignant et votre pseudo.</p>
+
+          <label class="config-field">
+            <span>Code de session</span>
+            <input type="text" [(ngModel)]="joinCode" placeholder="123456" maxlength="10" />
+          </label>
+          <label class="config-field">
+            <span>Votre pseudo</span>
+            <input type="text" [(ngModel)]="joinPseudo" placeholder="Votre nom" />
+          </label>
+
+          <button type="button" class="btn btn-danger btn-block" (click)="connectStudentSocket()">
+            <i class="feather icon-log-in"></i> Rejoindre la session
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ── EN ATTENTE ── -->
+    @if (joinState() === 'waiting') {
+      <div class="generating-state">
+        <div class="spinner-large"></div>
+        <p>Connecté à la session {{ codeSession() || joinCode }}</p>
+        <span class="generating-sub">En attente du lancement du débat par l'enseignant...</span>
+      </div>
+    }
+
+    <!-- ── RÔLE REÇU ── -->
+    @if (joinState() === 'role' && myRole(); as role) {
+      <div class="student-panel">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-user-check"></i></div>
+          <div>
+            <h1>Bienvenue, {{ joinPseudo }}</h1>
+            <p class="subtitle">{{ launched()?.problematique }}</p>
+          </div>
+        </div>
+
+        <div class="my-role-card" [class.pour]="role.camp === 'pour'" [class.contre]="role.camp === 'contre'" [class.neutre]="role.camp === 'neutre'">
+          <span class="role-badge">{{ roleLabel() }}</span>
+          <h3 class="role-camp">{{ campLabel(role.camp) }}</h3>
+          @if (role.role_description) {
+            <p class="role-desc">{{ role.role_description }}</p>
+          }
+          @if ((role.missions || []).length) {
+            <ul class="role-missions">
+              @for (m of role.missions; track $index) {
+                <li><i class="feather icon-check-circle"></i> {{ m }}</li>
+              }
+            </ul>
+          }
+        </div>
+
+        @if (getMyCampArguments().length) {
+          <div class="camp-card" [class.pour]="role.camp === 'pour'" [class.contre]="role.camp === 'contre'">
+            <h4>Vos arguments initiaux ({{ campLabel(role.camp) }})</h4>
+            <ul>
+              @for (a of getMyCampArguments(); track $index) {
+                <li><i class="feather icon-check-circle"></i> {{ a }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="student-timer">
+          @if (currentIntervention(); as cur) {
+            <div class="speaker-active" aria-live="polite">
+              <span class="live-dot" aria-hidden="true"></span>
+              <span class="turn-label">Tour de parole :</span>
+              <h3>{{ cur.pseudo }}</h3>
+              <span class="camp-chip" [class.pour]="cur.camp === 'pour'" [class.contre]="cur.camp === 'contre'">{{ campLabel(cur.camp) }}</span>
+              <div class="timer-big" aria-label="Temps de parole restant">{{ formatTime(timerRemaining()) }}</div>
+            </div>
+          } @else {
+            <div class="speaker-idle">
+              <i class="feather icon-clock"></i>
+              <p>En attente d'un tour de parole...</p>
+            </div>
+          }
+        </div>
+
+        @if (isObserver()) {
+          <div class="observer-form">
+            <h4><i class="feather icon-edit-3"></i> Note d'observateur</h4>
+            @if (noteSent()) {
+              <div class="pc-alert success">
+                <i class="feather icon-check-circle"></i>
+                <span>Note envoyée à l'enseignant.</span>
+                <button type="button" class="alert-close" (click)="resetNote()"><i class="feather icon-plus"></i></button>
+              </div>
+            } @else {
+              <textarea rows="3" [(ngModel)]="noteText" placeholder="Notez les arguments forts, les points faibles, les questions à soulever..."></textarea>
+              <button type="button" class="btn btn-danger" [disabled]="!noteText.trim()" (click)="submitNote()">
+                <i class="feather icon-send"></i> Envoyer la note
+              </button>
+            }
+          </div>
+        }
+
+        @if ((launched()?.questions_relance || []).length) {
+          <div class="questions-panel">
+            <h4><i class="feather icon-message-circle"></i> Questions de relance du débat</h4>
+            <ul>
+              @for (q of launched()?.questions_relance; track $index) {
+                <li>{{ q }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── TERMINÉ (étudiant) ── -->
+    @if (joinState() === 'ended' && synthese(); as s) {
+      <div class="synthese-panel">
+        <div class="section-header">
+          <div class="header-icon"><i class="feather icon-award"></i></div>
+          <div>
+            <h1>Débat terminé</h1>
+            <p class="subtitle">{{ launched()?.problematique }}</p>
+          </div>
+        </div>
+
+        <div class="synthese-card">
+          <h4>Résumé du débat</h4>
+          <p>{{ s.resume_debat }}</p>
+
+          <div class="camps-grid">
+            <div class="camp-card pour">
+              <h4>Arguments POUR</h4>
+              <ul>
+                @for (a of s.arguments_pour; track $index) { <li><i class="feather icon-check-circle"></i> {{ a }}</li> }
+              </ul>
+            </div>
+            <div class="camp-card contre">
+              <h4>Arguments CONTRE</h4>
+              <ul>
+                @for (a of s.arguments_contre; track $index) { <li><i class="feather icon-check-circle"></i> {{ a }}</li> }
+              </ul>
+            </div>
+          </div>
+
+          <div class="conclusion-block">
+            <h4>Conclusion</h4>
+            <p>{{ s.conclusion }}</p>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Overlay détails fiche module -->
+  @if (viewingAnalysis(); as a) {
+    <div class="overlay-backdrop" (click)="closeOverlay()">
+      <div class="overlay-card" (click)="$event.stopPropagation()">
+        <div class="overlay-head">
+          <h3>{{ a.module_title }}</h3>
+          <button type="button" class="ucc-btn-icon" (click)="closeOverlay()"><i class="feather icon-x"></i></button>
+        </div>
+        <h5>Acquis d'apprentissage</h5>
+        <ul class="aa-list">
+          @for (lo of (a.learning_outcomes || []); track $index) {
+            <li>{{ lo.description || lo }}</li>
+          }
+        </ul>
+        <h5>Concepts clés</h5>
+        <div class="chips">
+          @for (c of (a.key_concepts || []); track $index) {
+            <span class="chip">{{ c }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

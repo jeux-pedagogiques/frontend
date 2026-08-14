@@ -99,6 +99,22 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item'
       },
       {
+        id: 'debat-structure',
+        title: 'Débat Structuré',
+        type: 'item',
+        url: '/debat-structure',
+        icon: 'feather icon-users',
+        classes: 'nav-item'
+      },
+      {
+        id: 'negociation',
+        title: 'Simulation Négociation',
+        type: 'item',
+        url: '/negociation',
+        icon: 'feather icon-briefcase',
+        classes: 'nav-item'
+      },
+      {
         id: 'library',
         title: 'Bibliothèque',
         type: 'item',

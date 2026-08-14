@@ -56,8 +56,10 @@ export class MindMapComponent implements OnInit {
 
   analyses = signal<ModuleAnalysis[]>([]);
   selectedAnalysis = signal<ModuleAnalysis | null>(null);
+  selectedNodeId = signal<number | null>(null);
 
   nbBranches = 4;
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
   mindmapResult = signal<MindMapData | null>(null);
 
   // Student nodes / preview
@@ -107,7 +109,8 @@ export class MindMapComponent implements OnInit {
 
     const body = {
       module_id: analysis.id,
-      nb_branches: this.nbBranches
+      nb_branches: this.nbBranches,
+      model: this.selectedModel(),
     };
 
     this.http.post<any>(`${this.apiUrl}/mindmap/generate`, body).subscribe({
@@ -142,6 +145,10 @@ export class MindMapComponent implements OnInit {
     this.nodes.update((prev) => [...prev, newNode]);
     this.newNodeTitle = '';
     this.selectedParentNodeId = null;
+  }
+
+  toggleSelectNode(nodeId: number): void {
+    this.selectedNodeId.update((current) => (current === nodeId ? null : nodeId));
   }
 
   removeNode(nodeId: number): void {
