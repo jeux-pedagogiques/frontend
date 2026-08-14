@@ -27,6 +27,9 @@ export default [{
     rules: {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+        "@angular-eslint/prefer-inject": "warn",
+        "no-case-declarations": "warn",
+        "prefer-const": "warn",
         "@angular-eslint/directive-selector": ["error", {
             type: "attribute",
             prefix: "app",
@@ -44,5 +47,7 @@ export default [{
     files: ["**/*.html"],
 })), {
     files: ["**/*.html"],
-    rules: {},
+    rules: {
+        "@angular-eslint/template/prefer-control-flow": "warn",
+    },
 }];
