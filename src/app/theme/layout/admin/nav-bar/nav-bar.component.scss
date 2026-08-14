@@ -1,1 +1,38 @@
-// This file is intentionally left empty to allow customers to add custom CSS if needed.
+.top-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  width: 100%;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+}

@@ -9,6 +9,7 @@ import { LayoutStateService } from 'src/app/theme/shared/service/layout-state.se
 
 @Component({
   selector: 'app-nav-item',
+  host: { role: 'presentation' },
   imports: [SharedModule, RouterModule],
   templateUrl: './nav-item.component.html',
   styleUrls: ['./nav-item.component.scss']
@@ -47,7 +48,7 @@ export class NavItemComponent {
         last_parent.classList.add('active');
       }
     }
-    this.layoutState.toggleNavCollapsedMob();
+    this.layoutState.closeNavCollapsedMob();
     if (document.querySelector('app-navigation.pcoded-navbar')?.classList.contains('mob-open')) {
       document.querySelector('app-navigation.pcoded-navbar')?.classList.remove('mob-open');
     }

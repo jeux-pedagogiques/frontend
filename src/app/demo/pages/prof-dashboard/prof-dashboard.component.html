@@ -62,7 +62,34 @@
       <!-- Charts Row 1 -->
       <div class="charts-row">
         <div class="chart-card half">
-          <h3>Répartition par type de jeu</h3>
+          <div class="chart-header d-flex align-items-center justify-content-between mb-2">
+            <h2 class="mb-0 fs-6 fw-bold text-dark">Répartition par type de jeu</h2>
+            <button type="button" class="btn-chart-info" (click)="toggleChartDetails('gameType')" [attr.aria-expanded]="showChartDetails()['gameType']" aria-label="Afficher les détails de la répartition par type de jeu" title="Afficher les détails des données">
+              <i class="feather icon-info" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (showChartDetails()['gameType'] && overview()) {
+            <div class="chart-details-panel mb-3">
+              <h3 class="details-title"><i class="feather icon-pie-chart me-1" aria-hidden="true"></i> Détails des types de jeux</h3>
+              <div class="details-grid d-flex flex-wrap gap-2 mt-2">
+                <div class="details-chip px-2 py-1 bg-light rounded d-flex align-items-center gap-1">
+                  <span class="dot rounded-circle" style="width:8px; height:8px; background: #C51414;"></span>
+                  <span class="label text-muted small">Quiz:</span>
+                  <span class="value fw-bold small">{{ overview()?.counts_by_type?.quiz || 0 }}</span>
+                </div>
+                <div class="details-chip px-2 py-1 bg-light rounded d-flex align-items-center gap-1">
+                  <span class="dot rounded-circle" style="width:8px; height:8px; background: #9f1010;"></span>
+                  <span class="label text-muted small">Escape Room:</span>
+                  <span class="value fw-bold small">{{ overview()?.counts_by_type?.escape_room || 0 }}</span>
+                </div>
+                <div class="details-chip px-2 py-1 bg-light rounded d-flex align-items-center gap-1">
+                  <span class="dot rounded-circle" style="width:8px; height:8px; background: #f59e0b;"></span>
+                  <span class="label text-muted small">Pitching:</span>
+                  <span class="value fw-bold small">{{ overview()?.counts_by_type?.pitching || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          }
           @if (gameTypeChart) {
             <div>
               <apx-chart
@@ -78,7 +105,25 @@
           }
         </div>
         <div class="chart-card half">
-          <h3>Distribution Bloom</h3>
+          <div class="chart-header d-flex align-items-center justify-content-between mb-2">
+            <h2 class="mb-0 fs-6 fw-bold text-dark">Distribution Bloom</h2>
+            <button type="button" class="btn-chart-info" (click)="toggleChartDetails('bloom')" [attr.aria-expanded]="showChartDetails()['bloom']" aria-label="Afficher les détails de la distribution Bloom" title="Afficher les détails des données">
+              <i class="feather icon-info" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (showChartDetails()['bloom'] && overview()) {
+            <div class="chart-details-panel mb-3">
+              <h3 class="details-title"><i class="feather icon-bar-chart-2 me-1" aria-hidden="true"></i> Niveaux taxonomiques Bloom</h3>
+              <div class="details-grid d-flex flex-wrap gap-2 mt-2">
+                @for (item of (overview()?.bloom_distribution | keyvalue); track item.key) {
+                  <div class="details-chip px-2 py-1 bg-light rounded">
+                    <span class="label text-muted small">{{ bloomLabels[item.key] || item.key }}:</span>
+                    <span class="value fw-bold small ms-1">{{ item.value }} AA</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
           @if (bloomChart) {
             <div>
               <apx-chart
@@ -97,7 +142,25 @@
       <!-- Charts Row 2 -->
       <div class="charts-row">
         <div class="chart-card half">
-          <h3>Participants par session</h3>
+          <div class="chart-header d-flex align-items-center justify-content-between mb-2">
+            <h2 class="mb-0 fs-6 fw-bold text-dark">Participants par session</h2>
+            <button type="button" class="btn-chart-info" (click)="toggleChartDetails('participation')" [attr.aria-expanded]="showChartDetails()['participation']" aria-label="Afficher les détails de la participation par session" title="Afficher les détails des données">
+              <i class="feather icon-info" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (showChartDetails()['participation'] && overview()) {
+            <div class="chart-details-panel mb-3">
+              <h3 class="details-title"><i class="feather icon-users me-1" aria-hidden="true"></i> Participants par session</h3>
+              <div class="details-list mt-2">
+                @for (session of overview()?.participation_by_session; track session.session_id) {
+                  <div class="details-row d-flex justify-content-between py-1 border-bottom border-light">
+                    <span class="small text-muted">{{ session.code_session || ('Session #' + session.session_id) }} ({{ session.type }}):</span>
+                    <span class="small fw-bold">{{ session.participant_count }} participants</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
           @if (participationChart) {
             <div>
               <apx-chart
@@ -113,7 +176,25 @@
           }
         </div>
         <div class="chart-card half">
-          <h3>Taux de réussite par AA</h3>
+          <div class="chart-header d-flex align-items-center justify-content-between mb-2">
+            <h2 class="mb-0 fs-6 fw-bold text-dark">Taux de réussite par AA</h2>
+            <button type="button" class="btn-chart-info" (click)="toggleChartDetails('aaSuccess')" [attr.aria-expanded]="showChartDetails()['aaSuccess']" aria-label="Afficher les détails du taux de réussite par AA" title="Afficher les détails des données">
+              <i class="feather icon-info" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (showChartDetails()['aaSuccess'] && overview()) {
+            <div class="chart-details-panel mb-3">
+              <h3 class="details-title"><i class="feather icon-check-circle me-1" aria-hidden="true"></i> Pourcentage de réussite par Acquis d'Apprentissage</h3>
+              <div class="details-list mt-2">
+                @for (aa of overview()?.aa_success_rates; track aa.aa_source) {
+                  <div class="details-row d-flex justify-content-between py-1 border-bottom border-light">
+                    <span class="small text-muted">{{ aa.aa_source }}:</span>
+                    <span class="small fw-bold text-success">{{ aa.success_rate }}%</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
           @if (aaSuccessChart) {
             <div>
               <apx-chart
@@ -131,7 +212,7 @@
       </div>
       <!-- Sessions Table -->
       <div class="table-card">
-        <h3>Sessions récentes</h3>
+        <h2 class="fs-6 fw-bold text-dark mb-3">Sessions récentes</h2>
         <div class="table-wrapper">
           <table class="dash-table">
             <thead>

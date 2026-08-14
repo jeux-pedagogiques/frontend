@@ -7,6 +7,8 @@ import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
 import { ApexOptions, NgApexchartsModule } from 'ng-apexcharts';
 
+import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
+
 interface OverviewData {
   total_sessions: number;
   total_games_generated: number;
@@ -53,16 +55,19 @@ interface ComparisonData {
   }[];
 }
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-prof-dashboard',
   standalone: true,
-  imports: [FormsModule, SharedModule, RouterModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, SharedModule, RouterModule, NgApexchartsModule],
   templateUrl: './prof-dashboard.component.html',
   styleUrls: ['./prof-dashboard.component.scss']
 })
 export class ProfDashboardComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private ramCache = inject(RamCacheService);
 
   // State
   pageState = signal<'overview' | 'detail' | 'loading'>('loading');
@@ -71,6 +76,7 @@ export class ProfDashboardComponent implements OnInit {
 
   // Overview data
   overview = signal<OverviewData | null>(null);
+  showChartDetails = signal<Record<string, boolean>>({});
 
   // Session detail
   sessionDetail = signal<SessionDetail | null>(null);
@@ -102,7 +108,7 @@ export class ProfDashboardComponent implements OnInit {
     'appliquer': '#eab308',
     'analyser': '#22c55e',
     'evaluer': '#3b82f6',
-    'creer': '#8b5cf6'
+    'creer': '#9f1010'
   };
 
   ngOnInit(): void {
@@ -110,21 +116,32 @@ export class ProfDashboardComponent implements OnInit {
   }
 
   loadOverview(): void {
-    this.pageState.set('loading');
-    this.isLoading.set(true);
+    const cached = this.ramCache.get<OverviewData>('dashboard_overview');
+    if (cached) {
+      this.overview.set(cached);
+      this.initCharts(cached);
+      this.pageState.set('overview');
+      this.isLoading.set(false);
+    } else {
+      this.pageState.set('loading');
+      this.isLoading.set(true);
+    }
     this.errorMessage.set('');
 
     this.http.get<OverviewData>(`${this.apiUrl}/overview`).subscribe({
       next: (data) => {
         this.overview.set(data);
+        this.ramCache.set('dashboard_overview', data);
         this.initCharts(data);
         this.pageState.set('overview');
         this.isLoading.set(false);
         this.cd.detectChanges();
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement du tableau de bord.');
-        this.pageState.set('overview');
+        if (!cached) {
+          this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement du tableau de bord.');
+          this.pageState.set('overview');
+        }
         this.isLoading.set(false);
         this.cd.detectChanges();
       }
@@ -152,6 +169,13 @@ export class ProfDashboardComponent implements OnInit {
     });
   }
 
+  toggleChartDetails(key: string): void {
+    this.showChartDetails.update((prev) => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  }
+
   loadComparison(sessionId: number): void {
     this.http.get<ComparisonData>(`${this.apiUrl}/sessions/${sessionId}/comparison`).subscribe({
       next: (data) => {
@@ -176,14 +200,18 @@ export class ProfDashboardComponent implements OnInit {
   // ========== CHARTS ==========
 
   initCharts(data: OverviewData): void {
+    const isDark = document.body.classList.contains('dark-mode');
+    const labelColor = isDark ? '#cbd5e1' : '#64748b';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9';
+
     // Game Type Donut
     const types = data.counts_by_type;
     this.gameTypeChart = {
-      chart: { type: 'donut', height: 260 },
+      chart: { type: 'donut', height: 260, foreColor: labelColor },
       labels: ['Quiz', 'Escape Room', 'Pitching'],
       series: [types.quiz, types.escape_room, types.pitching],
-      colors: ['#6366f1', '#8b5cf6', '#f59e0b'],
-      legend: { position: 'bottom' },
+      colors: ['#C51414', '#9f1010', '#f59e0b'],
+      legend: { position: 'bottom', labels: { colors: labelColor } },
       dataLabels: { enabled: true, dropShadow: { enabled: false } },
       plotOptions: { pie: { donut: { size: '65%' } } }
     };
@@ -191,55 +219,62 @@ export class ProfDashboardComponent implements OnInit {
     // Bloom Distribution Bar
     const bloomEntries = Object.entries(data.bloom_distribution);
     this.bloomChart = {
-      chart: { type: 'bar', height: 260, toolbar: { show: false } },
+      chart: { type: 'bar', height: 260, toolbar: { show: false }, foreColor: labelColor },
       series: [{ name: 'Nombre d\'AA', data: bloomEntries.map(([, v]) => v) }],
       xaxis: {
         categories: bloomEntries.map(([k]) => this.bloomLabels[k] || k),
-        labels: { style: { fontSize: '11px' } }
+        labels: { style: { fontSize: '11px', colors: labelColor } }
       },
+      yaxis: { labels: { style: { colors: labelColor } } },
       colors: bloomEntries.map(([k]) => this.bloomColors[k] || '#6b7280'),
       plotOptions: { bar: { borderRadius: 6, columnWidth: '60%' } },
       dataLabels: { enabled: false },
-      grid: { borderColor: '#f1f5f9' }
+      grid: { borderColor: gridColor }
     };
 
     // Participation by Session (bar chart)
     const sessions = data.participation_by_session.filter(s => s.type !== 'pitching');
     this.participationChart = {
-      chart: { type: 'bar', height: 260, toolbar: { show: false } },
+      chart: { type: 'bar', height: 260, toolbar: { show: false }, foreColor: labelColor },
       series: [{ name: 'Participants', data: sessions.map(s => s.participant_count) }],
       xaxis: {
         categories: sessions.map(s => s.code_session || `S${s.session_id}`),
-        labels: { style: { fontSize: '10px' } }
+        labels: { style: { fontSize: '10px', colors: labelColor } }
       },
-      colors: ['#6366f1'],
+      yaxis: { labels: { style: { colors: labelColor } } },
+      colors: ['#C51414'],
       plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
       dataLabels: { enabled: false },
-      grid: { borderColor: '#f1f5f9' }
+      grid: { borderColor: gridColor }
     };
 
     // AA Success Rates (horizontal bar)
     const aaData = data.aa_success_rates;
     this.aaSuccessChart = {
-      chart: { type: 'bar', height: Math.max(200, aaData.length * 35), toolbar: { show: false } },
+      chart: { type: 'bar', height: Math.max(200, aaData.length * 35), toolbar: { show: false }, foreColor: labelColor },
       series: [{ name: 'Taux de réussite %', data: aaData.map(a => a.success_rate) }],
       xaxis: {
         categories: aaData.map(a => a.aa_source),
-        labels: { style: { fontSize: '11px' } },
+        labels: { style: { fontSize: '11px', colors: labelColor } },
         max: 100
       },
+      yaxis: { labels: { style: { colors: labelColor } } },
       colors: ['#22c55e'],
       plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '60%' } },
-      dataLabels: { enabled: true, formatter: (val: number) => `${val}%` },
-      grid: { borderColor: '#f1f5f9' }
+      dataLabels: { enabled: true, formatter: (val: number) => `${val}%`, style: { colors: [isDark ? '#ffffff' : '#1e293b'] } },
+      grid: { borderColor: gridColor }
     };
   }
 
   initComparisonChart(data: ComparisonData): void {
     if (!data.history || data.history.length === 0) return;
 
+    const isDark = document.body.classList.contains('dark-mode');
+    const labelColor = isDark ? '#cbd5e1' : '#64748b';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9';
+
     this.comparisonChart = {
-      chart: { type: 'line', height: 280, toolbar: { show: false } },
+      chart: { type: 'line', height: 280, toolbar: { show: false }, foreColor: labelColor },
       series: [{
         name: 'Taux de réussite global %',
         data: data.history.map(h => h.overall_success_rate)
@@ -249,14 +284,14 @@ export class ProfDashboardComponent implements OnInit {
           const d = new Date(h.created_at);
           return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
         }),
-        labels: { style: { fontSize: '10px' } }
+        labels: { style: { fontSize: '10px', colors: labelColor } }
       },
-      colors: ['#6366f1'],
+      colors: ['#C51414'],
       stroke: { width: 3, curve: 'smooth' },
       markers: { size: 6 },
       dataLabels: { enabled: false },
-      grid: { borderColor: '#f1f5f9' },
-      yaxis: { min: 0, max: 100, labels: { formatter: (val: number) => `${val}%` } }
+      grid: { borderColor: gridColor },
+      yaxis: { min: 0, max: 100, labels: { formatter: (val: number) => `${val}%`, style: { colors: labelColor } } }
     };
   }
 
@@ -290,9 +325,9 @@ export class ProfDashboardComponent implements OnInit {
   getStatutColor(statut: string): string {
     switch (statut) {
       case 'terminee': return '#22c55e';
-      case 'en_cours': return '#eab308';
-      case 'en_attente': return '#6b7280';
-      default: return '#6b7280';
+      case 'en_cours': return '#f59e0b';
+      case 'en_attente': return '#a1a1aa';
+      default: return '#a1a1aa';
     }
   }
 

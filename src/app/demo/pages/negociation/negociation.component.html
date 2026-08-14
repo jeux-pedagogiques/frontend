@@ -1,0 +1,377 @@
+<div class="negociation-page">
+
+  <!-- ===== Top Nav Tabs ===== -->
+  <nav class="ce-top-nav" aria-label="Navigation Simulation Négociation" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="hostState() === 'select' || hostState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer une Simulation
+    </button>
+    @if (generatedNegociation()) {
+      <button type="button" class="nav-tab" role="tab" [class.active]="hostState() === 'result' || hostState() === 'lobby' || hostState() === 'live' || hostState() === 'ended'" (click)="hostState.set('result')">
+        <i class="feather icon-briefcase" aria-hidden="true"></i> Scénario &amp; Session Live
+      </button>
+    }
+  </nav>
+
+  <!-- ===== Alerts ===== -->
+  @if (successMessage()) {
+    <div class="ce-alert success" role="status" aria-live="polite">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="ce-alert error" role="alert" aria-live="assertive">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="clearMessages()" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: SELECT (Configuration + Module Selection)                  -->
+  <!-- ================================================================= -->
+  @if (hostState() === 'select' || hostState() === 'generating') {
+    <div class="config-section" id="neg-panel" role="tabpanel">
+
+      <div class="section-header">
+        <div class="header-icon" aria-hidden="true">
+          <i class="feather icon-briefcase"></i>
+        </div>
+        <div>
+          <h2>Simulation de Négociation</h2>
+          <p class="subtitle">Mise en situation professionnelle immersive avec distribution asymétrique de fiches de rôles secrets.</p>
+        </div>
+      </div>
+
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Select Analysis -->
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Sélectionner un module de cours analysé</h4>
+            </div>
+
+            @if (isLoading() && analyses().length === 0) {
+              <div class="empty-state" role="status" aria-live="polite">
+                <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+                <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
+              </div>
+            } @else if (analyses().length === 0) {
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
+              </div>
+            } @else {
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
+                @for (item of analyses(); track item.id) {
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === item.id ? 'true' : 'false'"
+                       aria-label="Sélectionner la fiche module {{ item.module_title }}"
+                       [class.selected]="selectedAnalysis()?.id === item.id"
+                       (click)="selectAnalysis(item)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-folder"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge primary">Fiche Module</span>
+                      </div>
+                    </div>
+
+                    <h4 class="ucc-title">{{ item.module_title }}</h4>
+
+                    <div class="ucc-meta-row">
+                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ item.learning_outcomes?.length || item.keywords?.length || 0 }} Éléments</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ item.key_concepts?.length || 0 }} concepts</span>
+                    </div>
+
+                    <div class="categories">
+                      @for (concept of item.key_concepts?.slice(0, 3); track concept) {
+                        <span>{{ concept }}</span>
+                      }
+                      @if (item.key_concepts?.length > 3) {
+                        <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === item.id"></i>
+                        {{ selectedAnalysis()?.id === item.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(item); $event.stopPropagation()">
+                        <i class="feather icon-check"></i> Choisir
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Step 2: Parameters Sidebar Card -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres de Négociation</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Rôles par groupe</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbPersonnages = (nbPersonnages > 2 ? nbPersonnages - 1 : 2)">-</button>
+                    <span class="param-value">{{ nbPersonnages }} personnages</span>
+                    <button class="btn-sm" (click)="nbPersonnages = (nbPersonnages < 6 ? nbPersonnages + 1 : 6)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Durée recommandée</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="timerDuration = (timerDuration > 300 ? timerDuration - 180 : 300)">-</button>
+                    <span class="param-value">{{ timerDuration / 60 }} min</span>
+                    <button class="btn-sm" (click)="timerDuration = (timerDuration < 1800 ? timerDuration + 180 : 1800)">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Summary -->
+              <div class="selected-summary">
+                <h5><i class="feather icon-info me-1"></i> Fiche Sélectionnée</h5>
+                <div class="outcomes-preview">
+                  <div class="outcome-chip">
+                    <span><strong>{{ selectedAnalysis()!.module_title }}</strong></span>
+                  </div>
+                  @for (concept of selectedAnalysis()!.key_concepts?.slice(0, 4); track concept) {
+                    <div class="outcome-chip">
+                      <span class="bloom-dot" style="background: #c51414;"></span>
+                      <span>{{ concept }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="gemini-3.6-flash">Google Gemini 3.6 Flash (Ultra Rapide & Recommandé)</option>
+                  <option value="gemini-3.5-flash">Google Gemini 3.5 Flash</option>
+                  <option value="gemini-3-flash-preview">Google Gemini 3 Flash Preview</option>
+                  <option value="gemini-flash-latest">Google Gemini Flash Latest</option>
+                </select>
+              </div>
+
+              <button type="button" class="btn-generate" (click)="generateScenario()" [disabled]="isLoading()">
+                @if (isLoading()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Génération en cours...
+                } @else {
+                  <i class="feather icon-zap" aria-hidden="true"></i> Générer la Simulation
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: RESULT / LOBBY / LIVE / ENDED                              -->
+  <!-- ================================================================= -->
+  @if (hostState() !== 'select' && hostState() !== 'generating' && generatedNegociation(); as neg) {
+    <div class="scenario-result-section">
+
+      <!-- Scenario Overview Header Card -->
+      <div class="result-header-card">
+        <div class="rh-info">
+          <span class="rh-badge"><i class="feather icon-briefcase me-1"></i> Simulation Générée</span>
+          <h2>{{ neg.titre }}</h2>
+          <p>{{ neg.contexte_scenario }}</p>
+        </div>
+
+        <div class="rh-actions">
+          @if (hostState() === 'result') {
+            <button type="button" class="btn-primary-large" (click)="createSession()">
+              <i class="feather icon-play-circle me-1"></i> Créer la Session Live
+            </button>
+          } @else if (hostState() === 'lobby') {
+            <div class="lobby-code-box">
+              <span class="code-label">CODE SESSION :</span>
+              <span class="code-value">{{ codeSession() }}</span>
+            </div>
+          } @else if (hostState() === 'live') {
+            <button type="button" class="btn-danger-large" (click)="endNegociation()">
+              <i class="feather icon-stop-circle me-1"></i> Clôturer &amp; Débriefing
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Lobby State -->
+      @if (hostState() === 'lobby') {
+        <div class="lobby-card">
+          <div class="lobby-header">
+            <h3><i class="feather icon-users me-2"></i> Salle d'attente ({{ roomParticipants().length }} participants)</h3>
+            <button type="button" class="btn-generate" (click)="launchNegociation()" [disabled]="roomParticipants().length === 0">
+              <i class="feather icon-zap me-1"></i> Lancer la Simulation &amp; Distribuer les Rôles
+            </button>
+          </div>
+          <div class="participants-grid">
+            @for (p of roomParticipants(); track p.id) {
+              <div class="participant-chip">
+                <i class="feather icon-user text-danger me-1"></i>
+                <span>{{ p.pseudo }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Live Session Group Distribution -->
+      @if (hostState() === 'live' && scenarioContext(); as ctx) {
+        <div class="groups-section mb-4">
+          <h3 class="section-title"><i class="feather icon-grid me-2 text-danger"></i> Groupes de Négociation &amp; Rôles Asymétriques</h3>
+          <div class="groups-grid">
+            @for (g of ctx.groupes; track g.groupe_id) {
+              <div class="group-card">
+                <div class="group-header">
+                  <h4>{{ g.nom_groupe }}</h4>
+                  <span class="status-chip active">En cours</span>
+                </div>
+                <div class="members-list">
+                  @for (m of g.membres; track m.participant_id) {
+                    <div class="member-item">
+                      <div class="member-info">
+                        <span class="member-name">{{ m.pseudo }}</span>
+                        <span class="character-role">{{ m.nom_personnage }}</span>
+                      </div>
+                      <span class="private-badge" title="Fiche secrète envoyée"><i class="feather icon-lock"></i> Fiche Privée</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Character Cards Breakdown -->
+      <div class="cards-grid-section mb-4">
+        <h3 class="section-title"><i class="feather icon-layers me-2 text-danger"></i> Fiches de Personnages Définies</h3>
+        <div class="roles-cards-grid">
+          @for (p of neg.personnages; track p.nom_personnage) {
+            <div class="role-card">
+              <div class="role-header">
+                <h4><i class="feather icon-user me-2 text-danger"></i> {{ p.nom_personnage }}</h4>
+                <span class="role-type-tag">Rôle Asymétrique</span>
+              </div>
+              <p class="role-desc">{{ p.role_description }}</p>
+
+              <div class="secret-box mb-3">
+                <span class="box-label text-warning"><i class="feather icon-lock me-1"></i> Objectifs Secrets</span>
+                <p>{{ p.objectifs_secrets }}</p>
+              </div>
+
+              <div class="arguments-box mb-3">
+                <span class="box-label text-info"><i class="feather icon-message-square me-1"></i> Arguments Clés</span>
+                <ul>
+                  @for (arg of p.arguments_cles; track arg) {
+                    <li>{{ arg }}</li>
+                  }
+                </ul>
+              </div>
+
+              <div class="redline-box">
+                <span class="box-label text-danger"><i class="feather icon-shield me-1"></i> Lignes Rouges &amp; Compromis</span>
+                <p>{{ p.lignes_rouges_et_compromis }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Milestone Timeline Card -->
+      <div class="timeline-section mb-4">
+        <h3 class="section-title"><i class="feather icon-clock me-2 text-danger"></i> Points de Passage Temporels</h3>
+        <div class="milestones-timeline">
+          @for (pt of neg.points_passage; track pt.etape) {
+            <div class="milestone-card">
+              <div class="ms-badge">Étape {{ pt.etape }}</div>
+              <div class="ms-body">
+                <h4>{{ pt.titre }} ({{ pt.temps_pourcentage }}%)</h4>
+                <p>{{ pt.instruction }}</p>
+              </div>
+              @if (hostState() === 'live') {
+                <button type="button" class="btn-trigger-milestone" (click)="triggerMilestone(pt)">
+                  <i class="feather icon-send"></i> Notifier
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Debriefing Final Summary State -->
+      @if (hostState() === 'ended' && debriefingData(); as deb) {
+        <div class="debriefing-section">
+          <h3 class="section-title"><i class="feather icon-award me-2 text-danger"></i> Débriefing &amp; Analyse des Accords Conclus</h3>
+
+          <!-- Agreements Grid -->
+          <div class="agreements-grid mb-4">
+            @for (acc of deb.accords_groupes; track acc.nom_groupe) {
+              <div class="agreement-card" [class.signed]="acc.statut === 'conclu'">
+                <div class="ag-header">
+                  <h4>{{ acc.nom_groupe }}</h4>
+                  <span class="ag-status" [class.signed]="acc.statut === 'conclu'">
+                    {{ acc.statut === 'conclu' ? 'Accord Signé' : 'Désaccord' }}
+                  </span>
+                </div>
+                <p class="ag-summary">{{ acc.resume_accord }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Debriefing Reflection Criteria -->
+          <div class="debriefing-criteria-grid">
+            @for (crit of deb.criteres_debriefing; track crit.nom_critere) {
+              <div class="debrief-card">
+                <h4><i class="feather icon-help-circle me-2 text-danger"></i> {{ crit.nom_critere }}</h4>
+                <p class="crit-desc">{{ crit.description }}</p>
+                <div class="questions-list">
+                  <span class="q-label">Questions de réflexion :</span>
+                  <ul>
+                    @for (q of crit.questions_reflexion; track q) {
+                      <li>{{ q }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

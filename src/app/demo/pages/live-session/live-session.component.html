@@ -1,4 +1,6 @@
-<div class="row">
+<div class="live-session-page-wrapper">
+  <!-- Dynamic Futuristic Geometric Laser Light Rays Overlay -->
+  <div class="laser-lines-overlay"></div>
 
   <!-- Floating Toast Notification System (Appended at the bottom of file) -->
 
@@ -6,230 +8,250 @@
   <!-- LOBBY STATE                                                           -->
   <!-- ===================================================================== -->
   @if (sessionState() === 'lobby' && !showGuestNamePrompt()) {
-    <!-- Page Header -->
-    <div class="col-12 mb-4">
-      <div class="page-header-card">
-        <div class="d-flex align-items-center">
-          <div class="page-header-icon">
-            <i class="feather icon-video"></i>
-          </div>
-          <div>
-            <h3 class="mb-1">Séance en direct</h3>
-            <p class="text-muted mb-0">Lancez une séance vidéo interactive et autonome avec vos étudiants</p>
+    <div class="row g-4 position-relative z-1">
+
+      <!-- Top Header Card -->
+      <div class="col-12">
+        <div class="glass-header-card">
+          <div class="d-flex align-items-center">
+            <div class="header-icon-glow">
+              <i class="feather icon-video"></i>
+            </div>
+            <div>
+              <h3 class="header-title">Séance en direct</h3>
+              <p class="header-subtitle">Lancez une séance vidéo interactive et autonome avec vos étudiants</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <!-- Start a Session -->
-    <div class="col-lg-7 col-md-12 mb-4">
-      @if (isProf()) {
-        <div class="card session-card h-100">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="feather icon-play-circle me-2"></i> Nouvelle séance</h5>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label fw-bold">Nom de la séance</label>
-              <input type="text" class="form-control form-control-lg session-input"
-                [(ngModel)]="sessionName" name="sessionName"
-                placeholder="Ex: Cours d'Introduction à l'IA">
+
+      <!-- Left Card: Start a Session (Nouvelle séance) -->
+      <div class="col-lg-7 col-md-12">
+        @if (isProf()) {
+          <div class="glass-card h-100">
+            <div class="glass-card-header">
+              <h5 class="card-title-text">
+                <span class="header-symbol">⊙</span> Nouvelle séance
+              </h5>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Votre nom d'affichage</label>
-              <input type="text" class="form-control session-input"
-                [(ngModel)]="displayName" name="displayName"
-                placeholder="Ex: Prof. Dupont">
-            </div>
-            <!-- Audio/Video Toggles -->
-            <div class="d-flex gap-4 mb-4">
-              <div class="toggle-option" [class.active]="enableAudio" (click)="enableAudio = !enableAudio">
-                <div class="toggle-icon">
+            <div class="card-body p-4">
+              <div class="mb-3">
+                <label class="form-label field-label">Nom de la séance</label>
+                <input type="text" class="form-control pill-input"
+                  [(ngModel)]="sessionName" name="sessionName"
+                  placeholder="Ex: Cours d'Introduction à l'IA">
+              </div>
+              <div class="mb-4">
+                <label class="form-label field-label">Votre nom d'affichage</label>
+                <input type="text" class="form-control pill-input"
+                  [(ngModel)]="displayName" name="displayName"
+                  placeholder="Ex: oussema@esprit.tn">
+              </div>
+
+              <!-- Audio/Video Toggles -->
+              <div class="d-flex gap-3 mb-4">
+                <button type="button" class="btn pill-toggle-btn" [class.active]="enableAudio" (click)="enableAudio = !enableAudio">
                   <i class="feather" [class.icon-mic]="enableAudio" [class.icon-mic-off]="!enableAudio"></i>
-                </div>
-                <span>Microphone {{ enableAudio ? 'ON' : 'OFF' }}</span>
-              </div>
-              <div class="toggle-option" [class.active]="enableVideo" (click)="enableVideo = !enableVideo">
-                <div class="toggle-icon">
+                  <span>Microphone {{ enableAudio ? 'ON' : 'OFF' }}</span>
+                </button>
+                <button type="button" class="btn pill-toggle-btn" [class.active]="enableVideo" (click)="enableVideo = !enableVideo">
                   <i class="feather" [class.icon-video]="enableVideo" [class.icon-video-off]="!enableVideo"></i>
-                </div>
-                <span>Caméra {{ enableVideo ? 'ON' : 'OFF' }}</span>
+                  <span>Caméra {{ enableVideo ? 'ON' : 'OFF' }}</span>
+                </button>
+              </div>
+
+              <!-- Main Launch Button with Tech Circuit Glow -->
+              <button class="btn tech-launch-btn w-100" (click)="startSession()">
+                <span class="play-icon-circle"><i class="feather icon-play"></i></span>
+                <span class="launch-text">Lancer la séance</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Student Restriction Card -->
+        @if (!isProf()) {
+          <div class="glass-card h-100 student-restricted-card">
+            <div class="card-body text-center py-5">
+              <div class="restricted-icon-wrapper mb-4">
+                <i class="feather icon-shield"></i>
+              </div>
+              <h4 class="mb-3 fw-bold text-dark">Espace Enseignant</h4>
+              <p class="text-muted mb-4 px-3" style="font-size: 15px; line-height: 1.6;">
+                Seuls les membres du corps enseignant (les professeurs) sont autorisés à initier et à configurer des séances de visioconférence en direct. Les étudiants peuvent rejoindre une séance en cours à l'aide de l'identifiant ci-contre.
+              </p>
+              <div class="badge bg-light-warning text-warning px-3 py-2" style="font-size: 13px; border-radius: 20px; background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                <i class="feather icon-alert-triangle me-1"></i> Accès limité aux professeurs
               </div>
             </div>
-            <button class="btn btn-primary btn-lg start-btn w-100" (click)="startSession()">
-              <i class="feather icon-video me-2"></i> Lancer la séance
-            </button>
           </div>
-        </div>
-      }
-      <!-- Student Restriction Card -->
-      @if (!isProf()) {
-        <div class="card session-card h-100 student-restricted-card">
-          <div class="card-body text-center py-5">
-            <div class="restricted-icon-wrapper mb-4">
-              <i class="feather icon-shield"></i>
-            </div>
-            <h4 class="mb-3 fw-bold text-dark">Espace Enseignant</h4>
-            <p class="text-muted mb-4 px-3" style="font-size: 15px; line-height: 1.6;">
-              Seuls les membres du corps enseignant (les professeurs) sont autorisés à initier et à configurer des séances de visioconférence en direct. Les étudiants peuvent rejoindre une séance en cours à l'aide de l'identifiant ci-contre.
-            </p>
-            <div class="badge bg-light-warning text-warning px-3 py-2" style="font-size: 13px; border-radius: 20px; background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
-              <i class="feather icon-alert-triangle me-1"></i> Accès limité aux professeurs
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-    <!-- Join a Session -->
-    <div class="col-lg-5 col-md-12 mb-4">
-      <div class="card session-card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="feather icon-log-in me-2"></i> Rejoindre une séance</h5>
-        </div>
-        <div class="card-body">
-          <p class="text-muted mb-3">Saisissez l'identifiant de séance fourni par le professeur :</p>
-          <div class="input-group">
-            <input type="text" class="form-control session-input"
-              [(ngModel)]="joinRoomId" name="joinRoomId"
-              placeholder="Ex: abc-defg-hij">
-            <button class="btn btn-outline-primary animate-btn" (click)="joinExistingSession()" [disabled]="!joinRoomId.trim()">
-              <i class="feather icon-arrow-right"></i>
-            </button>
-          </div>
-        </div>
+        }
       </div>
-      <!-- Recent Sessions -->
-      @if (recentSessions.length > 0) {
-        <div class="card session-card">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="feather icon-clock me-2"></i> Séances récentes</h5>
+
+      <!-- Right Card: Join a Session (Rejoindre une séance) -->
+      <div class="col-lg-5 col-md-12">
+        <div class="glass-card mb-4">
+          <div class="glass-card-header">
+            <h5 class="card-title-text">
+              <span class="header-symbol">➔</span> Rejoindre une séance
+            </h5>
           </div>
-          <div class="card-body p-0">
-            @for (session of recentSessions; track session) {
-              <div class="recent-item" (click)="joinSession(session.roomId)">
-                <div class="recent-icon">
-                  <i class="feather icon-video"></i>
+          <div class="card-body p-4">
+            <p class="card-instruction-text mb-3">Saisissez l'identifiant de séance fourni porr le professeur :</p>
+            <div class="bracket-input-container">
+              <div class="bracket-corner top-left"></div>
+              <div class="bracket-corner top-right"></div>
+              <div class="bracket-corner bottom-left"></div>
+              <div class="bracket-corner bottom-right"></div>
+              <input type="text" class="form-control pill-input bracket-input"
+                [(ngModel)]="joinRoomId" name="joinRoomId"
+                placeholder="Ex: abc-defg-hij">
+              <button class="btn join-arrow-btn" (click)="joinExistingSession()" [disabled]="!joinRoomId.trim()">
+                <i class="feather icon-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        @if (recentSessions.length > 0) {
+          <div class="glass-card">
+            <div class="glass-card-header">
+              <h5 class="card-title-text"><i class="feather icon-clock me-2"></i> Séances récentes</h5>
+            </div>
+            <div class="card-body p-0">
+              @for (session of recentSessions; track session) {
+                <div class="recent-item" (click)="joinSession(session.roomId)">
+                  <div class="recent-icon">
+                    <i class="feather icon-video"></i>
+                  </div>
+                  <div class="recent-details">
+                    <h6 class="mb-0">{{ session.name }}</h6>
+                    <small class="text-muted">{{ getTimeAgo(session.date) }}</small>
+                  </div>
+                  <i class="feather icon-chevron-right text-muted"></i>
                 </div>
-                <div class="recent-details">
-                  <h6 class="mb-0">{{ session.name }}</h6>
-                  <small class="text-muted">{{ getTimeAgo(session.date) }}</small>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bottom Card: Scheduled Meetings (Séances planifiées) -->
+      <div class="col-12">
+        <div class="glass-card">
+          <div class="glass-card-header d-flex align-items-center justify-content-between">
+            <h5 class="card-title-text">
+              <i class="feather icon-calendar me-2"></i> Séances planifiées
+            </h5>
+            @if (isProf()) {
+              <button class="btn glass-red-pill-btn" (click)="showScheduleForm.set(!showScheduleForm())">
+                <i class="feather" [class.icon-plus]="!showScheduleForm()" [class.icon-minus]="showScheduleForm()"></i>
+                {{ showScheduleForm() ? 'Masquer le formulaire' : '+ Planifier une séance' }}
+              </button>
+            }
+          </div>
+          <div class="card-body p-4">
+            <!-- Schedule Form (Prof only) -->
+            @if (isProf() && showScheduleForm()) {
+              <div class="schedule-form-container mb-4 p-3 border rounded-3 bg-light">
+                <h6 class="fw-bold mb-3"><i class="feather icon-edit-1 me-1 text-primary"></i> Planifier une nouvelle séance</h6>
+                <div class="row g-3">
+                  <div class="col-md-5">
+                    <label class="form-label fw-bold">Sujet de la séance</label>
+                    <input type="text" class="form-control" [(ngModel)]="newMeetingTitle" name="newMeetingTitle" placeholder="Ex: TP d'Algorithmique">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Date & Heure de début</label>
+                    <input type="datetime-local" class="form-control" [(ngModel)]="newMeetingTime" name="newMeetingTime">
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label fw-bold">Durée (minutes)</label>
+                    <select class="form-select" [(ngModel)]="newMeetingDuration" name="newMeetingDuration">
+                      <option [value]="30">30 minutes</option>
+                      <option [value]="60">1 heure</option>
+                      <option [value]="90">1h30</option>
+                      <option [value]="120">2 heures</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-primary w-100" (click)="scheduleMeeting()">
+                      <i class="feather icon-check me-1"></i> Enregistrer
+                    </button>
+                  </div>
                 </div>
-                <i class="feather icon-chevron-right text-muted"></i>
+              </div>
+            }
+
+            <!-- Scheduled Meetings List -->
+            @if (scheduledMeetings.length > 0) {
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Sujet</th>
+                      <th>Date & Heure</th>
+                      <th>Durée</th>
+                      <th>Organisé par</th>
+                      <th>Identifiant</th>
+                      <th class="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (meeting of scheduledMeetings; track meeting) {
+                      <tr>
+                        <td>
+                          <span class="fw-bold text-dark">{{ meeting.title }}</span>
+                        </td>
+                        <td>
+                          <i class="feather icon-clock text-muted me-1"></i>
+                          {{ meeting.scheduled_time | date:'dd MMM yyyy, HH:mm' }}
+                        </td>
+                        <td>{{ meeting.duration_minutes }} min</td>
+                        <td>
+                          <span class="badge bg-light-primary text-primary px-3 py-2" style="border-radius: 12px; background-color: rgba(197, 20, 20, 0.08);">
+                            {{ meeting.creator_name }}
+                          </span>
+                        </td>
+                        <td>
+                          <code class="text-primary">{{ meeting.room_id }}</code>
+                        </td>
+                        <td class="text-end">
+                          <div class="d-flex justify-content-end gap-2">
+                            @if (isProf()) {
+                              @if (meeting.is_mine) {
+                                <button class="btn btn-sm btn-success px-3" (click)="startScheduledMeeting(meeting)">
+                                  <i class="feather icon-play-circle me-1"></i> Démarrer
+                                </button>
+                                <button class="btn btn-sm btn-info px-3" (click)="openEmailModal(meeting)">
+                                  <i class="feather icon-mail me-1"></i> Partager
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" (click)="cancelScheduledMeeting(meeting.id)">
+                                  <i class="feather icon-trash-2"></i> Annuler
+                                </button>
+                              }
+                            }
+                            @if (!meeting.is_mine) {
+                              <button class="btn btn-sm btn-primary px-3" (click)="joinSession(meeting.room_id)">
+                                <i class="feather icon-log-in me-1"></i> Rejoindre
+                              </button>
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="empty-scheduled-state text-center py-4">
+                <div class="calendar-empty-icon mb-2">
+                  <i class="feather icon-calendar"></i>
+                </div>
+                <p class="empty-state-text mb-0">Aucune séance planifiée disponible.</p>
               </div>
             }
           </div>
-        </div>
-      }
-    </div>
-    <!-- Scheduled Meetings Section -->
-    <div class="col-12 mb-4">
-      <div class="card session-card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0"><i class="feather icon-calendar me-2"></i> Séances planifiées</h5>
-          @if (isProf()) {
-            <button class="btn btn-sm btn-outline-primary" (click)="showScheduleForm.set(!showScheduleForm())">
-              <i class="feather" [class.icon-plus]="!showScheduleForm()" [class.icon-minus]="showScheduleForm()"></i>
-              {{ showScheduleForm() ? 'Masquer le formulaire' : 'Planifier une séance' }}
-            </button>
-          }
-        </div>
-        <div class="card-body">
-          <!-- Schedule Form (Prof only) -->
-          @if (isProf() && showScheduleForm()) {
-            <div class="schedule-form-container mb-4 p-3 border rounded-3 bg-light">
-              <h6 class="fw-bold mb-3"><i class="feather icon-edit-1 me-1 text-primary"></i> Planifier une nouvelle séance</h6>
-              <div class="row g-3">
-                <div class="col-md-5">
-                  <label class="form-label fw-bold">Sujet de la séance</label>
-                  <input type="text" class="form-control" [(ngModel)]="newMeetingTitle" name="newMeetingTitle" placeholder="Ex: TP d'Algorithmique">
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label fw-bold">Date & Heure de début</label>
-                  <input type="datetime-local" class="form-control" [(ngModel)]="newMeetingTime" name="newMeetingTime">
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label fw-bold">Durée (minutes)</label>
-                  <select class="form-select" [(ngModel)]="newMeetingDuration" name="newMeetingDuration">
-                    <option [value]="30">30 minutes</option>
-                    <option [value]="60">1 heure</option>
-                    <option [value]="90">1h30</option>
-                    <option [value]="120">2 heures</option>
-                  </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                  <button type="button" class="btn btn-primary w-100" (click)="scheduleMeeting()">
-                    <i class="feather icon-check me-1"></i> Enregistrer
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
-          <!-- Scheduled Meetings List -->
-          @if (scheduledMeetings.length > 0) {
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Sujet</th>
-                    <th>Date & Heure</th>
-                    <th>Durée</th>
-                    <th>Organisé par</th>
-                    <th>Identifiant</th>
-                    <th class="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (meeting of scheduledMeetings; track meeting) {
-                    <tr>
-                      <td>
-                        <span class="fw-bold text-dark">{{ meeting.title }}</span>
-                      </td>
-                      <td>
-                        <i class="feather icon-clock text-muted me-1"></i>
-                        {{ meeting.scheduled_time | date:'dd MMM yyyy, HH:mm' }}
-                      </td>
-                      <td>{{ meeting.duration_minutes }} min</td>
-                      <td>
-                        <span class="badge bg-light-primary text-primary px-3 py-2" style="border-radius: 12px; background-color: rgba(99, 102, 241, 0.08);">
-                          {{ meeting.creator_name }}
-                        </span>
-                      </td>
-                      <td>
-                        <code class="text-primary">{{ meeting.room_id }}</code>
-                      </td>
-                      <td class="text-end">
-                        <div class="d-flex justify-content-end gap-2">
-                          <!-- Professor can start and cancel their own scheduled meetings -->
-                          @if (isProf()) {
-                            @if (meeting.is_mine) {
-                              <button class="btn btn-sm btn-success px-3" (click)="startScheduledMeeting(meeting)">
-                                <i class="feather icon-play-circle me-1"></i> Démarrer
-                              </button>
-                            }
-                            @if (meeting.is_mine) {
-                              <button class="btn btn-sm btn-outline-danger" (click)="cancelScheduledMeeting(meeting.id)">
-                                <i class="feather icon-trash-2"></i> Annuler
-                              </button>
-                            }
-                          }
-                          <!-- Students and others can join scheduled meetings -->
-                          @if (!meeting.is_mine) {
-                            <button class="btn btn-sm btn-primary px-3" (click)="joinSession(meeting.room_id)">
-                              <i class="feather icon-log-in me-1"></i> Rejoindre
-                            </button>
-                          }
-                        </div>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <div class="text-center py-4 text-muted">
-              <i class="feather icon-calendar" style="font-size: 32px; color: #cbd5e1;"></i>
-              <p class="mt-2 mb-0">Aucune séance planifiée disponible.</p>
-            </div>
-          }
         </div>
       </div>
     </div>
@@ -241,7 +263,7 @@
   @if (sessionState() === 'lobby' && showGuestNamePrompt()) {
     <div class="col-12 d-flex justify-content-center align-items-center" style="min-height: 80vh;">
       <div class="card session-card border-0 shadow-lg text-center" style="max-width: 480px; width: 100%; border-radius: 20px; overflow: hidden; background: #fff;">
-        <div class="card-header border-0 pt-5 pb-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff;">
+        <div class="card-header border-0 pt-5 pb-3" style="background: linear-gradient(135deg, #C51414 0%, #9f1010 100%); color: #fff;">
           <div class="restricted-icon-wrapper mb-3" style="background: rgba(255, 255, 255, 0.2); color: #fff; width: 64px; height: 64px; box-shadow: none;">
             <i class="feather icon-video text-white" style="font-size: 24px;"></i>
           </div>
@@ -276,7 +298,7 @@
                 Caméra {{ enableVideo ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg start-btn w-100 py-3" [disabled]="!displayName.trim()" style="border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+            <button type="submit" class="btn btn-primary btn-lg start-btn w-100 py-3" [disabled]="!displayName.trim()" style="border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
               Rejoindre la séance <i class="feather icon-arrow-right ms-2"></i>
             </button>
           </form>
@@ -289,8 +311,9 @@
   <!-- LIVE STATE (CUSTOM WEBRTC ROOM)                                       -->
   <!-- ===================================================================== -->
   @if (sessionState() === 'live') {
-    <!-- Live Header Info -->
-    <div class="col-12 mb-4">
+    <div class="row g-4 position-relative z-1">
+      <!-- Live Header Info -->
+      <div class="col-12 mb-4">
       <div class="live-header">
         <div class="d-flex align-items-center gap-3">
           <div class="live-badge">
@@ -318,7 +341,7 @@
       </div>
     </div>
     <!-- Video Stream grid layout -->
-    <div [class]="(showChatPanel() && showQuizPanel()) ? 'col-lg-5 col-md-5 col-12 mb-4' : (showChatPanel() ? 'col-lg-9 col-md-8 col-12 mb-4' : (showQuizPanel() ? 'col-lg-8 col-md-8 col-12 mb-4' : 'col-12 mb-4'))">
+    <div [class]="(showChatPanel() && showQuizPanel()) ? 'col-lg-5 col-md-5 col-12 mb-4' : (showChatPanel() ? 'col-lg-8 col-md-8 col-12 mb-4' : (showQuizPanel() ? 'col-lg-8 col-md-8 col-12 mb-4' : 'col-12 mb-4'))">
       <div class="video-grid-container" [class.single-peer]="peerList().length === 0">
         <!-- Local User Video stream -->
         <div class="video-card-wrapper local-stream-card" [style.order]="isProf() ? 2 : 1">
@@ -385,17 +408,17 @@
         }
       </div>
     </div>
-    <!-- Chat Panel -->
+    <!-- Chat Panel (Docked Side Panel on Right) -->
     @if (showChatPanel()) {
-      <div class="col-lg-3 col-md-4 col-12 mb-4">
-        <div class="card chat-panel-card border-0 d-flex flex-column h-100" style="min-height: 450px;">
-          <div class="card-header d-flex align-items-center justify-content-between py-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-            <h6 class="mb-0 fw-bold text-white"><i class="feather icon-message-square me-2 text-primary"></i>Chat de la séance</h6>
+      <div [class]="(showChatPanel() && showQuizPanel()) ? 'col-lg-3 col-md-3 col-12 mb-4' : 'col-lg-4 col-md-4 col-12 mb-4'">
+        <div class="card chat-panel-card border-0 d-flex flex-column h-100" style="min-height: 500px;">
+          <div class="card-header d-flex align-items-center justify-content-between py-3 px-3 border-bottom">
+            <h6 class="mb-0 fw-bold text-dark"><i class="feather icon-message-square me-2 text-danger"></i>Chat de la séance</h6>
             <button type="button" class="btn-close" (click)="toggleChat()"></button>
           </div>
           <div class="card-body d-flex flex-column flex-grow-1 p-0 overflow-hidden">
             <!-- Message feed list -->
-            <div id="chatMessagesContainer" class="chat-messages-container flex-grow-1 p-3 overflow-y-auto" style="height: 350px;">
+            <div id="chatMessagesContainer" class="chat-messages-container flex-grow-1 p-3 overflow-y-auto" style="height: 380px;">
               <div class="text-center text-muted mb-3" style="font-size: 11px;">Les messages sont éphémères et disparaissent à la fin de la séance.</div>
               @for (msg of chatMessages; track msg) {
                 <div class="chat-message-item mb-3" [class.me]="msg.isMe">
@@ -408,14 +431,17 @@
               }
             </div>
             <!-- Chat input field -->
-            <div class="chat-input-container p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.15);">
+            <div class="chat-input-container p-3 border-top">
               <form (ngSubmit)="sendChatMessage()">
-                <div class="input-group">
-                  <input type="text" class="form-control chat-input" [(ngModel)]="chatInput" name="chatInput"
-                    [placeholder]="chatRestricted ? 'Le chat a été désactivé par l\'organisateur' : 'Taper un message...'"
+                <div class="input-group gap-2">
+                  <input type="text" class="form-control pill-input chat-input" [(ngModel)]="chatInput" name="chatInput"
+                    [placeholder]="chatRestricted ? 'Le chat a été désactivé' : 'Taper un message...'"
                     [disabled]="chatRestricted" autocomplete="off">
-                  <button type="submit" class="btn btn-primary" [disabled]="!chatInput.trim() || chatRestricted">
-                    <i class="feather icon-send"></i>
+                  <button type="submit" class="btn chat-send-btn" [disabled]="!chatInput.trim() || chatRestricted" title="Envoyer le message">
+                    <svg class="send-svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 2L11 13"></path>
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                    </svg>
                   </button>
                 </div>
               </form>
@@ -427,9 +453,9 @@
     <!-- Quiz / Game Panel -->
     @if (showQuizPanel()) {
       <div class="col-lg-4 col-md-4 col-12 mb-4">
-        <div class="card quiz-panel-card border-0 d-flex flex-column h-100 shadow-sm" style="min-height: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 16px; color: #333; border: 1px solid rgba(0,0,0,0.05);">
-          <div class="card-header d-flex align-items-center justify-content-between py-3 px-3" style="border-bottom: 1px solid rgba(0, 0, 0, 0.08); background: transparent;">
-            <h6 class="mb-0 fw-bold text-dark"><i class="feather icon-award me-2 text-success"></i>Quiz en direct</h6>
+        <div class="card quiz-panel-card border-0 d-flex flex-column h-100 shadow-sm" style="min-height: 450px;">
+          <div class="card-header d-flex align-items-center justify-content-between py-3 px-3">
+            <h6 class="mb-0 fw-bold"><i class="feather icon-award me-2 text-success"></i>Quiz en direct</h6>
             <button type="button" class="btn-close" (click)="toggleQuizPanel()"></button>
           </div>
           <div class="card-body d-flex flex-column flex-grow-1 overflow-y-auto p-3" style="max-height: 450px;">
@@ -438,11 +464,11 @@
               <!-- Selection State -->
               @if (quizState() === 'inactive') {
                 <div class="text-center">
-                  <h5 class="fw-bold mb-3 text-dark">Lancer une activité</h5>
+                  <h5 class="fw-bold mb-3">Lancer une activité</h5>
                   <p class="text-muted small">Choisissez un module pour charger les acquis d'apprentissage et lancer le quiz.</p>
                   <div class="mb-4 text-start">
                     <label class="form-label text-muted small fw-bold">Sélectionner un module</label>
-                    <select class="form-select bg-white text-dark border-secondary" [(ngModel)]="selectedModuleId" name="selectedModuleId">
+                    <select class="form-select" [(ngModel)]="selectedModuleId" name="selectedModuleId">
                       <option [value]="null">-- Passer (Skip) --</option>
                       @for (item of modulesList(); track item) {
                         <option [value]="item.id">
@@ -489,8 +515,8 @@
               <!-- Quiz Running: Leaderboard State -->
               @if (quizState() === 'leaderboard') {
                 <div>
-                  <h5 class="fw-bold text-center mb-4 text-dark"><i class="feather icon-award text-warning me-2"></i>Classement en direct</h5>
-                  <div class="leaderboard-list d-flex flex-column gap-2 mb-4">
+                  <h5 class="fw-bold text-center mb-4 text-dark"><i class="feather icon-award text-warning me-2" aria-hidden="true"></i>Classement en direct</h5>
+                  <div class="leaderboard-list d-flex flex-column gap-2 mb-4" aria-live="polite">
                     @for (p of quizParticipants(); track p; let idx = $index) {
                       <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light border"
                         [style.border-left]="idx === 0 ? '4px solid #eab308' : (idx === 1 ? '4px solid #cbd5e1' : (idx === 2 ? '4px solid #cd7f32' : ''))">
@@ -507,14 +533,14 @@
                       </div>
                     }
                   </div>
-                  <button class="btn btn-success w-100 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()">
-                    Question suivante <i class="feather icon-arrow-right ms-1"></i>
+                  <button class="btn btn-success w-100 py-2 fw-bold text-white" (click)="sendNextQuestionToRoom()" aria-label="Envoyer la question suivante">
+                    Question suivante <i class="feather icon-arrow-right ms-1" aria-hidden="true"></i>
                   </button>
                 </div>
               }
               <!-- Quiz Ended -->
               @if (quizState() === 'ended') {
-                <div class="text-center p-3">
+                <div class="text-center p-3" aria-live="assertive" role="alert">
                   <div class="restricted-icon-wrapper mb-3 bg-success bg-opacity-20 text-success shadow-xs" style="width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center; height: 100%;">
                     <i class="feather icon-check" style="font-size: 32px;"></i>
                   </div>
@@ -680,7 +706,7 @@
             <span class="fw-bold text-white-50" style="font-size: 13px;">Lien d'invitation :</span>
             <span class="text-white fw-medium ms-2" style="font-size: 13px; font-family: monospace;">{{ shareLink() }}</span>
           </div>
-          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
             <i class="feather" [class.icon-copy]="!copied()" [class.icon-check]="copied()"></i>
             {{ copied() ? ' Copié !' : ' Copier' }}
           </button>
@@ -712,13 +738,13 @@
               <div class="col-md-3">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="lockRoomToggle" [checked]="isRoomLocked" (change)="toggleLockRoom()">
-                  <label class="form-check-label fw-bold text-dark" for="lockRoomToggle">
+                  <label class="form-check-label fw-bold" for="lockRoomToggle">
                     <i class="feather icon-lock me-1"></i> Verrouiller la séance
                   </label>
                 </div>
                 <div class="form-check form-switch mt-2">
                   <input class="form-check-input" type="checkbox" id="chatRestrictToggle" [checked]="chatRestricted" (change)="toggleChatRestriction(!chatRestricted)">
-                  <label class="form-check-label fw-bold text-dark" for="chatRestrictToggle">
+                  <label class="form-check-label fw-bold" for="chatRestrictToggle">
                     <i class="feather icon-message-square me-1"></i> Bloquer le chat étudiant
                   </label>
                 </div>
@@ -727,13 +753,13 @@
               <div class="col-md-3">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="screenRestrictToggle" [checked]="screenShareRestricted" (change)="toggleScreenShareRestriction(!screenShareRestricted)">
-                  <label class="form-check-label fw-bold text-dark" for="screenRestrictToggle">
+                  <label class="form-check-label fw-bold" for="screenRestrictToggle">
                     <i class="feather icon-monitor me-1"></i> Bloquer l'écran étudiant
                   </label>
                 </div>
                 <div class="form-check form-switch mt-2">
                   <input class="form-check-input" type="checkbox" id="micRestrictToggle" [checked]="micRestricted" (change)="toggleMicRestriction(!micRestricted)">
-                  <label class="form-check-label fw-bold text-dark" for="micRestrictToggle">
+                  <label class="form-check-label fw-bold" for="micRestrictToggle">
                     <i class="feather icon-mic-off me-1"></i> Bloquer les micros
                   </label>
                 </div>
@@ -742,7 +768,7 @@
               <div class="col-md-3">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="cameraRestrictToggle" [checked]="cameraRestricted" (change)="toggleCameraRestriction(!cameraRestricted)">
-                  <label class="form-check-label fw-bold text-dark" for="cameraRestrictToggle">
+                  <label class="form-check-label fw-bold" for="cameraRestrictToggle">
                     <i class="feather icon-video-off me-1"></i> Bloquer les caméras
                   </label>
                 </div>
@@ -752,6 +778,7 @@
         </div>
       </div>
     }
+    </div>
   }
 
 </div>
@@ -779,14 +806,155 @@
         <div class="modal-icon-circle bg-light-warning mb-3">
           <i class="feather icon-help-circle text-warning" style="font-size: 32px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>
         </div>
-        <h5 class="fw-bold text-dark">{{ confirmModalTitle }}</h5>
+        <h5 class="fw-bold">{{ confirmModalTitle }}</h5>
       </div>
       <div class="custom-modal-body">
         <p class="text-muted">{{ confirmModalMessage }}</p>
       </div>
       <div class="custom-modal-actions">
         <button class="btn btn-light-secondary px-4 py-2 me-2" (click)="cancelConfirm()" style="border-radius: 10px; border: none; font-weight: 600;">Annuler</button>
-        <button class="btn btn-danger px-4 py-2" (click)="acceptConfirm()" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; font-weight: 600; color: #ffffff;">Confirmer</button>
+        <button class="btn btn-danger px-4 py-2" (click)="acceptConfirm()" style="border-radius: 10px; background: linear-gradient(135deg, #C51414, #9f1010); border: none; font-weight: 600; color: #ffffff;">Confirmer</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- SMTP Email Share Modal with CSV Scanner & Bulk Email List Management -->
+@if (showEmailModal()) {
+  <div class="custom-modal-overlay animate__animated animate__fadeIn" style="z-index: 1065;">
+    <div class="custom-modal-card animate__animated animate__zoomIn" style="max-width: 580px; width: 92%;">
+      <div class="custom-modal-header border-bottom pb-3 mb-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <div class="modal-icon-circle bg-light-danger" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(197, 20, 20, 0.1);">
+            <i class="feather icon-mail text-danger" style="font-size: 20px;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">Partager la séance par Email</h6>
+            <small class="text-muted">Envoi direct d'invitations via SMTP Gmail</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="closeEmailModal()"></button>
+      </div>
+      
+      <div class="custom-modal-body text-start">
+        @if (emailTargetMeeting()) {
+          <div class="session-details-card p-3 mb-3 rounded-3">
+            <div class="fw-bold mb-1"><i class="feather icon-video text-danger me-1"></i> {{ emailTargetMeeting().title }}</div>
+            <div class="small text-muted mb-1"><i class="feather icon-clock me-1"></i> {{ emailTargetMeeting().scheduled_time | date:'dd MMM yyyy à HH:mm' }}</div>
+            <div class="small text-muted"><i class="feather icon-key me-1"></i> Code Room: <code>{{ emailTargetMeeting().room_id }}</code></div>
+          </div>
+        }
+
+        <!-- Add Single Email + CSV Scanner Button -->
+        <div class="mb-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <label class="form-label fw-bold mb-0">Destinataires ({{ recipientList().length }})</label>
+            <div>
+              <label for="csvFileInput" class="btn btn-sm btn-outline-primary py-1 px-2 cursor-pointer mb-0" title="Scanner et importer une liste depuis un fichier CSV">
+                <i class="feather icon-file-text me-1"></i> Importer CSV
+              </label>
+              <input 
+                id="csvFileInput" 
+                type="file" 
+                accept=".csv,.txt" 
+                class="d-none" 
+                (change)="onCsvFileSelected($event)"
+              />
+            </div>
+          </div>
+
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="feather icon-at-sign text-muted"></i></span>
+            <input 
+              type="email" 
+              class="form-control" 
+              placeholder="Saisir un email (ex: etudiant@esprit.tn)" 
+              [ngModel]="singleRecipientInput()" 
+              (ngModelChange)="singleRecipientInput.set($event)"
+              [disabled]="isSendingEmail()"
+              (keyup.enter)="addSingleRecipient()"
+            />
+            <button class="btn btn-primary fw-bold" type="button" (click)="addSingleRecipient()" [disabled]="isSendingEmail()">
+              <i class="feather icon-plus me-1"></i> Ajouter
+            </button>
+          </div>
+
+          @if (csvImportMessage()) {
+            <div class="small text-info mb-2">
+              <i class="feather icon-info me-1"></i> {{ csvImportMessage() }}
+            </div>
+          }
+        </div>
+
+        <!-- Recipient List Editor -->
+        @if (recipientList().length > 0) {
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="fw-bold text-muted">LISTE DES EMAILS À ENVOYER :</small>
+              <button class="btn btn-link text-danger btn-sm p-0 text-decoration-none" (click)="clearAllRecipients()">
+                <i class="feather icon-trash me-1"></i> Tout effacer
+              </button>
+            </div>
+            
+            <div class="recipient-list-container border rounded-3 p-2" style="max-height: 180px; overflow-y: auto;">
+              @for (email of recipientList(); track $index) {
+                <div class="d-flex align-items-center gap-2 mb-2 p-1 border-bottom recipient-item">
+                  <span class="badge bg-light-secondary text-dark rounded-circle px-2 py-1 small">{{ $index + 1 }}</span>
+                  <input 
+                    type="email" 
+                    class="form-control form-control-sm border-0 bg-transparent py-0 px-1 font-monospace" 
+                    [value]="email" 
+                    (change)="updateRecipient($index, $event)"
+                    [disabled]="isSendingEmail()"
+                  />
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-danger border-0 p-1 rounded-circle" 
+                    (click)="removeRecipient($index)"
+                    title="Annuler l'envoi pour cet email"
+                    [disabled]="isSendingEmail()"
+                  >
+                    <i class="feather icon-x"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="text-center py-3 empty-recipient-state rounded-3 mb-3 border border-dashed">
+            <small class="text-muted"><i class="feather icon-users me-1"></i> Aucun destinataire dans la liste. Saisissez un email ou importez un CSV.</small>
+          </div>
+        }
+
+        @if (emailSendStatus()) {
+          <div 
+            class="alert py-2 px-3 mb-3 small d-flex align-items-center gap-2" 
+            [class.alert-success]="emailSendStatus()?.success" 
+            [class.alert-danger]="!emailSendStatus()?.success"
+          >
+            <i class="feather" [class.icon-check-circle]="emailSendStatus()?.success" [class.icon-alert-triangle]="!emailSendStatus()?.success"></i>
+            <span>{{ emailSendStatus()?.message }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="custom-modal-actions d-flex justify-content-end gap-2 border-top pt-3 mt-2">
+        <button class="btn btn-light px-4" (click)="closeEmailModal()" [disabled]="isSendingEmail()" style="border-radius: 10px; font-weight: 600;">
+          Annuler
+        </button>
+        <button 
+          class="btn btn-danger px-4" 
+          (click)="sendInvitationEmail()" 
+          [disabled]="isSendingEmail() || recipientList().length === 0" 
+          style="border-radius: 10px; background: linear-gradient(135deg, #C51414, #9f1010); border: none; font-weight: 600; color: #ffffff;"
+        >
+          @if (isSendingEmail()) {
+            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Envoi en cours...
+          } @else {
+            <i class="feather icon-send me-1"></i> Envoyer ({{ recipientList().length }})
+          }
+        </button>
       </div>
     </div>
   </div>

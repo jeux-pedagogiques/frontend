@@ -1,10 +1,11 @@
 import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { environment } from 'src/environments/environment';
+import { ShareService } from 'src/app/theme/shared/service/share.service';
 
 interface LearningOutcome {
   id: number;
@@ -43,6 +44,7 @@ interface PitchingData {
   fiche_animateur: string;
   fiche_participant: string;
   module_title?: string;
+  module_id?: number;
 }
 
 @Component({
@@ -55,8 +57,11 @@ interface PitchingData {
 export class PitchingChallengeComponent implements OnInit {
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private shareService = inject(ShareService);
+  private route = inject(ActivatedRoute);
 
-  pageState = signal<'select' | 'generating' | 'result'>('select');
+  pitchingMode = signal<'individuel' | 'equipe'>('equipe');
+  pageState = signal<'select' | 'generating' | 'result' | 'history'>('select');
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
@@ -65,8 +70,13 @@ export class PitchingChallengeComponent implements OnInit {
   selectedAnalysis = signal<ModuleAnalysis | null>(null);
   viewingAnalysis = signal<ModuleAnalysis | null>(null);
 
+  // History & Consultation
+  historyList = signal<any[]>([]);
+  historySearch = signal<string>('');
+
   nbEquipes = 4;
   dureePreparation = 10;
+  selectedModel = signal('groq/llama-3.3-70b-versatile');
   dureePitch = 3;
   dureeFeedback = 5;
 
@@ -92,11 +102,22 @@ export class PitchingChallengeComponent implements OnInit {
     'appliquer': '#eab308',
     'analyser': '#22c55e',
     'evaluer': '#3b82f6',
-    'creer': '#8b5cf6'
+    'creer': '#9f1010'
   };
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const mode = params['mode'];
+      if (mode === 'individuel') {
+        this.pitchingMode.set('individuel');
+        this.nbEquipes = 1;
+      } else if (mode === 'equipe') {
+        this.pitchingMode.set('equipe');
+        this.nbEquipes = 4;
+      }
+    });
     this.loadAnalyses();
+    this.loadSavedSessions();
   }
 
   loadAnalyses(): void {
@@ -126,10 +147,64 @@ export class PitchingChallengeComponent implements OnInit {
     });
   }
 
+  loadSavedSessions(): void {
+    this.http.get<any[]>(`${this.apiUrl}/pitching/sessions`).subscribe({
+      next: (data) => {
+        this.historyList.set(data || []);
+        this.cd.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  switchToHistory(): void {
+    this.pageState.set('history');
+    this.loadSavedSessions();
+  }
+
+  consultSession(sessionId: number): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.http.get<any>(`${this.apiUrl}/pitching/sessions/${sessionId}`).subscribe({
+      next: (res) => {
+        this.pitchingResult.set(res.data);
+        this.confirmedId.set(res.id);
+        this.isConfirmed.set(true);
+        this.moduleTitle.set(res.module_title || res.titre);
+        this.pageState.set('result');
+        this.isLoading.set(false);
+        this.activeTab.set('sujet');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Erreur lors de la consultation du pitching challenge.');
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  deleteSession(sessionId: number, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Voulez-vous vraiment supprimer ce pitching challenge ?')) return;
+
+    this.http.delete(`${this.apiUrl}/pitching/sessions/${sessionId}`).subscribe({
+      next: () => {
+        this.successMessage.set('Pitching challenge supprimé.');
+        this.loadSavedSessions();
+      },
+      error: () => this.errorMessage.set('Erreur lors de la suppression du pitching challenge.')
+    });
+  }
+
   selectAnalysis(analysis: ModuleAnalysis): void {
     this.selectedAnalysis.set(analysis);
     this.pageState.set('select');
     this.cd.detectChanges();
+    setTimeout(() => {
+      const el = document.querySelector('.gen-panel');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
   }
 
   openOverlay(analysis: ModuleAnalysis): void {
@@ -156,6 +231,22 @@ export class PitchingChallengeComponent implements OnInit {
     return this.bloomColors[level] || '#6b7280';
   }
 
+  modeTitle(): string {
+    return this.pitchingMode() === 'individuel' ? 'Pitching Individuel' : 'Pitching par Équipe';
+  }
+
+  modeSubtitle(): string {
+    return this.pitchingMode() === 'individuel'
+      ? 'Chaque participant présente un pitch individuel sur son propre sujet.'
+      : 'Des équipes préparent et présentent un pitch collectif sur un sujet commun.';
+  }
+
+  switchMode(mode: 'individuel' | 'equipe'): void {
+    this.pitchingMode.set(mode);
+    this.nbEquipes = mode === 'individuel' ? 1 : 4;
+    this.pageState.set('select');
+  }
+
   isConfirmed = signal(false);
   isSaving = signal(false);
 
@@ -172,9 +263,11 @@ export class PitchingChallengeComponent implements OnInit {
     const body = {
       module_id: analysis.id,
       nb_equipes: this.nbEquipes,
+      mode: this.pitchingMode(),
       duree_preparation: this.dureePreparation,
       duree_pitch: this.dureePitch,
-      duree_feedback: this.dureeFeedback
+      duree_feedback: this.dureeFeedback,
+      model: this.selectedModel(),
     };
 
     this.http.post<PitchingData>(`${this.apiUrl}/pitching/generate`, body).subscribe({
@@ -198,13 +291,14 @@ export class PitchingChallengeComponent implements OnInit {
   confirmAndSave(): void {
     const result = this.pitchingResult();
     const analysis = this.selectedAnalysis();
-    if (!result || !analysis) return;
+    const moduleId = analysis?.id || result?.module_id;
+    if (!result || !moduleId) return;
 
     this.isSaving.set(true);
     this.errorMessage.set('');
 
     const body = {
-      module_id: analysis.id,
+      module_id: moduleId,
       titre_challenge: result.titre_challenge,
       sujet_principal: result.sujet_principal,
       sujets_par_equipe: result.sujets_par_equipe || [],
@@ -220,6 +314,7 @@ export class PitchingChallengeComponent implements OnInit {
       next: (res) => {
         this.isSaving.set(false);
         this.isConfirmed.set(true);
+        this.confirmedId.set(res.id);
         this.successMessage.set('Challenge confirmé et enregistré avec succès dans votre bibliothèque !');
         this.cd.detectChanges();
       },
@@ -260,5 +355,41 @@ export class PitchingChallengeComponent implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
     this.isConfirmed.set(false);
+    this.confirmedId.set(null);
+  }
+
+  // ─── Share & Results ───
+  confirmedId = signal<number | null>(null);
+  shareLink = signal('');
+  shareCopied = signal(false);
+  shareResults = signal<any[]>([]);
+  showResults = signal(false);
+
+  shareGame(): void {
+    const id = this.confirmedId();
+    if (!id) return;
+    this.shareService.createShare('pitching', id).subscribe({
+      next: (res) => {
+        const url = `${window.location.origin}/play/pitching/${res.share_token}`;
+        this.shareLink.set(url);
+        navigator.clipboard.writeText(url).then(() => {
+          this.shareCopied.set(true);
+          setTimeout(() => this.shareCopied.set(false), 3000);
+        });
+      },
+      error: () => this.errorMessage.set('Erreur lors de la création du lien de partage'),
+    });
+  }
+
+  viewResults(): void {
+    const id = this.confirmedId();
+    if (!id) return;
+    this.shareService.getResults('pitching', id).subscribe({
+      next: (res) => {
+        this.shareResults.set(res.results);
+        this.showResults.set(true);
+      },
+      error: () => this.errorMessage.set('Erreur lors du chargement des résultats'),
+    });
   }
 }

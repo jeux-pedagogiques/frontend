@@ -1,25 +1,25 @@
 <div class="auth-wrapper auth-v2">
   <div class="auth-content-v2">
     <!-- Left Branding Panel -->
-    <div class="auth-brand-panel">
+    <div class="auth-brand-panel" aria-hidden="true">
       <div class="brand-overlay"></div>
       <div class="brand-content">
         <div class="brand-logo">
-          <i class="feather icon-user-plus"></i>
+          <i class="feather icon-user-plus" aria-hidden="true"></i>
         </div>
         <h1 class="brand-title">Join Us Today</h1>
         <p class="brand-subtitle">Create your account and unlock powerful tools to manage, analyze, and grow your projects.</p>
         <div class="brand-features">
           <div class="brand-feature-item">
-            <i class="feather icon-check-circle"></i>
+            <i class="feather icon-check-circle" aria-hidden="true"></i>
             <span>Free to Get Started</span>
           </div>
           <div class="brand-feature-item">
-            <i class="feather icon-check-circle"></i>
+            <i class="feather icon-check-circle" aria-hidden="true"></i>
             <span>No Credit Card Required</span>
           </div>
           <div class="brand-feature-item">
-            <i class="feather icon-check-circle"></i>
+            <i class="feather icon-check-circle" aria-hidden="true"></i>
             <span>Cancel Anytime</span>
           </div>
         </div>
@@ -35,34 +35,38 @@
     <div class="auth-form-panel">
       <div class="auth-form-wrapper">
         <div class="auth-form-header">
-          <img src="assets/images/logo-dark.png" alt="logo" class="auth-logo" />
+          <img src="assets/images/logo-dark.png" alt="" aria-hidden="true" class="auth-logo" />
           <h2 class="auth-title">Create Account</h2>
           <p class="auth-subtitle">Fill in your details to get started</p>
         </div>
 
         @if (error()) {
-          <div class="alert alert-danger" role="alert" style="margin-bottom: 20px; padding: 10px 15px; border-radius: 6px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; font-size: 14px;">
+          <div class="alert alert-danger" role="alert" aria-live="assertive" aria-atomic="true" style="margin-bottom: 20px; padding: 10px 15px; border-radius: 6px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; font-size: 14px;">
             {{ error() }}
           </div>
         }
 
         <!-- Register Form -->
-        <form (ngSubmit)="onSubmit($event)" class="auth-form">
+        <form (ngSubmit)="onSubmit($event)" class="auth-form" aria-label="Formulaire d'inscription">
           <div class="form-field">
             <label for="username" class="form-field-label">Username</label>
             <div class="input-wrapper">
-              <i class="feather icon-user input-icon"></i>
+              <i class="feather icon-user input-icon" aria-hidden="true"></i>
               <input
                 type="text"
                 id="username"
                 class="form-control form-control-modern"
+                aria-required="true"
+                [attr.aria-invalid]="submitted() && registerForm.username().errors().length > 0"
+                [attr.aria-describedby]="(submitted() && registerForm.username().errors().length > 0) ? 'username-error' : null"
                 placeholder="Choose a username"
                 [field]="registerForm.username"
                 [class.is-invalid]="submitted() && registerForm.username().errors().length > 0"
+                autocomplete="username"
               />
             </div>
             @if (submitted() && registerForm.username().errors().length > 0) {
-              <div class="field-error">
+              <div class="field-error" id="username-error" role="alert" aria-live="polite">
                 @for (error of registerForm.username().errors(); track error.kind) {
                   <span>{{ error.message }}</span>
                 }
@@ -73,18 +77,22 @@
           <div class="form-field">
             <label for="floatingInput" class="form-field-label">Email Address</label>
             <div class="input-wrapper">
-              <i class="feather icon-mail input-icon"></i>
+              <i class="feather icon-mail input-icon" aria-hidden="true"></i>
               <input
                 type="email"
                 class="form-control form-control-modern"
                 id="floatingInput"
+                aria-required="true"
+                [attr.aria-invalid]="submitted() && registerForm.email().invalid()"
+                [attr.aria-describedby]="(submitted() && registerForm.email().invalid()) ? 'signup-email-error' : null"
                 [class.is-invalid]="submitted() && registerForm.email().invalid()"
                 placeholder="you@example.com"
                 [field]="registerForm.email"
+                autocomplete="email"
               />
             </div>
             @if (submitted() && registerForm.email().invalid()) {
-              <div class="field-error">
+              <div class="field-error" id="signup-email-error" role="alert" aria-live="polite">
                 @for (error of registerForm.email().errors(); track error.kind) {
                   <span>{{ error.message }}</span>
                 }
@@ -95,32 +103,40 @@
           <div class="form-field">
             <label for="password" class="form-field-label">Password</label>
             <div class="input-wrapper">
-              <i class="feather icon-lock input-icon"></i>
+              <i class="feather icon-lock input-icon" aria-hidden="true"></i>
               @if (!showPassword()) {
                 <input
                   type="password"
                   id="password"
                   class="form-control form-control-modern"
+                  aria-required="true"
+                  [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
+                  [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
                   [field]="registerForm.password"
                   [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
                   placeholder="Min. 8 characters"
+                  autocomplete="new-password"
                 />
               } @else {
                 <input
                   type="text"
                   id="password"
                   class="form-control form-control-modern"
+                  aria-required="true"
+                  [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
+                  [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
                   [field]="registerForm.password"
                   [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
                   placeholder="Min. 8 characters"
+                  autocomplete="new-password"
                 />
               }
-              <button type="button" class="toggle-password" (click)="togglePasswordVisibility()">
-                <i class="feather" [class.icon-eye]="!showPassword()" [class.icon-eye-off]="showPassword()"></i>
+              <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" aria-label="Afficher ou masquer le mot de passe" [attr.aria-pressed]="showPassword()">
+                <i class="feather" [class.icon-eye]="!showPassword()" [class.icon-eye-off]="showPassword()" aria-hidden="true"></i>
               </button>
             </div>
             @if (submitted() && registerForm.password().errors().length > 0) {
-              <div class="field-error">
+              <div class="field-error" id="signup-password-error" role="alert" aria-live="polite">
                 @for (error of registerForm.password().errors(); track error.kind) {
                   <span>{{ error.message }}</span>
                 }
@@ -131,34 +147,42 @@
           <div class="form-field">
             <label for="confirmPassword" class="form-field-label">Confirm Password</label>
             <div class="input-wrapper">
-              <i class="feather icon-lock input-icon"></i>
+              <i class="feather icon-lock input-icon" aria-hidden="true"></i>
               @if (!showConfirmPassword()) {
                 <input
                   type="password"
                   id="confirmPassword"
                   class="form-control form-control-modern"
+                  aria-required="true"
+                  [attr.aria-invalid]="submitted() && confirmPasswordError()"
+                  [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
                   [class.is-invalid]="submitted() && confirmPasswordError()"
                   placeholder="Re-enter your password"
                   [(ngModel)]="confirmPassword"
                   name="confirmPassword"
+                  autocomplete="new-password"
                 />
               } @else {
                 <input
                   type="text"
                   id="confirmPassword"
                   class="form-control form-control-modern"
+                  aria-required="true"
+                  [attr.aria-invalid]="submitted() && confirmPasswordError()"
+                  [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
                   [class.is-invalid]="submitted() && confirmPasswordError()"
                   placeholder="Re-enter your password"
                   [(ngModel)]="confirmPassword"
                   name="confirmPassword"
+                  autocomplete="new-password"
                 />
               }
-              <button type="button" class="toggle-password" (click)="toggleConfirmPasswordVisibility()">
-                <i class="feather" [class.icon-eye]="!showConfirmPassword()" [class.icon-eye-off]="showConfirmPassword()"></i>
+              <button type="button" class="toggle-password" (click)="toggleConfirmPasswordVisibility()" aria-label="Afficher ou masquer la confirmation du mot de passe" [attr.aria-pressed]="showConfirmPassword()">
+                <i class="feather" [class.icon-eye]="!showConfirmPassword()" [class.icon-eye-off]="showConfirmPassword()" aria-hidden="true"></i>
               </button>
             </div>
             @if (submitted() && confirmPasswordError()) {
-              <div class="field-error">
+              <div class="field-error" id="confirm-password-error" role="alert" aria-live="polite">
                 <span>{{ confirmPasswordError() }}</span>
               </div>
             }
@@ -167,10 +191,11 @@
           <div class="form-field">
             <label for="role" class="form-field-label">Role</label>
             <div class="input-wrapper">
-              <i class="feather icon-users input-icon"></i>
+              <i class="feather icon-users input-icon" aria-hidden="true"></i>
               <select
                 id="role"
                 class="form-control form-control-modern"
+                aria-required="true"
                 [field]="registerForm.role"
                 [class.is-invalid]="submitted() && registerForm.role().errors().length > 0"
               >
@@ -195,9 +220,9 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-submit" id="btn-signup">
+          <button type="submit" class="btn-submit" id="btn-signup" aria-label="Créer mon compte">
             <span>Create Account</span>
-            <i class="feather icon-arrow-right"></i>
+            <i class="feather icon-arrow-right" aria-hidden="true"></i>
           </button>
         </form>
 
@@ -208,8 +233,8 @@
 
         <!-- Social Login Buttons -->
         <div class="social-login-group">
-          <button type="button" class="btn-social btn-google" id="btn-google-signup" (click)="signupWithGoogle()">
-            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+          <button type="button" class="btn-social btn-google" id="btn-google-signup" (click)="signupWithGoogle()" aria-label="S'inscrire avec Google">
+            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -217,8 +242,8 @@
             </svg>
             <span>Sign up with Google</span>
           </button>
-          <button type="button" class="btn-social btn-github" id="btn-github-signup" (click)="signupWithGithub()">
-            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+          <button type="button" class="btn-social btn-github" id="btn-github-signup" (click)="signupWithGithub()" aria-label="S'inscrire avec GitHub">
+            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
             </svg>
             <span>Sign up with GitHub</span>

@@ -1,0 +1,354 @@
+<div class="mindmap-page">
+
+  <!-- ===== Top Nav Tabs ===== -->
+  <nav class="mm-top-nav" aria-label="Navigation Mind Map" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer une Carte Mentale
+    </button>
+    @if (mindmapResult()) {
+      <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'result'" (click)="pageState.set('result')">
+        <i class="feather icon-cpu" aria-hidden="true"></i> Consultation Mind Map
+      </button>
+    }
+  </nav>
+
+  <!-- ===== Alerts ===== -->
+  @if (successMessage()) {
+    <div class="mm-alert success" role="status" aria-live="polite">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="mm-alert error" role="alert" aria-live="assertive">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: SELECT (Configuration + Module Selection)                  -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'select') {
+    <div class="config-section" id="mm-panel" role="tabpanel">
+
+      <div class="section-header">
+        <div class="header-icon" aria-hidden="true">
+          <i class="feather icon-cpu"></i>
+        </div>
+        <div>
+          <h2>Mind Map Collaboratif</h2>
+          <p class="subtitle">Construction visuelle et collaborative de cartes mentales en temps réel</p>
+        </div>
+      </div>
+
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        <div class="game-config-grid-col">
+          <!-- Step 1: Select Analysis -->
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Sélectionner un module de cours analysé</h4>
+            </div>
+
+            @if (isLoading()) {
+              <div class="empty-state" role="status" aria-live="polite">
+                <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+                <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
+              </div>
+            } @else if (analyses().length === 0) {
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
+              </div>
+            } @else {
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
+                @for (item of analyses(); track item.id) {
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === item.id ? 'true' : 'false'"
+                       aria-label="Sélectionner la fiche module {{ item.module_title }}"
+                       [class.selected]="selectedAnalysis()?.id === item.id"
+                       (click)="selectAnalysis(item)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-folder"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge primary">Fiche Module</span>
+                      </div>
+                    </div>
+
+                    <h4 class="ucc-title">{{ item.module_title }}</h4>
+
+                    <div class="ucc-meta-row">
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ item.key_concepts.length }} concepts</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-key text-danger"></i> {{ item.keywords.length }} mots-clés</span>
+                    </div>
+
+                    <div class="categories">
+                      @for (concept of item.key_concepts.slice(0, 3); track concept) {
+                        <span>{{ concept }}</span>
+                      }
+                      @if (item.key_concepts.length > 3) {
+                        <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === item.id"></i>
+                        {{ selectedAnalysis()?.id === item.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(item); $event.stopPropagation()">
+                        <i class="feather icon-check"></i> Choisir
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Step 2: Parameters -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres de la Carte Mentale</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Branches suggérées de départ</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbBranches = (nbBranches > 3 ? nbBranches - 1 : 3)">-</button>
+                    <span class="param-value">{{ nbBranches }} branches</span>
+                    <button class="btn-sm" (click)="nbBranches = (nbBranches < 6 ? nbBranches + 1 : 6)">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Analysis Summary -->
+              @if (selectedAnalysis()) {
+                <div class="selected-summary">
+                  <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
+                  <div class="outcomes-preview">
+                    <div class="outcome-chip">
+                      <span><strong>{{ selectedAnalysis()!.module_title }}</strong></span>
+                    </div>
+                    @for (concept of selectedAnalysis()!.key_concepts.slice(0, 4); track concept) {
+                      <div class="outcome-chip">
+                        <span class="bloom-dot" style="background: #c51414;"></span>
+                        <span>{{ concept }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
+              <!-- Generate Button -->
+              <div class="action-bar">
+                <button type="button" class="btn-generate" (click)="generateMindMap()" [disabled]="isLoading() || isGenerating()">
+                  <i class="feather icon-cpu"></i>
+                  <span>Générer la Structure Mind Map</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: GENERATING                                                 -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'generating') {
+    <div class="generating-state" role="status" aria-live="polite">
+      <div class="generating-content">
+        <div class="spinner-large" aria-hidden="true"></div>
+        <h3>Génération du concept central et des branches...</h3>
+        <p>L'IA analyse la fiche module sélectionnée et génère l'arborescence Mind Map avec questions d'incitation.</p>
+        <p class="subtle">Veuillez patienter quelques instants.</p>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: RESULT                                                     -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'result' && mindmapResult()) {
+    <div class="config-section" id="mm-result-panel">
+      <div class="section-header">
+        <div class="header-icon consult-icon" aria-hidden="true">
+          <i class="feather icon-cpu"></i>
+        </div>
+        <div>
+          <h2>🎯 {{ mindmapResult()!.concept_central }}</h2>
+          <p class="subtitle">{{ mindmapResult()!.module_title }}</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn-action-outline" (click)="shareGame()">
+            <i class="feather icon-share-2"></i> {{ shareCopied() ? '✅ Copié !' : 'Partager' }}
+          </button>
+          <button type="button" class="btn-action-primary" (click)="viewCompleteness()">
+            <i class="feather icon-pie-chart"></i> Bilan de complétude
+          </button>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <!-- Concept Central Box -->
+        <div class="text-center mb-4">
+          <div class="concept-central-badge">
+            <small class="badge-tag">CONCEPT CENTRAL</small>
+            <h3>{{ mindmapResult()!.concept_central }}</h3>
+          </div>
+        </div>
+
+        <!-- Branches Suggérées Grid -->
+        <h5 class="branches-title"><i class="feather icon-cpu me-2"></i>Branches Principales Suggérées</h5>
+        <div class="branches-grid mb-4">
+          @for (branch of mindmapResult()!.branches_suggerees; track branch.titre; let i = $index) {
+            <div class="branch-card">
+              <div class="branch-header">
+                🌿 Branche {{ i + 1 }} : {{ branch.titre }}
+              </div>
+              <div class="branch-body">
+                <p class="branch-desc">{{ branch.description }}</p>
+                <h6>❓ Questions guidantes :</h6>
+                <ul>
+                  @for (q of branch.questions_guidantes; track q) {
+                    <li>{{ q }}</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Add Node Control -->
+        <div class="add-node-card mb-4">
+          <h6><i class="feather icon-plus-circle me-1"></i> Ajouter une sous-branche</h6>
+          <div class="node-input-row">
+            <input type="text" class="node-input" placeholder="Titre de la nouvelle idée/branche..." [(ngModel)]="newNodeTitle">
+            <select class="node-select" [(ngModel)]="selectedParentNodeId">
+              <option [ngValue]="null">Rattacher au Concept Central</option>
+              @for (n of nodes(); track n.id) {
+                <option [ngValue]="n.id">Sous {{ n.titre }}</option>
+              }
+            </select>
+            <button type="button" class="btn-add-node" (click)="addCustomNode()" [disabled]="!newNodeTitle.trim()">
+              ➕ Ajouter
+            </button>
+          </div>
+        </div>
+
+        <!-- Nodes Tree List -->
+        @if (nodes().length > 0) {
+          <h6 class="nodes-tree-title">🌿 Arbre des idées ajoutées ({{ nodes().length }})</h6>
+          <div class="nodes-tree-list" aria-live="polite">
+            @for (node of nodes(); track node.id) {
+              <div class="node-item"
+                   [class.selected]="selectedNodeId() === node.id"
+                   (click)="toggleSelectNode(node.id)"
+                   tabindex="0"
+                   role="button"
+                   [attr.aria-expanded]="selectedNodeId() === node.id"
+                   (keydown.enter)="toggleSelectNode(node.id)"
+                   (keydown.space)="toggleSelectNode(node.id); $event.preventDefault()">
+                <div>
+                  <span class="node-type-badge">{{ node.parent_node_id ? 'Sous-branche' : 'Branche' }}</span>
+                  <strong>{{ node.titre }}</strong>
+                  <small class="node-author">(par {{ node.cree_par_participant_id }})</small>
+                </div>
+                <button type="button" class="btn-delete-node" (click)="removeNode(node.id); $event.stopPropagation()" aria-label="Supprimer l'idée" title="Supprimer l'idée">🗑️</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Share Link Alert -->
+      @if (shareLink()) {
+        <div class="share-link-alert mt-3">
+          <i class="feather icon-link"></i>
+          <code>{{ shareLink() }}</code>
+          <button type="button" class="btn-copy" (click)="shareCopied.set(true)">📋 Copier le lien</button>
+        </div>
+      }
+
+      <!-- Completeness Modal/Panel -->
+      @if (showCompleteness() && completenessData()) {
+        <div class="results-modal-card mt-3">
+          <div class="results-modal-header">
+            <h5>📊 Bilan de Complétude de la Carte Mentale</h5>
+            <button type="button" class="btn-close-modal" (click)="showCompleteness.set(false)">✕</button>
+          </div>
+          <div class="results-modal-body">
+            <div class="completeness-stats-row mb-4">
+              <div class="stat-box">
+                <small>Couverture des branches</small>
+                <h2 class="text-success">{{ completenessData().couverture_pourcentage }}%</h2>
+              </div>
+              <div class="stat-box">
+                <small>Branches couvertes</small>
+                <h2 class="text-primary">{{ completenessData().branches_couvertes_count }} / {{ completenessData().total_branches_suggerees }}</h2>
+              </div>
+              <div class="stat-box">
+                <small>Sous-branches créées</small>
+                <h2 class="text-info">{{ completenessData().nombre_sous_branches_ajoutees }}</h2>
+              </div>
+              <div class="stat-box">
+                <small>Total nœuds étudiants</small>
+                <h2>{{ completenessData().total_noeuds_etudiants }}</h2>
+              </div>
+            </div>
+
+            <h6 class="mb-2">Détails de la couverture par branche :</h6>
+            <div class="custom-coverage-list">
+              @for (b of completenessData().branch_coverage_details; track b.titre) {
+                <div class="coverage-item">
+                  <span>{{ b.titre }}</span>
+                  <span class="status-badge" [class.success]="b.couverte" [class.warning]="!b.couverte">
+                    {{ b.couverte ? '✅ Couverte' : '⚠️ Non couverte' }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -5,12 +5,11 @@ import { CommonModule } from '@angular/common';
 
 // project import
 import { SharedModule } from 'src/app/theme/shared/shared.module';
-import { NavLeftComponent } from './nav-left/nav-left.component';
 import { NavRightComponent } from './nav-right/nav-right.component';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [SharedModule, NavLeftComponent, NavRightComponent, RouterModule, CommonModule],
+  imports: [SharedModule, NavRightComponent, RouterModule, CommonModule],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss']
 })

@@ -1,5 +1,5 @@
 // angular import
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { RouterModule } from '@angular/router';
 
@@ -37,11 +37,61 @@ export class NavRightComponent {
   chatMessage: boolean;
   friendId!: number;
 
+  isFullscreen: boolean = false;
+
   // constructor
   constructor() {
     this.visibleUserList = false;
     this.chatMessage = false;
   }
+
+  toggleFullscreen(): void {
+    const doc = document as any;
+    const docEl = document.documentElement as any;
+
+    const fsElement =
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement;
+
+    if (!fsElement) {
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen();
+      } else if (docEl.webkitRequestFullscreen) {
+        docEl.webkitRequestFullscreen();
+      } else if (docEl.mozRequestFullScreen) {
+        docEl.mozRequestFullScreen();
+      } else if (docEl.msRequestFullscreen) {
+        docEl.msRequestFullscreen();
+      }
+    } else {
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.mozCancelFullScreen) {
+        doc.mozCancelFullScreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
+      }
+    }
+  }
+
+  @HostListener('document:fullscreenchange')
+  @HostListener('document:webkitfullscreenchange')
+  @HostListener('document:mozfullscreenchange')
+  @HostListener('document:MSFullscreenChange')
+  onFullscreenChange(): void {
+    const doc = document as any;
+    this.isFullscreen = !!(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+  }
+
 
   // public method
   // eslint-disable-next-line
