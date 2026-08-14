@@ -121,9 +121,14 @@ const routes: Routes = [
       {
         path: 'negociation',
         loadComponent: () => import('./demo/pages/negociation/negociation.component').then((c) => c.NegociationComponent)
+      },
+      {
+        path: 'atelier-feedback',
+        loadComponent: () => import('./demo/pages/atelier-feedback/atelier-feedback.component').then((c) => c.AtelierFeedbackComponent)
       }
     ]
   }
+
 ];
 
 @NgModule({

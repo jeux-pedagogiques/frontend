@@ -115,6 +115,15 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item'
       },
       {
+        id: 'atelier-feedback',
+        title: 'Atelier Feedback Pair',
+        type: 'item',
+        url: '/atelier-feedback',
+        icon: 'feather icon-user-check',
+        classes: 'nav-item'
+      },
+
+      {
         id: 'library',
         title: 'Bibliothèque',
         type: 'item',
