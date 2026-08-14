@@ -10,6 +10,7 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
 
 @Component({
   selector: 'app-nav-collapse',
+  host: { role: 'presentation' },
   imports: [SharedModule, NavItemComponent, RouterModule, CommonModule],
   templateUrl: './nav-collapse.component.html',
   styleUrls: ['./nav-collapse.component.scss']

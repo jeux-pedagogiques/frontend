@@ -124,7 +124,7 @@ $i: 10;
 
 @while $i<=80 {
   .f-#{$i} {
-    font-size: #{$i}px;
+    font-size: ($i * 0.0625) * 1rem;
   }
 
   $i: $i + 2;

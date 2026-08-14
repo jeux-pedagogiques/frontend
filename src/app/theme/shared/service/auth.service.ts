@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { RamCacheService } from './ram-cache.service';
 
 export interface User {
   id: number;
@@ -30,6 +31,7 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private ramCache = inject(RamCacheService);
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
   register(userData: any): Observable<AuthResponse> {
@@ -55,6 +57,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
+    this.ramCache.clear();
     this.router.navigate(['/login']);
   }
 

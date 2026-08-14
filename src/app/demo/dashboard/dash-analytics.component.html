@@ -1,328 +1,288 @@
-<div class="row">
-  <!-- order-card start -->
-  @for (card of cards; track card) {
-    <div class="col-md-6 col-xl-3">
-      <app-card [hidHeader]="true" cardClass="{{ card.background }} order-card">
-        <h6 class="text-white">{{ card.title }}</h6>
-        <h2 class="text-end text-white">
-          <i class="feather {{ card.icon }} float-start"></i>
-          <span>{{ card.number }}</span>
-        </h2>
-        <p class="m-b-0">
-          {{ card.text }}
-          <span class="float-end">{{ card.no }}</span>
-        </p>
-      </app-card>
+<div class="dash-analytics-container">
+  <!-- Top Header & Quick Actions -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="mb-1 fw-bold text-dark">🎓 ESPRIT AI — Table de Bord</h3>
+      <p class="text-muted mb-0">Vue d'ensemble de vos modules, activités IA générées et suivi des compétences</p>
     </div>
-  }
-  <!-- order-card end -->
-
-  <!-- account-section start -->
-  <div class="col-xl-6 col-md-12">
-    <app-card cardTitle="Unique Visitor">
-      <apx-chart
-        [chart]="chartOptions.chart!"
-        [dataLabels]="chartOptions.dataLabels!"
-        [stroke]="chartOptions.stroke!"
-        [series]="chartOptions.series!"
-        [xaxis]="chartOptions.xaxis!"
-        [colors]="chartOptions.colors!"
-        [fill]="chartOptions.fill!"
-        [markers]="chartOptions.markers!"
-        [yaxis]="chartOptions.yaxis!"
-      ></apx-chart>
-    </app-card>
+    <div class="d-flex flex-wrap gap-2">
+      <a routerLink="/import-module" class="btn btn-primary fw-bold shadow-sm">
+        <i class="feather icon-upload-cloud me-1"></i> Importer un Cours
+      </a>
+      <a routerLink="/live-session" class="btn btn-outline-primary fw-bold">
+        <i class="feather icon-play me-1"></i> Session Live
+      </a>
+    </div>
   </div>
-  <div class="col-xl-6 col-md-12">
-    <div class="row">
-      <div class="col-md-6">
-        <app-card [hidHeader]="true">
-          <div class="row">
-            <div class="col-auto">
-              <span>Customers</span>
-            </div>
-            <div class="col text-end">
-              <h2 class="mb-0">826</h2>
-              <span class="text-c-green">
-                8.2%
-                <i class="feather icon-trending-up ms-1"></i>
-              </span>
+
+  <!-- 4 Primary KPI Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Modules -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm kpi-stat-card bg-gradient-red text-white h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-white-50 small fw-semibold">MODULES DE COURS</span>
+            <div class="kpi-icon-box bg-white-20">
+              <i class="feather icon-book text-white f-20"></i>
             </div>
           </div>
-          <apx-chart
-            [series]="chartOptions_1.series!"
-            [chart]="chartOptions_1.chart!"
-            [stroke]="chartOptions_1.stroke!"
-            [dataLabels]="chartOptions_1.dataLabels!"
-            [labels]="chartOptions_1.labels!"
-            [legend]="chartOptions_1.legend!"
-            [colors]="chartOptions_1.colors!"
-            [fill]="chartOptions_1.fill!"
-            [grid]="chartOptions_1.grid!"
-            [plotOptions]="chartOptions_1.plotOptions!"
-            [tooltip]="chartOptions_1.tooltip!"
-          ></apx-chart>
-          <div class="row mt-3 text-center">
-            <div class="col">
-              <h3 class="m-0">
-                <i class="fas fa-circle f-10 m-r-5 text-success"></i>
-                674
-              </h3>
-              <span class="ms-3">New</span>
-            </div>
-            <div class="col">
-              <h3 class="m-0">
-                <i class="fas fa-circle text-primary f-10 m-r-5"></i>
-                182
-              </h3>
-              <span class="ms-3">Return</span>
-            </div>
-          </div>
-        </app-card>
+          <h2 class="text-white fw-bold mb-1">{{ totalModulesCount() }}</h2>
+          <span class="small text-white-50">Fiches de cours analysées par IA</span>
+        </div>
       </div>
-      <div class="col-md-6">
-        <app-card [hidHeader]="true" cardClass="bg-primary text-white">
-          <div class="row">
-            <div class="col-auto">
-              <span>Customers</span>
-            </div>
-            <div class="col text-end">
-              <h2 class="mb-0 text-white">826</h2>
-              <span class="text-white">
-                8.2%
-                <i class="feather icon-trending-up ms-1"></i>
-              </span>
+    </div>
+
+    <!-- Card 2: AI Games Generated -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm kpi-stat-card bg-gradient-cyan text-white h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-white-50 small fw-semibold">ACTIVITÉS IA GÉNÉRÉES</span>
+            <div class="kpi-icon-box bg-white-20">
+              <i class="feather icon-cpu text-white f-20"></i>
             </div>
           </div>
-          <div id="customerChart">
+          <h2 class="text-white fw-bold mb-1">{{ totalGamesCount() }}</h2>
+          <span class="small text-white-50">Jeux & ateliers pédagogiques</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Live Sessions -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm kpi-stat-card bg-gradient-amber text-white h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-white-50 small fw-semibold">SESSIONS LIVE</span>
+            <div class="kpi-icon-box bg-white-20">
+              <i class="feather icon-video text-white f-20"></i>
+            </div>
+          </div>
+          <h2 class="text-white fw-bold mb-1">{{ totalSessionsCount() }}</h2>
+          <span class="small text-white-50">Sessions interactives animées</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Mastery Rate -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm kpi-stat-card bg-gradient-emerald text-white h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-white-50 small fw-semibold">MAÎTRISE DES AA</span>
+            <div class="kpi-icon-box bg-white-20">
+              <i class="feather icon-award text-white f-20"></i>
+            </div>
+          </div>
+          <h2 class="text-white fw-bold mb-1">{{ avgMasteryRate() }}%</h2>
+          <span class="small text-white-50">Taux moyen de réussite étudiant</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Analytics Section -->
+  <div class="row g-4 mb-4">
+    <!-- Activity Chart -->
+    <div class="col-12 col-xl-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
+          <h5 class="mb-0 fw-bold">
+            <i class="feather icon-trending-up me-2 text-danger"></i> Évolution de l'Activité Pédagogique
+          </h5>
+          <span class="badge bg-light text-dark border">Mensuel</span>
+        </div>
+        <div class="card-body">
+          @if (activityChart && activityChart.series) {
             <apx-chart
-              [series]="chartOptions_2.series!"
-              [chart]="chartOptions_2.chart!"
-              [stroke]="chartOptions_2.stroke!"
-              [dataLabels]="chartOptions_2.dataLabels!"
-              [labels]="chartOptions_2.labels!"
-              [legend]="chartOptions_2.legend!"
-              [colors]="chartOptions_2.colors!"
-              [fill]="chartOptions_2.fill!"
-              [grid]="chartOptions_2.grid!"
-              [plotOptions]="chartOptions_2.plotOptions!"
-              [tooltip]="chartOptions_2.tooltip!"
+              [chart]="activityChart.chart!"
+              [dataLabels]="activityChart.dataLabels!"
+              [stroke]="activityChart.stroke!"
+              [series]="activityChart.series!"
+              [xaxis]="activityChart.xaxis!"
+              [colors]="activityChart.colors!"
+              [fill]="activityChart.fill!"
+              [grid]="activityChart.grid!"
+              [legend]="activityChart.legend!"
             ></apx-chart>
-          </div>
-          <div class="row mt-3 text-center">
-            <div class="col">
-              <h3 class="m-0 text-white">
-                <i class="fas fa-circle f-10 m-r-5 text-white"></i>
-                674
-              </h3>
-              <span class="ms-3">New</span>
-            </div>
-            <div class="col">
-              <h3 class="m-0 text-white">
-                <i class="fas fa-circle text-white f-10 m-r-5"></i>
-                182
-              </h3>
-              <span class="ms-3">Return</span>
-            </div>
-          </div>
-        </app-card>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloom Taxonomy Distribution -->
+    <div class="col-12 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent py-3 border-bottom">
+          <h5 class="mb-0 fw-bold">
+            <i class="feather icon-pie-chart me-2 text-primary"></i> Taxonomie de Bloom
+          </h5>
+        </div>
+        <div class="card-body text-center d-flex flex-column justify-content-center">
+          @if (bloomChart && bloomChart.series) {
+            <apx-chart
+              [series]="bloomChart.series!"
+              [chart]="bloomChart.chart!"
+              [dataLabels]="bloomChart.dataLabels!"
+              [labels]="bloomChart.labels!"
+              [legend]="bloomChart.legend!"
+              [colors]="bloomChart.colors!"
+              [plotOptions]="bloomChart.plotOptions!"
+              [tooltip]="bloomChart.tooltip!"
+            ></apx-chart>
+          }
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-12 col-lg-4">
-    <app-card
-      [hidHeader]="true"
-      cardClass="seo-card"
-      blockClass="seo-statustic"
-      footerClass="seo-chart border border-top-0 p-0 overflow-hidden"
-      [isCardFooter]="true"
-    >
-      <i class="feather icon-save f-20 text-c-red"></i>
-      <h5 class="mb-1">65%</h5>
-      <p>Memory</p>
-      <div class="app-card-footer">
-        <apx-chart
-          [series]="chartOptions_3.series!"
-          [chart]="chartOptions_3.chart!"
-          [stroke]="chartOptions_3.stroke!"
-          [dataLabels]="chartOptions_3.dataLabels!"
-          [colors]="chartOptions_3.colors!"
-          [fill]="chartOptions_3.fill!"
-          [tooltip]="chartOptions_3.tooltip!"
-          [yaxis]="chartOptions_3.yaxis!"
-        ></apx-chart>
-      </div>
-    </app-card>
-  </div>
-  <div class="col-md-6 col-lg-4">
-    <app-card [hidHeader]="true" blockClass="text-center">
-      <i class="fa fa-envelope-open text-c-blue d-block f-40"></i>
-      <h4 class="m-t-20">
-        <span class="text-c-blue">8.62k</span>
-        Subscribers
-      </h4>
-      <p class="m-b-20">Your main list is growing</p>
-      <button class="btn btn-primery btn-sm btn-round">Manage List</button>
-    </app-card>
-  </div>
-  <div class="col-md-6 col-lg-4">
-    <app-card [hidHeader]="true" blockClass="text-center">
-      <i class="fab fa-twitter text-c-green d-block f-40"></i>
-      <h4 class="m-t-20">
-        <span class="text-c-green">+40</span>
-        Followers
-      </h4>
-      <p class="m-b-20">Your main list is growing</p>
-      <button class="btn btn-success btn-sm btn-round">Check Theme Out</button>
-    </app-card>
-  </div>
-  <!-- account-section end -->
-
-  <!-- conversion-section start -->
-  <div class="col-lg-4 col-md-12">
-    <app-card [hidHeader]="true" footerClass="border border-top-0 p-0 overflow-hidden" [isCardFooter]="true">
-      <h6>Conversions</h6>
-      <h4 class="m-0">
-        0.85%
-        <span class="text-c-blue ms-2">
-          <i class="feather icon-arrow-up"></i>
-          0.50%
-        </span>
-      </h4>
-      <span>Purchased</span>
-      <div class="app-card-footer"></div>
-    </app-card>
-    <app-card [hidHeader]="true" footerClass="border border-top-0 p-0 overflow-hidden" [isCardFooter]="true">
-      <h6>Conversions</h6>
-      <h4 class="m-0">
-        0.85%
-        <span class="text-c-red ms-2">
-          <i class="feather icon-arrow-up"></i>
-          0.50%
-        </span>
-      </h4>
-      <span>Purchased</span>
-      <div class="app-card-footer"></div>
-    </app-card>
-    <app-card [hidHeader]="true" footerClass="border border-top-0 p-0 overflow-hidden" [isCardFooter]="true">
-      <h6>Conversions</h6>
-      <h4 class="m-0">
-        0.85%
-        <span class="text-c-green ms-2">
-          <i class="feather icon-arrow-up"></i>
-          0.50%
-        </span>
-      </h4>
-      <span>Purchased</span>
-      <div class="app-card-footer"></div>
-    </app-card>
-  </div>
-  <div class="col-lg-8 col-md-12">
-    <app-card cardTitle="Activity Feed" blockClass="m-t-10">
-      <ul class="feed-blog ps-0">
-        <li class="active-feed">
-          <div class="feed-user-img">
-            <img src="assets/images/user/avatar-4.jpg" class="img-radius" alt="User-Profile-Image" />
-          </div>
-          <h6>
-            <span class="badge bg-danger">File</span>
-            Eddie uploaded new files:
-            <small class="text-muted ms-1">2 hours ago</small>
-          </h6>
-          <p class="m-b-15 m-t-15">
-            hii
-            <b>&#64;everone</b>
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy
-            text ever since the 1500s.
-          </p>
-          <div class="row">
-            @for (image of images; track image) {
-              <div class="col-auto text-center">
-                <img src="{{ image.src }}" alt="img" class="img-fluid wid-100" />
-                <h6 class="m-t-15 m-b-0">{{ image.title }}</h6>
-                <p class="text-muted m-b-0">
-                  <small>{{ image.size }}</small>
-                </p>
-              </div>
-            }
-          </div>
-        </li>
-        <li class="diactive-feed">
-          <div class="feed-user-img">
-            <img src="assets/images/user/avatar-2.jpg" class="img-radius" alt="User-Profile-Image" />
-          </div>
-          <h6>
-            <span class="badge bg-success">Task</span>
-            Sarah marked the Pending Review:
-            <span class="text-c-green">Trash Can Icon Design</span>
-            <small class="text-muted">2 hours ago</small>
-          </h6>
-        </li>
-        <li class="diactive-feed">
-          <div class="feed-user-img">
-            <img src="assets/images/user/avatar-1.jpg" class="img-radius" alt="User-Profile-Image" />
-          </div>
-          <h6>
-            <span class="badge bg-primary">comment</span>
-            abc posted a task:
-            <span class="text-c-green">Design a new Homepage</span>
-            <small class="text-muted">6 hours ago</small>
-          </h6>
-          <p class="m-b-15 m-t-15">
-            hii
-            <b>&#64;everone</b>
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy
-            text ever since the 1500s.
-          </p>
-        </li>
-      </ul>
-    </app-card>
-  </div>
-  <!-- conversion-section end -->
-  <div class="col-md-12">
-    <app-card cardTitle="Campaign Monitor" cardClass="tab-card tab-content" blockClass="nav-fill">
-      <ul ngbNav #nav="ngbNav" aria-busy="true" class="nav-pills">
-        <li [ngbNavItem]="1" class="flex">
-          <a ngbNavLink>
-            <i class="fa fa-home m-r-10"></i>
-            Home
-          </a>
-          <ng-template ngbNavContent>
-            <div class="table-responsive">
-              <app-product-sale></app-product-sale>
+  <!-- Quick Action Hub Cards -->
+  <h5 class="fw-bold mb-3"><i class="feather icon-grid me-2 text-danger"></i> Accès Rapide aux Outils Pédagogiques</h5>
+  <div class="row g-3 mb-4">
+    <!-- Quick Action 1: Import -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100 action-hub-card">
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <div class="action-icon-wrapper bg-danger-subtle text-danger mb-3">
+              <i class="feather icon-upload-cloud f-24"></i>
             </div>
-          </ng-template>
-        </li>
-        <li [ngbNavItem]="2" class="flex">
-          <a ngbNavLink>
-            <i class="fa fa-key m-r-10"></i>
-            Security
+            <h5 class="fw-bold mb-2">Import & Analyse</h5>
+            <p class="text-muted small mb-3">
+              Téléversez vos fiches de cours PDF/DOCX pour extraire la taxonomie de Bloom et les AA.
+            </p>
+          </div>
+          <a routerLink="/import-module" class="btn btn-outline-danger btn-sm w-100 fw-bold">
+            Importer un cours →
           </a>
-          <ng-template ngbNavContent>
-            <app-product-sale></app-product-sale>
-          </ng-template>
-        </li>
-        <li [ngbNavItem]="3" class="flex">
-          <a ngbNavLink>
-            <i class="fa fa-play-circle m-r-10"></i>
-            Entertainment
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action 2: Library -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100 action-hub-card">
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <div class="action-icon-wrapper bg-info-subtle text-info mb-3">
+              <i class="feather icon-folder f-24"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Bibliothèque de Jeux</h5>
+            <p class="text-muted small mb-3">
+              Gérez vos activités (Flashcards, Escape Rooms, Cas d'Étude, Mind Maps).
+            </p>
+          </div>
+          <a routerLink="/library" class="btn btn-outline-info btn-sm w-100 fw-bold">
+            Voir la bibliothèque →
           </a>
-          <ng-template ngbNavContent>
-            <app-product-sale></app-product-sale>
-          </ng-template>
-        </li>
-        <li [ngbNavItem]="4" class="flex">
-          <a ngbNavLink>
-            <i class="fa fa-database m-r-10"></i>
-            Big Data
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action 3: Live Session -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100 action-hub-card">
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <div class="action-icon-wrapper bg-warning-subtle text-warning mb-3">
+              <i class="feather icon-radio f-24"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Session Live</h5>
+            <p class="text-muted small mb-3">
+              Animez des quiz interactifs et des défis de pitching en temps réel avec vos classes.
+            </p>
+          </div>
+          <a routerLink="/live-session" class="btn btn-outline-warning btn-sm w-100 fw-bold">
+            Lancer une session →
           </a>
-          <ng-template ngbNavContent>
-            <app-product-sale></app-product-sale>
-          </ng-template>
-        </li>
-      </ul>
-      <div [ngbNavOutlet]="nav" class="mt-2"></div>
-    </app-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action 4: Analytics -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100 action-hub-card">
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <div class="action-icon-wrapper bg-success-subtle text-success mb-3">
+              <i class="feather icon-bar-chart-2 f-24"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Analytique Enseignant</h5>
+            <p class="text-muted small mb-3">
+              Rapports détaillés de réussite par étudiant, questions difficiles et compétences.
+            </p>
+          </div>
+          <a routerLink="/prof-dashboard" class="btn btn-outline-success btn-sm w-100 fw-bold">
+            Consulter les rapports →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Course Modules Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
+      <h5 class="mb-0 fw-bold">
+        <i class="feather icon-book-open me-2 text-danger"></i> Derniers Modules de Cours Analysés
+      </h5>
+      <a routerLink="/import-module" class="btn btn-sm btn-primary">
+        + Analyser un cours
+      </a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Module de Cours</th>
+              <th>Concepts Clés Extraits</th>
+              <th>Date d'Import</th>
+              <th class="text-end">Générer une Activité IA</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of courseModules(); track m.id) {
+              <tr>
+                <td>
+                  <strong class="text-dark d-block mb-1">{{ m.module_title }}</strong>
+                  <small class="text-muted">Module #{{ m.id }}</small>
+                </td>
+                <td>
+                  <div class="d-flex flex-wrap gap-1">
+                    @for (concept of m.key_concepts | slice:0:3; track concept) {
+                      <span class="badge bg-light text-dark border">{{ concept }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="text-muted small">
+                  {{ m.created_at ? (m.created_at | date:'shortDate') : 'Récemment' }}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a routerLink="/flashcards" class="btn btn-outline-secondary" title="Générer des Flashcards">
+                      <i class="feather icon-layers"></i>
+                    </a>
+                    <a routerLink="/escape-room" class="btn btn-outline-secondary" title="Générer une Escape Room">
+                      <i class="feather icon-lock"></i>
+                    </a>
+                    <a routerLink="/cas-etude" class="btn btn-outline-secondary" title="Générer une Étude de Cas">
+                      <i class="feather icon-folder"></i>
+                    </a>
+                    <a routerLink="/mindmap" class="btn btn-outline-secondary" title="Générer un Mind Map">
+                      <i class="feather icon-cpu"></i>
+                    </a>
+                    <a routerLink="/pitching-challenge" class="btn btn-outline-secondary" title="Générer un Challenge Pitching">
+                      <i class="feather icon-mic"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>

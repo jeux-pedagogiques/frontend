@@ -9,6 +9,10 @@ import { authGuard } from './theme/shared/guard/auth.guard';
 
 const routes: Routes = [
   {
+    path: 'play/:gameType/:token',
+    loadComponent: () => import('./demo/pages/play/play.component').then((c) => c.PlayComponent)
+  },
+  {
     path: '',
     component: GuestComponent,
     children: [
@@ -99,9 +103,32 @@ const routes: Routes = [
         path: 'library',
         canActivate: [authGuard],
         loadComponent: () => import('./demo/pages/library/library.component').then((c) => c.LibraryComponent)
+      },
+      {
+        path: 'cas-etude',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/cas-etude/cas-etude.component').then((c) => c.CasEtudeComponent)
+      },
+      {
+        path: 'mindmap',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/mindmap/mindmap.component').then((c) => c.MindMapComponent)
+      },
+      {
+        path: 'debat-structure',
+        loadComponent: () => import('./demo/pages/debat-structure/debat-structure.component').then((c) => c.DebatStructureComponent)
+      },
+      {
+        path: 'negociation',
+        loadComponent: () => import('./demo/pages/negociation/negociation.component').then((c) => c.NegociationComponent)
+      },
+      {
+        path: 'atelier-feedback',
+        loadComponent: () => import('./demo/pages/atelier-feedback/atelier-feedback.component').then((c) => c.AtelierFeedbackComponent)
       }
     ]
   }
+
 ];
 
 @NgModule({

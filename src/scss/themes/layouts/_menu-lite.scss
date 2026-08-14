@@ -2,6 +2,18 @@
 .b-brand {
   display: flex;
   align-items: center;
+
+  .logo {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .logo-thumb {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+  }
 }
 
 .navbar-collapsed {
@@ -113,7 +125,7 @@
       > a,
       .dropdown-toggle {
         > i {
-          font-size: 16px;
+          font-size: 1rem;
         }
 
         .badge {
@@ -210,7 +222,7 @@
       .form-control {
         transition: all 0.15s ease-in-out;
         // width: 0;
-        font-size: 14px;
+        font-size: 0.875rem;
       }
 
       .form-control,
@@ -284,7 +296,7 @@
 
         a {
           padding: 10px;
-          font-size: 14px;
+          font-size: 0.875rem;
         }
 
         &.active,
@@ -323,7 +335,7 @@
         a {
           color: #fff;
           text-decoration: underline;
-          font-size: 13px;
+          font-size: 0.8125rem;
         }
       }
 
@@ -355,7 +367,7 @@
 
           p {
             margin-bottom: 5px;
-            font-size: 13px;
+            font-size: 0.8125rem;
 
             strong {
               color: #222;
@@ -377,7 +389,7 @@
 
         a {
           text-decoration: underline;
-          font-size: 13px;
+          font-size: 0.8125rem;
         }
       }
 
@@ -433,7 +445,7 @@
 
           a {
             color: $theme-font-color;
-            font-size: 14px;
+            font-size: 0.875rem;
             padding: 10px;
 
             i {
@@ -541,7 +553,7 @@
   padding: 0 10px;
 
   i {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 }
 
@@ -687,7 +699,7 @@
         }
 
         > .pcoded-micon {
-          font-size: 16px;
+          font-size: 1rem;
           padding: 0;
           margin-right: 5px;
           border-radius: 4px;
@@ -710,7 +722,7 @@
           &:after {
             content: '\e844';
             font-family: 'feather';
-            font-size: 13px;
+            font-size: 0.8125rem;
             border: none;
             position: absolute;
             top: 15px;
@@ -823,7 +835,7 @@
       }
 
       &.pcoded-menu-caption {
-        font-size: 12px;
+        font-size: 0.75rem;
         font-weight: 600;
         color: #fff;
         padding: 18px 15px 5px;
@@ -1194,7 +1206,9 @@
 .pcoded-content {
   position: relative;
   display: block;
-  padding: 25px 25px 0px 25px;
+  padding: 25px clamp(12px, 2vw, 32px) 0px clamp(12px, 2vw, 32px);
+  width: 100%;
+  max-width: 100% !important;
 }
 
 .pcoded-main-container {
@@ -1245,7 +1259,7 @@
         &:after {
           content: '\e89a';
           font-family: 'feather';
-          font-size: 20px;
+          font-size: 1.25rem;
           color: $header-dark-background;
           position: absolute;
           right: 10px;
@@ -1414,7 +1428,9 @@
   }
 
   .pcoded-content {
-    padding: 25px 15px 0px 15px;
+    padding: 25px clamp(12px, 2vw, 32px) 0px clamp(12px, 2vw, 32px);
+    width: 100%;
+    max-width: 100% !important;
   }
 
   .card {

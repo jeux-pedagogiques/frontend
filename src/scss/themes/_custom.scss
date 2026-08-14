@@ -176,3 +176,50 @@
     }
   }
 }
+
+/* ==========================================================================
+   Shared Game Configuration Sticky Layout
+   ========================================================================== */
+.game-config-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+
+  @media (min-width: 992px) {
+    &.has-selection {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+  }
+
+  .game-config-grid-col {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .game-config-panel-col {
+    min-width: 0;
+    width: 100%;
+  }
+
+  @media (min-width: 992px) {
+    .config-panel-sticky {
+      position: sticky;
+      top: 84px;
+      z-index: 10;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(150, 150, 150, 0.3);
+        border-radius: 4px;
+      }
+    }
+  }
+}

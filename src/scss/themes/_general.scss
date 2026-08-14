@@ -34,31 +34,31 @@ h6 {
 }
 
 h1 {
-  font-size: 40px;
+  font-size: 2.5rem;
 }
 
 h2 {
-  font-size: 32px;
+  font-size: 2rem;
 }
 
 h3 {
-  font-size: 28px;
+  font-size: 1.75rem;
 }
 
 h4 {
-  font-size: 22px;
+  font-size: 1.375rem;
 }
 
 h5 {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 h6 {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 p {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 b,
@@ -166,7 +166,7 @@ strong {
       color: $theme-font-color;
 
       i {
-        font-size: 15px;
+        font-size: 0.9375rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -206,18 +206,16 @@ strong {
   }
 }
 
-/* ================================    Dropdown End  ===================== */
-@media (min-width: 1600px) {
-  .container {
-    max-width: 1540px;
-  }
+/* ================================ Container Fluid Full Width ===================== */
+.container,
+.container-fluid,
+.pcoded-content {
+  width: 100%;
+  max-width: 100% !important;
+  padding-left: clamp(12px, 2vw, 32px);
+  padding-right: clamp(12px, 2vw, 32px);
 }
 
-@media (max-width: 992px) {
-  .container {
-    max-width: 100%;
-  }
-}
 
 a {
   text-decoration: none !important;

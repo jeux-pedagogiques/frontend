@@ -24,6 +24,7 @@ export const NavigationItems: NavigationItem[] = [
     title: 'Principal',
     type: 'group',
     icon: 'icon-group',
+    classes: 'nav-group-red',
     children: [
       {
         id: 'dashboard',
@@ -39,6 +40,7 @@ export const NavigationItems: NavigationItem[] = [
     title: 'Plateforme',
     type: 'group',
     icon: 'icon-group',
+    classes: 'nav-group-red',
     children: [
       {
         id: 'import-module',
@@ -81,11 +83,52 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item'
       },
       {
+        id: 'cas-etude',
+        title: 'Étude de Cas Gamifiée',
+        type: 'item',
+        url: '/cas-etude',
+        icon: 'feather icon-briefcase',
+        classes: 'nav-item'
+      },
+      {
+        id: 'mindmap',
+        title: 'Mind Map Collaboratif',
+        type: 'item',
+        url: '/mindmap',
+        icon: 'feather icon-cpu',
+        classes: 'nav-item'
+      },
+      {
+        id: 'debat-structure',
+        title: 'Débat Structuré',
+        type: 'item',
+        url: '/debat-structure',
+        icon: 'feather icon-users',
+        classes: 'nav-item'
+      },
+      {
+        id: 'negociation',
+        title: 'Simulation Négociation',
+        type: 'item',
+        url: '/negociation',
+        icon: 'feather icon-briefcase',
+        classes: 'nav-item'
+      },
+      {
+        id: 'atelier-feedback',
+        title: 'Atelier Feedback Pair',
+        type: 'item',
+        url: '/atelier-feedback',
+        icon: 'feather icon-user-check',
+        classes: 'nav-item'
+      },
+
+      {
         id: 'library',
         title: 'Bibliothèque',
         type: 'item',
         url: '/library',
-        icon: 'feather icon-book-open',
+        icon: 'feather icon-book',
         classes: 'nav-item'
       },
       {

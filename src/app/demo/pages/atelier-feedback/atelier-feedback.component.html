@@ -1,0 +1,398 @@
+<div class="atelier-page">
+
+  <!-- Header Banner -->
+  <div class="header-card card shadow-sm mb-4 border-0">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+          <i class="feather icon-user-check text-primary"></i>
+          Atelier Feedback Pair
+        </h2>
+        <p class="text-muted small m-0">Évaluation par les pairs guidée par l'IA avec anonymisation et agrégation automatique.</p>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm" [class.active]="viewMode() === 'host'" (click)="viewMode.set('host')" *ngIf="isProf">
+          <i class="feather icon-user"></i> Mode Animateur
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" [class.active]="viewMode() === 'join'" (click)="viewMode.set('join')">
+          <i class="feather icon-users"></i> Rejoindre Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error / Success Alerts -->
+  <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage()">
+    <i class="feather icon-alert-circle me-2"></i>{{ errorMessage() }}
+    <button type="button" class="btn-close" (click)="errorMessage.set('')"></button>
+  </div>
+  <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage()">
+    <i class="feather icon-check-circle me-2"></i>{{ successMessage() }}
+    <button type="button" class="btn-close" (click)="successMessage.set('')"></button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- HOST VIEW (PROFESSEUR)                      -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode() === 'host'">
+
+    <!-- Step 1: Select Module -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'select'">
+      <div class="card-header bg-white border-0 pt-4 pb-2">
+        <h4 class="card-title fw-bold">Étape 1 : Sélectionner une fiche de cours</h4>
+        <p class="text-muted small m-0">Choisissez le module pédagogique à partir duquel l'IA va générer la grille de critères.</p>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-4" *ngFor="let a of analyses()">
+            <div class="module-card p-3 rounded border h-100 cursor-pointer" [class.selected]="selectedAnalysis()?.id === a.id" (click)="selectAnalysis(a)">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="fw-bold m-0 text-truncate me-2">{{ a.module_title }}</h5>
+                <span class="badge bg-light-primary text-primary">Module #{{ a.id }}</span>
+              </div>
+              <p class="text-muted small mb-2 line-clamp-2">{{ a.key_concepts?.join(', ') || 'Aucun concept' }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <span class="badge bg-soft-secondary text-secondary small">{{ a.learning_outcomes?.length || 0 }} AA</span>
+                <i class="feather icon-check-circle text-success" *ngIf="selectedAnalysis()?.id === a.id"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 border-top pt-3 d-flex justify-content-between align-items-center" *ngIf="selectedAnalysis()">
+          <div>
+            <label class="form-label fw-bold mb-1">Nombre de critères d'évaluation :</label>
+            <input type="number" class="form-control form-control-sm w-auto d-inline-block ms-2" [(ngModel)]="nbCriteres" min="2" max="8">
+          </div>
+          <div class="form-check form-switch me-3">
+            <input class="form-check-input" type="checkbox" id="anonymeCheck" [(ngModel)]="anonyme">
+            <label class="form-check-label fw-semibold" for="anonymeCheck">Évaluation Anonyme</label>
+          </div>
+          <button class="btn btn-primary px-4" (click)="generateAtelierGrid()">
+            <i class="feather icon-cpu me-2"></i>Générer Grille IA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generating Loader -->
+    <div class="card shadow-sm border-0 mb-4 text-center py-5" *ngIf="hostState() === 'generating'">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+      <h4 class="fw-bold">Génération de la grille de feedback en cours...</h4>
+      <p class="text-muted">Analyse des acquis d'apprentissage et création des critères formateurs par l'IA.</p>
+    </div>
+
+    <!-- Step 2: Result & Grid Preview -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'result' && atelier()">
+      <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h4 class="card-title fw-bold m-0">{{ atelier()!.titre }}</h4>
+          <span class="badge bg-primary me-2 mt-1">Grille IA Générée</span>
+          <span class="badge" [class.bg-success]="atelier()!.anonyme" [class.bg-warning]="!atelier()!.anonyme">
+            {{ atelier()!.anonyme ? 'Anonymat Activé' : 'Nominatif' }}
+          </span>
+        </div>
+        <button class="btn btn-success" (click)="openLobby()">
+          <i class="feather icon-play me-2"></i>Préparer Session Live
+        </button>
+      </div>
+
+      <div class="card-body">
+        <h5 class="fw-bold mb-3">Critères d'Évaluation des Pairs :</h5>
+        <div class="list-group mb-4">
+          <div class="list-group-item p-3 border-0 bg-light rounded mb-2" *ngFor="let c of atelier()!.criteres; let i = index">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold m-0 text-primary">{{ i + 1 }}. {{ c.nom }}</h6>
+              <span class="badge bg-secondary">Échelle 1 à 5</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">{{ c.description }}</p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-soft-primary rounded">
+          <h6 class="fw-bold text-dark mb-1"><i class="feather icon-info me-2"></i>Structure de Feedback Formatif :</h6>
+          <ul class="mb-0 text-muted small">
+            <li>Note globale de synthèse (/5)</li>
+            <li>Commentaires qualitatifs : Points Forts & Appréciations</li>
+            <li>Commentaires qualitatifs : Axes d'Amélioration & Progrès</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Presenters Lobby -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'lobby'">
+      <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="card-title fw-bold m-0">Lobby de la Session — Code : <span class="text-primary">{{ sessionCode() }}</span></h4>
+          <p class="text-muted small m-0">Inscrivez les présentateurs ou groupes d'étudiants puis lancez l'atelier.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" (click)="shareSession()">
+            <i class="feather icon-share-2 me-1"></i> Partager Lien
+          </button>
+          <button class="btn btn-primary" (click)="launchAtelierSession()">
+            <i class="feather icon-zap me-1"></i> Lancer l'Atelier
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-8 col-lg-6 d-flex gap-2">
+            <input type="text" class="form-control" placeholder="Nom de l'étudiant ou du groupe..." [(ngModel)]="newPresenterName" (keyup.enter)="addPresenter()">
+            <button class="btn btn-outline-primary text-nowrap" (click)="addPresenter()">
+              <i class="feather icon-plus me-1"></i> Ajouter Presentateur
+            </button>
+          </div>
+        </div>
+
+        <h5 class="fw-bold mb-3">Ordre de Passage des Présentations :</h5>
+        <div class="table-responsive" *ngIf="presentations().length > 0">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Ordre</th>
+                <th>Présentateur / Groupe</th>
+                <th>Statut</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of presentations(); let i = index">
+                <td class="fw-bold">#{{ i + 1 }}</td>
+                <td>{{ p.nom_presentateur }}</td>
+                <td><span class="badge bg-secondary">En attente</span></td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-danger" (click)="removePresenter(i)">
+                    <i class="feather icon-trash-2"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted" *ngIf="presentations().length === 0">Aucun présentateur ajouté pour le moment. Saisissez les noms ci-dessus.</p>
+      </div>
+    </div>
+
+    <!-- Step 4: Live Host Monitoring -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'live'">
+      <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="card-title fw-bold m-0">Présentation en cours : <span class="text-primary">{{ activePresentation()?.nom_presentateur }}</span></h4>
+          <span class="badge bg-success me-2">En Direct</span>
+          <span class="badge bg-info">{{ feedbackCount() }} retours pairs reçus</span>
+        </div>
+        <button class="btn btn-warning" (click)="triggerAggregatedResults()">
+          <i class="feather icon-pie-chart me-1"></i> Diffuser Bilan Consolidé
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="p-4 bg-light rounded text-center mb-4">
+          <h2 class="fw-bold text-dark mb-2">{{ activePresentation()?.nom_presentateur }}</h2>
+          <p class="text-muted m-0">Les pairs remplissent actuellement leur grille de feedback pour ce présentateur.</p>
+        </div>
+
+        <h5 class="fw-bold mb-3">Sélectionner un autre présentateur :</h5>
+        <div class="d-flex flex-wrap gap-2">
+          <button *ngFor="let p of presentations()" class="btn btn-outline-secondary" [class.active]="p.id === activePresentation()?.id" (click)="startPresentation(p.id)">
+            #{{ p.ordre_passage }} {{ p.nom_presentateur }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Aggregated Results View (Prof) -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'aggregated' && aggregatedData()">
+      <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h4 class="card-title fw-bold m-0">Grille Consolidée : {{ aggregatedData()?.nom_presentateur }}</h4>
+          <span class="text-muted small">Total retours reçus : {{ aggregatedData()?.total_feedbacks }} | Anonymat : {{ aggregatedData()?.anonyme ? 'Oui' : 'Non' }}</span>
+        </div>
+        <button class="btn btn-danger" (click)="exportPDF()">
+          <i class="feather icon-download me-1"></i> Télécharger Export PDF
+        </button>
+      </div>
+
+      <div class="card-body">
+        <!-- KPI Card -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-lg-4">
+            <div class="p-3 bg-soft-primary rounded text-center border">
+              <span class="text-muted small d-block">Note de Synthèse Moyenne</span>
+              <h2 class="fw-bold text-primary m-0">{{ aggregatedData()?.moyenne_note_synthese ? (aggregatedData()?.moyenne_note_synthese | number:'1.2-2') : 'N/A' }} / 5</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Criteria Averages -->
+        <h5 class="fw-bold mb-3">Moyenne par Critère :</h5>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Critère</th>
+                <th style="width: 150px;">Moyenne (/5)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of aggregatedData()?.moyennes_par_critere | keyvalue">
+                <td class="fw-semibold">{{ item.key }}</td>
+                <td class="fw-bold text-primary">{{ item.value | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Feedback Comments -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded h-100 bg-light">
+              <h6 class="fw-bold text-success mb-3"><i class="feather icon-thumbs-up me-2"></i>Points Forts Compilés</h6>
+              <ul class="mb-0 ps-3">
+                <li *ngFor="let pt of aggregatedData()?.compilation_points_positifs" class="mb-2">{{ pt }}</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 border rounded h-100 bg-light">
+              <h6 class="fw-bold text-warning mb-3"><i class="feather icon-trending-up me-2"></i>Axes d'Amélioration Compilés</h6>
+              <ul class="mb-0 ps-3">
+                <li *ngFor="let ax of aggregatedData()?.compilation_axes_amelioration" class="mb-2">{{ ax }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- JOIN VIEW (ÉTUDIANT / PAIR)                -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode() === 'join'">
+
+    <!-- Form: Join Session -->
+    <div class="card shadow-sm border-0 mb-4 max-w-500 mx-auto" *ngIf="joinState() === 'join'">
+      <div class="card-header bg-white border-0 pt-4 pb-2 text-center">
+        <h4 class="card-title fw-bold">Rejoindre un Atelier Feedback</h4>
+        <p class="text-muted small">Saisissez le code de session communiqué par votre enseignant.</p>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Code de Session :</label>
+          <input type="text" class="form-control form-control-lg text-center fw-bold letter-spacing-2" placeholder="ex: 123456" [(ngModel)]="joinCode">
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-bold">Votre Pseudo :</label>
+          <input type="text" class="form-control" placeholder="ex: Alex" [(ngModel)]="studentPseudo">
+        </div>
+        <button class="btn btn-primary w-100 btn-lg" (click)="joinSession()">
+          Rejoindre l'Atelier
+        </button>
+      </div>
+    </div>
+
+    <!-- Waiting State -->
+    <div class="card shadow-sm border-0 mb-4 text-center py-5" *ngIf="joinState() === 'waiting'">
+      <div class="spinner-grow text-primary mb-3" role="status"></div>
+      <h4 class="fw-bold">En attente de la présentation...</h4>
+      <p class="text-muted">Dès que l'enseignant lancera un passage, la grille d'évaluation s'affichera ici.</p>
+    </div>
+
+    <!-- Fill Feedback Form -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="joinState() === 'fill_feedback' && activePresentation()">
+      <div class="card-header bg-primary text-white border-0 pt-4 pb-3">
+        <h4 class="fw-bold text-white m-0">Présentation en cours : {{ activePresentation()?.nom_presentateur }}</h4>
+        <p class="text-white-50 small m-0">Remplissez la grille d'évaluation formative pour ce présentateur.</p>
+      </div>
+      <div class="card-body">
+
+        <!-- Criteria Inputs -->
+        <h5 class="fw-bold mb-3">Évaluation des Critères :</h5>
+        <div class="card p-3 mb-3 border-light bg-light" *ngFor="let c of atelier()?.criteres">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold m-0">{{ c.nom }}</label>
+            <span class="badge bg-primary fs-6">{{ evalNotes[c.nom] }} / 5</span>
+          </div>
+          <p class="text-muted small mb-2">{{ c.description }}</p>
+          <input type="range" class="form-range" min="1" max="5" step="0.5" [(ngModel)]="evalNotes[c.nom]">
+        </div>
+
+        <!-- Synthesis Note -->
+        <div class="mb-4 p-3 bg-soft-primary rounded">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold m-0 text-primary">Note Global de Synthèse :</label>
+            <span class="badge bg-primary fs-6">{{ evalNoteSynthese }} / 5</span>
+          </div>
+          <input type="range" class="form-range" min="1" max="5" step="0.5" [(ngModel)]="evalNoteSynthese">
+        </div>
+
+        <!-- Qualitative Comments -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-success"><i class="feather icon-thumbs-up me-1"></i>Points Forts & Éléments Positifs :</label>
+          <textarea class="form-control" rows="3" placeholder="Ce qui a particulièrement bien fonctionné..." [(ngModel)]="evalPointsPositifs"></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold text-warning"><i class="feather icon-trending-up me-1"></i>Axes d'Amélioration & Pistes de Progrès :</label>
+          <textarea class="form-control" rows="3" placeholder="Suggestions constructives pour progresser..." [(ngModel)]="evalAxesAmelioration"></textarea>
+        </div>
+
+        <button class="btn btn-success btn-lg w-100" (click)="submitFeedbackForm()">
+          <i class="feather icon-send me-2"></i> Transmettre Feedback Formatif
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Student View Aggregated Results -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="joinState() === 'view_results' && aggregatedData()">
+      <div class="card-header bg-white border-0 pt-4 pb-2 text-center">
+        <h4 class="fw-bold">Résultats Consolidés — {{ aggregatedData()?.nom_presentateur }}</h4>
+        <p class="text-muted small">Synthèse anonymisée des retours de vos pairs.</p>
+      </div>
+
+      <div class="card-body">
+        <div class="p-3 bg-soft-primary rounded text-center mb-4">
+          <span class="text-muted small d-block">Moyenne Générale Synthèse</span>
+          <h2 class="fw-bold text-primary m-0">{{ aggregatedData()?.moyenne_note_synthese | number:'1.2-2' }} / 5</h2>
+        </div>
+
+        <h5 class="fw-bold mb-3">Moyennes par Critère :</h5>
+        <ul class="list-group mb-4">
+          <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of aggregatedData()?.moyennes_par_critere | keyvalue">
+            <span>{{ item.key }}</span>
+            <span class="badge bg-primary rounded-pill">{{ item.value | number:'1.2-2' }} / 5</span>
+          </li>
+        </ul>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <h6 class="fw-bold text-success mb-2">Points Forts Compilés</h6>
+              <ul class="ps-3 mb-0">
+                <li *ngFor="let pt of aggregatedData()?.compilation_points_positifs" class="mb-1 small">{{ pt }}</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <h6 class="fw-bold text-warning mb-2">Axes de Progrès Compilés</h6>
+              <ul class="ps-3 mb-0">
+                <li *ngFor="let ax of aggregatedData()?.compilation_axes_amelioration" class="mb-1 small">{{ ax }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
