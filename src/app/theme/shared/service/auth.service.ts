@@ -34,6 +34,20 @@ export class AuthService {
   private ramCache = inject(RamCacheService);
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
+  sendVerificationCode(userData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/send-verification-code`, userData);
+  }
+
+  verifyRegistration(verificationData: { email: string; code: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-registration`, verificationData).pipe(
+      tap((res) => this.setSession(res))
+    );
+  }
+
+  resendVerificationCode(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/resend-verification-code`, { email });
+  }
+
   register(userData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
       tap((res) => this.setSession(res))
@@ -52,6 +66,14 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(updatedUser));
       })
     );
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(payload: { email: string; new_password: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, payload);
   }
 
   logout(): void {

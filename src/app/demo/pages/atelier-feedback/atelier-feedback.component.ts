@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -43,13 +43,13 @@ interface PresentationItem {
   statut: string;
 }
 
-type HostState = 'select' | 'generating' | 'result' | 'lobby' | 'live' | 'aggregated';
+type HostState = 'select' | 'generating' | 'result' | 'lobby' | 'live' | 'aggregated' | 'history';
 type JoinState = 'join' | 'waiting' | 'fill_feedback' | 'view_results';
 
 @Component({
   selector: 'app-atelier-feedback',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedModule],
+  imports: [CommonModule, FormsModule, SharedModule, RouterModule],
   templateUrl: './atelier-feedback.component.html',
   styleUrls: ['./atelier-feedback.component.scss']
 })
@@ -64,16 +64,20 @@ export class AtelierFeedbackComponent implements OnInit, OnDestroy {
   private apiUrl = environment.apiUrl;
 
   // View modes: 'host' (prof) or 'join' (student/peer)
-  isProf = false;
+  isProf = true;
   viewMode = signal<'host' | 'join'>('host');
 
   // Prof State
   hostState = signal<HostState>('select');
   isLoading = signal(false);
+  isLoadingModules = signal(false);
+  isLoadingHistory = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
 
   analyses = signal<any[]>([]);
+  historyList = signal<any[]>([]);
+  historySearch = '';
   selectedAnalysis = signal<any | null>(null);
   viewingAnalysis = signal<any | null>(null);
 
@@ -104,25 +108,50 @@ export class AtelierFeedbackComponent implements OnInit, OnDestroy {
   evalAxesAmelioration = '';
   evalNoteSynthese = 4.0;
 
+  bloomLabels: Record<string, string> = {
+    'memoriser': 'Mémoriser',
+    'comprendre': 'Comprendre',
+    'appliquer': 'Appliquer',
+    'analyser': 'Analyser',
+    'evaluer': 'Évaluer',
+    'creer': 'Créer'
+  };
+
+  bloomColors: Record<string, string> = {
+    'memoriser': '#ef4444',
+    'comprendre': '#f97316',
+    'appliquer': '#eab308',
+    'analyser': '#22c55e',
+    'evaluer': '#3b82f6',
+    'creer': '#9f1010'
+  };
+
+  getBloomLabel(level: string): string {
+    return this.bloomLabels[level?.toLowerCase()] || level || 'Acquis';
+  }
+
+  getBloomColor(level: string): string {
+    return this.bloomColors[level?.toLowerCase()] || '#64748b';
+  }
+
   private socket: Socket | null = null;
 
   ngOnInit(): void {
-    const user = this.authService.getCurrentUser();
-    this.isProf = user?.role === 'prof';
-
-    this.viewMode.set(this.isProf ? 'host' : 'join');
+    this.isProf = true;
+    this.viewMode.set('host');
 
     // Check query params for join code
     this.route.queryParams.subscribe((params) => {
       if (params['code']) {
         this.joinCode = params['code'];
         this.viewMode.set('join');
+      } else {
+        this.viewMode.set('host');
       }
     });
 
-    if (this.isProf) {
-      this.loadAnalyses();
-    }
+    this.loadAnalyses();
+    this.loadHistory();
   }
 
   ngOnDestroy(): void {
@@ -131,11 +160,106 @@ export class AtelierFeedbackComponent implements OnInit, OnDestroy {
     }
   }
 
+  switchToHost(): void {
+    this.viewMode.set('host');
+    this.hostState.set('select');
+    this.loadAnalyses();
+  }
+
+  switchViewMode(mode: 'host' | 'join'): void {
+    this.viewMode.set(mode);
+    if (mode === 'host') {
+      this.hostState.set('select');
+      this.loadAnalyses();
+    }
+  }
+
+  switchToHistory(): void {
+    this.viewMode.set('host');
+    this.hostState.set('history');
+    this.loadHistory();
+  }
+
+  loadHistory(): void {
+    this.isLoadingHistory.set(true);
+    this.http.get<any[]>(`${this.apiUrl}/atelier-feedback/history`).subscribe({
+      next: (data) => {
+        this.historyList.set(data || []);
+        this.isLoadingHistory.set(false);
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement historique ateliers:', err);
+        this.isLoadingHistory.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  consultAtelier(id: number): void {
+    this.isLoading.set(true);
+    this.http.get<any>(`${this.apiUrl}/atelier-feedback/detail/${id}`).subscribe({
+      next: (data) => {
+        this.atelier.set({
+          id: data.id,
+          module_id: data.module_id,
+          titre: data.titre,
+          criteres: data.criteres,
+          structure_grille: data.structure_grille,
+          anonyme: data.anonyme
+        });
+        this.hostState.set('result');
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage.set('Impossible de charger cet atelier.');
+        this.isLoading.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  deleteAtelier(id: number, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Voulez-vous vraiment supprimer cet atelier de feedback ?')) {
+      return;
+    }
+    this.http.delete(`${this.apiUrl}/atelier-feedback/${id}`).subscribe({
+      next: () => {
+        this.successMessage.set('Atelier supprimé avec succès.');
+        this.loadHistory();
+      },
+      error: (err) => {
+        this.errorMessage.set('Erreur lors de la suppression.');
+      }
+    });
+  }
+
+  get filteredHistory(): any[] {
+    if (!this.historySearch.trim()) return this.historyList();
+    const q = this.historySearch.toLowerCase();
+    return this.historyList().filter((item) =>
+      (item.titre && item.titre.toLowerCase().includes(q)) ||
+      (item.module_title && item.module_title.toLowerCase().includes(q))
+    );
+  }
+
   // ─── PROF: Load Modules & Generate Grid ───
   loadAnalyses(): void {
-    this.http.get<any[]>(`${this.apiUrl}/api/modules`).subscribe({
-      next: (data) => this.analyses.set(data),
-      error: (err) => console.error('Failed to load modules', err)
+    this.isLoadingModules.set(true);
+    this.http.get<any[]>(`${this.apiUrl}/api/modules/history`).subscribe({
+      next: (data) => {
+        this.analyses.set(data || []);
+        this.isLoadingModules.set(false);
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load modules', err);
+        this.isLoadingModules.set(false);
+        this.errorMessage.set('Erreur lors du chargement des fiches de cours.');
+        this.cd.detectChanges();
+      }
     });
   }
 

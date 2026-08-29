@@ -18,11 +18,9 @@
 
   <!-- Bascule Prof / Étudiant -->
   <nav class="pc-top-nav mb-4">
-    @if (isProf) {
-      <button type="button" class="nav-tab" [class.active]="viewMode() === 'host'" (click)="switchViewMode('host')">
-        <i class="feather icon-users"></i> Animer un débat
-      </button>
-    }
+    <button type="button" class="nav-tab" [class.active]="viewMode() === 'host'" (click)="switchViewMode('host')">
+      <i class="feather icon-users"></i> Animer un débat
+    </button>
     <button type="button" class="nav-tab" [class.active]="viewMode() === 'join'" (click)="switchViewMode('join')">
       <i class="feather icon-log-in"></i> Rejoindre un débat
     </button>
@@ -107,40 +105,41 @@
           </div>
         </div>
 
-        <div class="game-config-panel-col">
-          <div class="config-card config-panel-sticky">
-            <div class="card-header d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-2">
-                <span class="step-badge">2</span>
-                <h4>Paramètres du débat</h4>
+        <!-- Side Column: Step 2 Parameters (shown only on selection) -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres du débat</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
               </div>
-              <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
-                <i class="feather icon-x" aria-hidden="true"></i> Fermer
-              </button>
-            </div>
 
-            <div class="params-grid">
-              <div class="param-group">
-                <label>Arguments par camp</label>
-                <div class="param-control">
-                  <button class="btn-sm" (click)="nbArguments = (nbArguments > 2 ? nbArguments - 1 : 2)">-</button>
-                  <span class="param-value">{{ nbArguments }}</span>
-                  <button class="btn-sm" (click)="nbArguments = (nbArguments < 5 ? nbArguments + 1 : 5)">+</button>
+              <div class="params-grid">
+                <div class="param-group">
+                  <label>Arguments par camp</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbArguments = (nbArguments > 2 ? nbArguments - 1 : 2)">-</button>
+                    <span class="param-value">{{ nbArguments }}</span>
+                    <button class="btn-sm" (click)="nbArguments = (nbArguments < 5 ? nbArguments + 1 : 5)">+</button>
+                  </div>
+                </div>
+
+                <div class="param-group">
+                  <label>Durée d'intervention</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention > 30 ? dureeIntervention - 15 : 30)">-</button>
+                    <span class="param-value">{{ dureeIntervention }} s</span>
+                    <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention < 300 ? dureeIntervention + 15 : 300)">+</button>
+                  </div>
                 </div>
               </div>
 
-              <div class="param-group">
-                <label>Durée d'intervention</label>
-                <div class="param-control">
-                  <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention > 30 ? dureeIntervention - 15 : 30)">-</button>
-                  <span class="param-value">{{ dureeIntervention }} s</span>
-                  <button class="btn-sm" (click)="dureeIntervention = (dureeIntervention < 300 ? dureeIntervention + 15 : 300)">+</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Selected Analysis Summary -->
-            @if (selectedAnalysis()) {
+              <!-- Selected Analysis Summary -->
               <div class="selected-summary">
                 <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
                 <div class="outcomes-preview">
@@ -155,16 +154,16 @@
                   }
                 </div>
               </div>
-            }
 
-            <div class="action-bar">
-              <button type="button" class="btn-generate" [disabled]="!selectedAnalysis() || isLoading()" (click)="generateDebat()">
-                <i class="feather icon-zap"></i>
-                <span>Générer le débat</span>
-              </button>
+              <div class="action-bar">
+                <button type="button" class="btn-generate" [disabled]="!selectedAnalysis() || isLoading()" (click)="generateDebat()">
+                  <i class="feather icon-zap"></i>
+                  <span>Générer le débat</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        }
       </div>
     }
 

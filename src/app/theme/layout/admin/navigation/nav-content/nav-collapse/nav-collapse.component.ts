@@ -21,31 +21,24 @@ export class NavCollapseComponent {
 
   // public method
   navCollapse(e: MouseEvent) {
-    let parent = e.target as HTMLElement;
+    e.preventDefault();
+    e.stopPropagation();
+    const currentTarget = e.currentTarget as HTMLElement;
+    const parent = currentTarget.closest('li.pcoded-hasmenu') as HTMLElement;
+    if (!parent) return;
 
-    if (parent?.tagName === 'SPAN') {
-      parent = parent.parentElement!;
-    }
-    parent = (parent as HTMLElement).parentElement as HTMLElement;
+    const isTriggered = parent.classList.contains('pcoded-trigger');
     const sections = document.querySelectorAll('.pcoded-hasmenu');
-    for (let i = 0; i < sections.length; i++) {
-      if (sections[i] !== parent) {
-        sections[i].classList.remove('pcoded-trigger');
+    sections.forEach((sec) => {
+      if (sec !== parent) {
+        sec.classList.remove('pcoded-trigger');
       }
+    });
+
+    if (isTriggered) {
+      parent.classList.remove('pcoded-trigger');
+    } else {
+      parent.classList.add('pcoded-trigger');
     }
-    let first_parent = parent.parentElement;
-    let pre_parent = ((parent as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement;
-    if (first_parent?.classList.contains('pcoded-hasmenu')) {
-      do {
-        first_parent.classList.add('pcoded-trigger');
-        first_parent = ((first_parent as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement;
-      } while (first_parent.classList.contains('pcoded-hasmenu'));
-    } else if (pre_parent.classList.contains('pcoded-submenu')) {
-      do {
-        pre_parent?.parentElement?.classList.add('pcoded-trigger');
-        pre_parent = (((pre_parent as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement).parentElement as HTMLElement;
-      } while (pre_parent.classList.contains('pcoded-submenu'));
-    }
-    parent.classList.toggle('pcoded-trigger');
   }
 }

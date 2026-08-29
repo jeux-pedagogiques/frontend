@@ -51,7 +51,7 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   private apiUrl = `${environment.apiUrl}/api`;
 
   // ─── Mode: prof (host) ou étudiant (join) ───
-  isProf = false;
+  isProf = true;
   viewMode = signal<'host' | 'join'>('host');
 
   // ─── Génération (prof) ───
@@ -64,15 +64,25 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   selectedAnalysis = signal<any | null>(null);
   viewingAnalysis = signal<any | null>(null);
 
+  // Formulaire prof
+  selectedModel = signal<string>('groq/llama-3.3-70b-versatile');
   nbArguments = 3;
   dureeIntervention = 120;
 
+  // Débat généré
   debat = signal<DebatData | null>(null);
+
+  // Session live (prof)
+  sessionId: number | null = null;
+  codeSession = signal<string>('');
+  debatEnCours = signal<any | null>(null);
+  participants = signal<any[]>([]);
+  prisesDeParole = signal<any[]>([]);
+  activeSpeaker = signal<any | null>(null);
+  syntheseNotes = signal<any[]>([]);
 
   // ─── Session socket (host) ───
   private socket: Socket | null = null;
-  sessionId: number | null = null;
-  codeSession = signal('');
   roomParticipants = signal<RoomParticipant[]>([]);
   joinUrl = signal('');
   shareLink = signal('');
@@ -87,7 +97,6 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   interventionLog = signal<any[]>([]);
   observerNotes = signal<any[]>([]);
   synthese = signal<any | null>(null);
-  syntheseNotes = signal<any[]>([]);
 
   // ─── Étudiant (join) ───
   joinState = signal<JoinState>('join');
@@ -107,23 +116,21 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   };
 
   constructor() {
-    const user = this.authService.getCurrentUser();
-    this.isProf = user?.role === 'prof';
-    if (!this.isProf) {
-      this.viewMode.set('join');
-    }
+    this.isProf = true;
+    this.viewMode.set('host');
   }
 
   ngOnInit(): void {
+    this.isProf = true;
     const code = this.route.snapshot.queryParamMap.get('code');
     if (code) {
       this.viewMode.set('join');
       this.joinCode = code;
       this.joinPseudo = this.defaultPseudo();
+    } else {
+      this.viewMode.set('host');
     }
-    if (this.isProf) {
-      this.loadAnalyses();
-    }
+    this.loadAnalyses();
   }
 
   ngOnDestroy(): void {
@@ -148,6 +155,8 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   switchViewMode(mode: 'host' | 'join'): void {
     if (mode === 'join') {
       this.joinPseudo = this.defaultPseudo();
+    } else {
+      this.loadAnalyses();
     }
     this.viewMode.set(mode);
   }

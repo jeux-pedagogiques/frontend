@@ -32,16 +32,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/analytics',
         icon: 'feather icon-home'
-      }
-    ]
-  },
-  {
-    id: 'plateforme',
-    title: 'Plateforme',
-    type: 'group',
-    icon: 'icon-group',
-    classes: 'nav-group-red',
-    children: [
+      },
       {
         id: 'import-module',
         title: 'Import de Fiche',
@@ -57,72 +48,137 @@ export const NavigationItems: NavigationItem[] = [
         url: '/live-session',
         icon: 'feather icon-video',
         classes: 'nav-item'
-      },
+      }
+    ]
+  },
+  {
+    id: 'pedagogical-games',
+    title: 'Types d\'Activités & Jeux',
+    type: 'group',
+    icon: 'icon-group',
+    classes: 'nav-group-red',
+    children: [
       {
-        id: 'escape-room',
-        title: 'Escape Room',
-        type: 'item',
-        url: '/escape-room',
-        icon: 'feather icon-lock',
-        classes: 'nav-item'
-      },
-      {
-        id: 'flashcards',
-        title: 'Flashcards',
-        type: 'item',
-        url: '/flashcards',
+        id: 'recall-memorization',
+        title: '1. Recall / Memorization',
+        type: 'collapse',
         icon: 'feather icon-layers',
-        classes: 'nav-item'
+        children: [
+          {
+            id: 'flashcards',
+            title: 'Flashcards',
+            type: 'item',
+            url: '/flashcards',
+            icon: 'feather icon-layers',
+            classes: 'nav-item'
+          }
+        ]
       },
       {
-        id: 'pitching-challenge',
-        title: 'Pitching Challenge',
-        type: 'item',
-        url: '/pitching-challenge',
+        id: 'puzzle-problem-solving',
+        title: '2. Puzzle / Problem-Solving',
+        type: 'collapse',
+        icon: 'feather icon-lock',
+        children: [
+          {
+            id: 'escape-room',
+            title: 'Escape Room',
+            type: 'item',
+            url: '/escape-room',
+            icon: 'feather icon-lock',
+            classes: 'nav-item'
+          }
+        ]
+      },
+      {
+        id: 'scenario-simulation',
+        title: '3. Scenario-Based Simulation',
+        type: 'collapse',
+        icon: 'feather icon-briefcase',
+        children: [
+          {
+            id: 'cas-etude',
+            title: 'Étude de Cas Gamifiée',
+            type: 'item',
+            url: '/cas-etude',
+            icon: 'feather icon-file-text',
+            classes: 'nav-item'
+          },
+          {
+            id: 'negociation',
+            title: 'Simulation Négociation',
+            type: 'item',
+            url: '/negociation',
+            icon: 'feather icon-trending-up',
+            classes: 'nav-item'
+          }
+        ]
+      },
+      {
+        id: 'oral-argumentation',
+        title: '4. Oral Argumentation / Persuasion',
+        type: 'collapse',
         icon: 'feather icon-mic',
-        classes: 'nav-item'
+        children: [
+          {
+            id: 'pitching-challenge',
+            title: 'Pitching Challenge',
+            type: 'item',
+            url: '/pitching-challenge',
+            icon: 'feather icon-mic',
+            classes: 'nav-item'
+          },
+          {
+            id: 'debat-structure',
+            title: 'Débat Structuré',
+            type: 'item',
+            url: '/debat-structure',
+            icon: 'feather icon-users',
+            classes: 'nav-item'
+          }
+        ]
       },
       {
-        id: 'cas-etude',
-        title: 'Étude de Cas Gamifiée',
-        type: 'item',
-        url: '/cas-etude',
-        icon: 'feather icon-briefcase',
-        classes: 'nav-item'
-      },
-      {
-        id: 'mindmap',
-        title: 'Mind Map Collaboratif',
-        type: 'item',
-        url: '/mindmap',
+        id: 'visual-structuring',
+        title: '5. Collaborative Visual Structuring',
+        type: 'collapse',
         icon: 'feather icon-cpu',
-        classes: 'nav-item'
+        children: [
+          {
+            id: 'mindmap',
+            title: 'Mind Map Collaboratif',
+            type: 'item',
+            url: '/mindmap',
+            icon: 'feather icon-cpu',
+            classes: 'nav-item'
+          }
+        ]
       },
       {
-        id: 'debat-structure',
-        title: 'Débat Structuré',
-        type: 'item',
-        url: '/debat-structure',
-        icon: 'feather icon-users',
-        classes: 'nav-item'
-      },
-      {
-        id: 'negociation',
-        title: 'Simulation Négociation',
-        type: 'item',
-        url: '/negociation',
-        icon: 'feather icon-briefcase',
-        classes: 'nav-item'
-      },
-      {
-        id: 'atelier-feedback',
-        title: 'Atelier Feedback Pair',
-        type: 'item',
-        url: '/atelier-feedback',
+        id: 'peer-evaluation',
+        title: '6. Peer Evaluation',
+        type: 'collapse',
         icon: 'feather icon-user-check',
-        classes: 'nav-item'
-      },
-
+        children: [
+          {
+            id: 'atelier-feedback',
+            title: 'Atelier Feedback Pair',
+            type: 'item',
+            url: '/atelier-feedback',
+            icon: 'feather icon-user-check',
+            classes: 'nav-item'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'resources',
+    title: 'Ressources & Suivi',
+    type: 'group',
+    icon: 'icon-group',
+    classes: 'nav-group-red',
+    children: [
       {
         id: 'library',
         title: 'Bibliothèque',

@@ -1,26 +1,36 @@
 <div class="auth-wrapper auth-v2">
+  <!-- Floating Theme Toggle Button -->
+  <div class="auth-theme-toggle">
+    <button type="button" class="auth-theme-btn" (click)="toggleTheme()" [attr.aria-pressed]="isDarkMode()" aria-label="Basculer le mode sombre ou clair" [title]="isDarkMode() ? 'Mode Clair' : 'Mode Sombre'">
+      <i class="feather" [class.icon-sun]="isDarkMode()" [class.icon-moon]="!isDarkMode()" [class.text-warning]="isDarkMode()" aria-hidden="true"></i>
+      <span class="auth-theme-text">{{ isDarkMode() ? 'Mode Clair' : 'Mode Sombre' }}</span>
+    </button>
+  </div>
+
   <div class="auth-content-v2">
     <!-- Left Branding Panel -->
     <div class="auth-brand-panel" aria-hidden="true">
       <div class="brand-overlay"></div>
       <div class="brand-content">
         <div class="brand-logo">
-          <i class="feather icon-user-plus" aria-hidden="true"></i>
+          <i class="feather" [class.icon-user-plus]="step() === 'form'" [class.icon-mail]="step() === 'verify'" aria-hidden="true"></i>
         </div>
-        <h1 class="brand-title">Join Us Today</h1>
-        <p class="brand-subtitle">Create your account and unlock powerful tools to manage, analyze, and grow your projects.</p>
+        <h1 class="brand-title">{{ step() === 'form' ? 'Join Us Today' : 'Verify Your Email' }}</h1>
+        <p class="brand-subtitle">
+          {{ step() === 'form' ? 'Create your account and unlock powerful pedagogical AI tools to manage, evaluate, and gamify your classes.' : 'We sent a 6-digit confirmation code to your inbox to protect your security.' }}
+        </p>
         <div class="brand-features">
           <div class="brand-feature-item">
             <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>Free to Get Started</span>
+            <span>Secure Email Verification</span>
           </div>
           <div class="brand-feature-item">
             <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>No Credit Card Required</span>
+            <span>Access 8 Pedagogical Game Modes</span>
           </div>
           <div class="brand-feature-item">
             <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>Cancel Anytime</span>
+            <span>Instant Bloom's Taxonomy Analytics</span>
           </div>
         </div>
       </div>
@@ -36,219 +46,254 @@
       <div class="auth-form-wrapper">
         <div class="auth-form-header">
           <img src="assets/images/logo-dark.png" alt="" aria-hidden="true" class="auth-logo" />
-          <h2 class="auth-title">Create Account</h2>
-          <p class="auth-subtitle">Fill in your details to get started</p>
+          <h2 class="auth-title">{{ step() === 'form' ? 'Create Account' : 'Check Your Inbox' }}</h2>
+          <p class="auth-subtitle">
+            {{ step() === 'form' ? 'Fill in your details to get started' : 'Enter the 6-digit code sent to ' + registerModel().email }}
+          </p>
         </div>
 
+        <!-- Error Alert -->
         @if (error()) {
-          <div class="alert alert-danger" role="alert" aria-live="assertive" aria-atomic="true" style="margin-bottom: 20px; padding: 10px 15px; border-radius: 6px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; font-size: 14px;">
-            {{ error() }}
+          <div class="alert alert-danger" role="alert" aria-live="assertive" aria-atomic="true" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; background-color: #fdecec; color: #c51414; border: 1px solid #fca5a5; font-size: 14px; font-weight: 500;">
+            <i class="feather icon-alert-circle me-1"></i> {{ error() }}
           </div>
         }
 
-        <!-- Register Form -->
-        <form (ngSubmit)="onSubmit($event)" class="auth-form" aria-label="Formulaire d'inscription">
-          <div class="form-field">
-            <label for="username" class="form-field-label">Username</label>
-            <div class="input-wrapper">
-              <i class="feather icon-user input-icon" aria-hidden="true"></i>
-              <input
-                type="text"
-                id="username"
-                class="form-control form-control-modern"
-                aria-required="true"
-                [attr.aria-invalid]="submitted() && registerForm.username().errors().length > 0"
-                [attr.aria-describedby]="(submitted() && registerForm.username().errors().length > 0) ? 'username-error' : null"
-                placeholder="Choose a username"
-                [field]="registerForm.username"
-                [class.is-invalid]="submitted() && registerForm.username().errors().length > 0"
-                autocomplete="username"
-              />
-            </div>
-            @if (submitted() && registerForm.username().errors().length > 0) {
-              <div class="field-error" id="username-error" role="alert" aria-live="polite">
-                @for (error of registerForm.username().errors(); track error.kind) {
-                  <span>{{ error.message }}</span>
-                }
-              </div>
-            }
+        <!-- Success Alert -->
+        @if (successMessage()) {
+          <div class="alert alert-success" role="alert" aria-live="polite" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; background-color: #effbf3; color: #0f9d58; border: 1px solid #cdeeda; font-size: 14px; font-weight: 500;">
+            <i class="feather icon-check-circle me-1"></i> {{ successMessage() }}
           </div>
+        }
 
-          <div class="form-field">
-            <label for="floatingInput" class="form-field-label">Email Address</label>
-            <div class="input-wrapper">
-              <i class="feather icon-mail input-icon" aria-hidden="true"></i>
-              <input
-                type="email"
-                class="form-control form-control-modern"
-                id="floatingInput"
-                aria-required="true"
-                [attr.aria-invalid]="submitted() && registerForm.email().invalid()"
-                [attr.aria-describedby]="(submitted() && registerForm.email().invalid()) ? 'signup-email-error' : null"
-                [class.is-invalid]="submitted() && registerForm.email().invalid()"
-                placeholder="you@example.com"
-                [field]="registerForm.email"
-                autocomplete="email"
-              />
-            </div>
-            @if (submitted() && registerForm.email().invalid()) {
-              <div class="field-error" id="signup-email-error" role="alert" aria-live="polite">
-                @for (error of registerForm.email().errors(); track error.kind) {
-                  <span>{{ error.message }}</span>
-                }
-              </div>
-            }
-          </div>
-
-          <div class="form-field">
-            <label for="password" class="form-field-label">Password</label>
-            <div class="input-wrapper">
-              <i class="feather icon-lock input-icon" aria-hidden="true"></i>
-              @if (!showPassword()) {
-                <input
-                  type="password"
-                  id="password"
-                  class="form-control form-control-modern"
-                  aria-required="true"
-                  [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
-                  [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
-                  [field]="registerForm.password"
-                  [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
-                  placeholder="Min. 8 characters"
-                  autocomplete="new-password"
-                />
-              } @else {
+        <!-- STEP 1: Registration Form -->
+        @if (step() === 'form') {
+          <form (ngSubmit)="onSubmit($event)" class="auth-form" aria-label="Formulaire d'inscription">
+            <div class="form-field">
+              <label for="username" class="form-field-label">Username</label>
+              <div class="input-wrapper">
+                <i class="feather icon-user input-icon" aria-hidden="true"></i>
                 <input
                   type="text"
-                  id="password"
+                  id="username"
                   class="form-control form-control-modern"
                   aria-required="true"
-                  [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
-                  [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
-                  [field]="registerForm.password"
-                  [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
-                  placeholder="Min. 8 characters"
-                  autocomplete="new-password"
+                  [attr.aria-invalid]="submitted() && registerForm.username().errors().length > 0"
+                  [attr.aria-describedby]="(submitted() && registerForm.username().errors().length > 0) ? 'username-error' : null"
+                  placeholder="Choose a username"
+                  [field]="registerForm.username"
+                  [class.is-invalid]="submitted() && registerForm.username().errors().length > 0"
+                  autocomplete="username"
                 />
-              }
-              <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" aria-label="Afficher ou masquer le mot de passe" [attr.aria-pressed]="showPassword()">
-                <i class="feather" [class.icon-eye]="!showPassword()" [class.icon-eye-off]="showPassword()" aria-hidden="true"></i>
-              </button>
-            </div>
-            @if (submitted() && registerForm.password().errors().length > 0) {
-              <div class="field-error" id="signup-password-error" role="alert" aria-live="polite">
-                @for (error of registerForm.password().errors(); track error.kind) {
-                  <span>{{ error.message }}</span>
-                }
               </div>
-            }
-          </div>
+              @if (submitted() && registerForm.username().errors().length > 0) {
+                <div class="field-error" id="username-error" role="alert" aria-live="polite">
+                  @for (error of registerForm.username().errors(); track error.kind) {
+                    <span>{{ error.message }}</span>
+                  }
+                </div>
+              }
+            </div>
 
-          <div class="form-field">
-            <label for="confirmPassword" class="form-field-label">Confirm Password</label>
-            <div class="input-wrapper">
-              <i class="feather icon-lock input-icon" aria-hidden="true"></i>
-              @if (!showConfirmPassword()) {
+            <div class="form-field">
+              <label for="floatingInput" class="form-field-label">Email Address</label>
+              <div class="input-wrapper">
+                <i class="feather icon-mail input-icon" aria-hidden="true"></i>
                 <input
-                  type="password"
-                  id="confirmPassword"
+                  type="email"
                   class="form-control form-control-modern"
+                  id="floatingInput"
                   aria-required="true"
-                  [attr.aria-invalid]="submitted() && confirmPasswordError()"
-                  [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
-                  [class.is-invalid]="submitted() && confirmPasswordError()"
-                  placeholder="Re-enter your password"
-                  [(ngModel)]="confirmPassword"
-                  name="confirmPassword"
-                  autocomplete="new-password"
+                  [attr.aria-invalid]="submitted() && registerForm.email().invalid()"
+                  [attr.aria-describedby]="(submitted() && registerForm.email().invalid()) ? 'signup-email-error' : null"
+                  [class.is-invalid]="submitted() && registerForm.email().invalid()"
+                  placeholder="you@example.com"
+                  [field]="registerForm.email"
+                  autocomplete="email"
                 />
+              </div>
+              @if (submitted() && registerForm.email().invalid()) {
+                <div class="field-error" id="signup-email-error" role="alert" aria-live="polite">
+                  @for (error of registerForm.email().errors(); track error.kind) {
+                    <span>{{ error.message }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="password" class="form-field-label">Password</label>
+              <div class="input-wrapper">
+                <i class="feather icon-lock input-icon" aria-hidden="true"></i>
+                @if (!showPassword()) {
+                  <input
+                    type="password"
+                    id="password"
+                    class="form-control form-control-modern"
+                    aria-required="true"
+                    [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
+                    [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
+                    [field]="registerForm.password"
+                    [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
+                    placeholder="Min. 8 characters"
+                    autocomplete="new-password"
+                  />
+                } @else {
+                  <input
+                    type="text"
+                    id="password"
+                    class="form-control form-control-modern"
+                    aria-required="true"
+                    [attr.aria-invalid]="submitted() && registerForm.password().errors().length > 0"
+                    [attr.aria-describedby]="(submitted() && registerForm.password().errors().length > 0) ? 'signup-password-error' : null"
+                    [field]="registerForm.password"
+                    [class.is-invalid]="submitted() && registerForm.password().errors().length > 0"
+                    placeholder="Min. 8 characters"
+                    autocomplete="new-password"
+                  />
+                }
+                <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" aria-label="Afficher ou masquer le mot de passe" [attr.aria-pressed]="showPassword()">
+                  <i class="feather" [class.icon-eye]="!showPassword()" [class.icon-eye-off]="showPassword()" aria-hidden="true"></i>
+                </button>
+              </div>
+              @if (submitted() && registerForm.password().errors().length > 0) {
+                <div class="field-error" id="signup-password-error" role="alert" aria-live="polite">
+                  @for (error of registerForm.password().errors(); track error.kind) {
+                    <span>{{ error.message }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="confirmPassword" class="form-field-label">Confirm Password</label>
+              <div class="input-wrapper">
+                <i class="feather icon-lock input-icon" aria-hidden="true"></i>
+                @if (!showConfirmPassword()) {
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    class="form-control form-control-modern"
+                    aria-required="true"
+                    [attr.aria-invalid]="submitted() && confirmPasswordError()"
+                    [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
+                    [class.is-invalid]="submitted() && confirmPasswordError()"
+                    placeholder="Re-enter your password"
+                    [(ngModel)]="confirmPassword"
+                    name="confirmPassword"
+                    autocomplete="new-password"
+                  />
+                } @else {
+                  <input
+                    type="text"
+                    id="confirmPassword"
+                    class="form-control form-control-modern"
+                    aria-required="true"
+                    [attr.aria-invalid]="submitted() && confirmPasswordError()"
+                    [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
+                    [class.is-invalid]="submitted() && confirmPasswordError()"
+                    placeholder="Re-enter your password"
+                    [(ngModel)]="confirmPassword"
+                    name="confirmPassword"
+                    autocomplete="new-password"
+                  />
+                }
+                <button type="button" class="toggle-password" (click)="toggleConfirmPasswordVisibility()" aria-label="Afficher ou masquer la confirmation du mot de passe" [attr.aria-pressed]="showConfirmPassword()">
+                  <i class="feather" [class.icon-eye]="!showConfirmPassword()" [class.icon-eye-off]="showConfirmPassword()" aria-hidden="true"></i>
+                </button>
+              </div>
+              @if (submitted() && confirmPasswordError()) {
+                <div class="field-error" id="confirm-password-error" role="alert" aria-live="polite">
+                  <span>{{ confirmPasswordError() }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="form-field-row">
+              <div class="checkbox-modern">
+                <input type="checkbox" name="terms" id="terms" checked />
+                <label for="terms">I agree to the <a href="javascript:void(0)" class="auth-link">Terms & Conditions</a></label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-signup" [disabled]="isLoading()" aria-label="Créer mon compte">
+              @if (isLoading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span>Sending Code...</span>
               } @else {
+                <span>Continue & Verify Email</span>
+                <i class="feather icon-arrow-right" aria-hidden="true"></i>
+              }
+            </button>
+          </form>
+        }
+
+        <!-- STEP 2: Email Verification Code OTP Screen -->
+        @if (step() === 'verify') {
+          <div class="auth-form">
+            <div class="email-badge-card mb-4 text-center p-3 rounded" style="background: rgba(197, 20, 20, 0.06); border: 1px dashed rgba(197, 20, 20, 0.3);">
+              <span class="d-block small text-muted mb-1">Code envoyé à l'adresse :</span>
+              <strong class="text-danger d-inline-flex align-items-center gap-1">
+                <i class="feather icon-mail"></i> {{ registerModel().email }}
+              </strong>
+              <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-link p-0 text-muted small text-decoration-underline" (click)="backToForm()">
+                  <i class="feather icon-edit-2 me-1"></i> Modifier l'adresse email
+                </button>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="otp-code-input" class="form-field-label text-center d-block">Code de vérification (6 chiffres)</label>
+              <div class="input-wrapper">
                 <input
                   type="text"
-                  id="confirmPassword"
-                  class="form-control form-control-modern"
-                  aria-required="true"
-                  [attr.aria-invalid]="submitted() && confirmPasswordError()"
-                  [attr.aria-describedby]="(submitted() && confirmPasswordError()) ? 'confirm-password-error' : null"
-                  [class.is-invalid]="submitted() && confirmPasswordError()"
-                  placeholder="Re-enter your password"
-                  [(ngModel)]="confirmPassword"
-                  name="confirmPassword"
-                  autocomplete="new-password"
+                  id="otp-code-input"
+                  name="verificationCode"
+                  class="form-control form-control-modern text-center fw-bold"
+                  style="font-size: 1.6rem; letter-spacing: 8px; height: 56px;"
+                  [(ngModel)]="verificationCode"
+                  placeholder="------"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  (keyup.enter)="onVerifyCode()"
+                  autofocus
                 />
+              </div>
+              <span class="small text-muted text-center d-block mt-2">
+                Consultez votre boîte de réception et vos spams.
+              </span>
+            </div>
+
+            <button type="button" class="btn-submit mb-3" (click)="onVerifyCode()" [disabled]="isLoading() || verificationCode.trim().length < 6" aria-label="Valider le code">
+              @if (isLoading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span>Vérification du code...</span>
+              } @else {
+                <span>Valider & Activer mon compte</span>
+                <i class="feather icon-check-circle" aria-hidden="true"></i>
               }
-              <button type="button" class="toggle-password" (click)="toggleConfirmPasswordVisibility()" aria-label="Afficher ou masquer la confirmation du mot de passe" [attr.aria-pressed]="showConfirmPassword()">
-                <i class="feather" [class.icon-eye]="!showConfirmPassword()" [class.icon-eye-off]="showConfirmPassword()" aria-hidden="true"></i>
+            </button>
+
+            <!-- Resend Code section -->
+            <div class="text-center pt-2">
+              <button
+                type="button"
+                class="btn btn-link p-0 text-muted small"
+                [disabled]="resendCountdown() > 0 || isResending()"
+                (click)="onResendCode()">
+                @if (isResending()) {
+                  <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                  <span>Envoi en cours...</span>
+                } @else if (resendCountdown() > 0) {
+                  <span><i class="feather icon-clock me-1"></i> Renvoyer le code ({{ resendCountdown() }}s)</span>
+                } @else {
+                  <span class="text-primary fw-semibold"><i class="feather icon-refresh-cw me-1"></i> Renvoyer un nouveau code</span>
+                }
               </button>
             </div>
-            @if (submitted() && confirmPasswordError()) {
-              <div class="field-error" id="confirm-password-error" role="alert" aria-live="polite">
-                <span>{{ confirmPasswordError() }}</span>
-              </div>
-            }
           </div>
-
-          <div class="form-field">
-            <label for="role" class="form-field-label">Role</label>
-            <div class="input-wrapper">
-              <i class="feather icon-users input-icon" aria-hidden="true"></i>
-              <select
-                id="role"
-                class="form-control form-control-modern"
-                aria-required="true"
-                [field]="registerForm.role"
-                [class.is-invalid]="submitted() && registerForm.role().errors().length > 0"
-              >
-                <option value="student">Étudiant</option>
-                <option value="prof">Enseignant</option>
-              </select>
-            </div>
-            @if (submitted() && registerForm.role().errors().length > 0) {
-              <div class="field-error">
-                @for (error of registerForm.role().errors(); track error.kind) {
-                  <span>{{ error.message }}</span>
-                }
-              </div>
-            }
-          </div>
-
-
-          <div class="form-field-row">
-            <div class="checkbox-modern">
-              <input type="checkbox" name="terms" id="terms" />
-              <label for="terms">I agree to the <a href="javascript:void(0)" class="auth-link">Terms & Conditions</a></label>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-submit" id="btn-signup" aria-label="Créer mon compte">
-            <span>Create Account</span>
-            <i class="feather icon-arrow-right" aria-hidden="true"></i>
-          </button>
-        </form>
-
-        <!-- Divider -->
-        <div class="auth-divider">
-          <span>or continue with</span>
-        </div>
-
-        <!-- Social Login Buttons -->
-        <div class="social-login-group">
-          <button type="button" class="btn-social btn-google" id="btn-google-signup" (click)="signupWithGoogle()" aria-label="S'inscrire avec Google">
-            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span>Sign up with Google</span>
-          </button>
-          <button type="button" class="btn-social btn-github" id="btn-github-signup" (click)="signupWithGithub()" aria-label="S'inscrire avec GitHub">
-            <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-            </svg>
-            <span>Sign up with GitHub</span>
-          </button>
-        </div>
+        }
 
         <p class="auth-footer-text">
           Already have an account?

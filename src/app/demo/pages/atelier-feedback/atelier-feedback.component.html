@@ -1,35 +1,39 @@
 <div class="atelier-page">
 
-  <!-- Header Banner -->
-  <div class="header-card card shadow-sm mb-4 border-0">
-    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <div>
-        <h2 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
-          <i class="feather icon-user-check text-primary"></i>
-          Atelier Feedback Pair
-        </h2>
-        <p class="text-muted small m-0">Évaluation par les pairs guidée par l'IA avec anonymisation et agrégation automatique.</p>
-      </div>
+  <!-- Top Nav Mode Switcher -->
+  <nav class="af-top-nav mb-4" aria-label="Navigation Atelier Feedback" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="viewMode() === 'host' && hostState() !== 'history'" [attr.aria-selected]="viewMode() === 'host' && hostState() !== 'history'" (click)="switchToHost()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Mode Animateur
+    </button>
+    <button type="button" class="nav-tab" role="tab" [class.active]="hostState() === 'history'" [attr.aria-selected]="hostState() === 'history'" (click)="switchToHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Anciens Ateliers
+      @if (historyList().length > 0) {
+        <span class="count-badge">{{ historyList().length }}</span>
+      }
+    </button>
+  </nav>
 
-      <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-outline-primary btn-sm" [class.active]="viewMode() === 'host'" (click)="viewMode.set('host')" *ngIf="isProf">
-          <i class="feather icon-user"></i> Mode Animateur
-        </button>
-        <button class="btn btn-outline-secondary btn-sm" [class.active]="viewMode() === 'join'" (click)="viewMode.set('join')">
-          <i class="feather icon-users"></i> Rejoindre Session
-        </button>
-      </div>
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-icon">
+      <i class="feather icon-user-check"></i>
+    </div>
+    <div>
+      <h2>Atelier Feedback Pair</h2>
+      <p class="subtitle">Évaluation par les pairs guidée par l'IA avec anonymisation et agrégation automatique.</p>
     </div>
   </div>
 
-  <!-- Error / Success Alerts -->
-  <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage()">
-    <i class="feather icon-alert-circle me-2"></i>{{ errorMessage() }}
-    <button type="button" class="btn-close" (click)="errorMessage.set('')"></button>
+  <!-- Alerts -->
+  <div class="af-alert error" *ngIf="errorMessage()">
+    <i class="feather icon-alert-circle"></i>
+    <span>{{ errorMessage() }}</span>
+    <button type="button" class="alert-close" (click)="errorMessage.set('')"><i class="feather icon-x"></i></button>
   </div>
-  <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage()">
-    <i class="feather icon-check-circle me-2"></i>{{ successMessage() }}
-    <button type="button" class="btn-close" (click)="successMessage.set('')"></button>
+  <div class="af-alert success" *ngIf="successMessage()">
+    <i class="feather icon-check-circle"></i>
+    <span>{{ successMessage() }}</span>
+    <button type="button" class="alert-close" (click)="successMessage.set('')"><i class="feather icon-x"></i></button>
   </div>
 
   <!-- ========================================== -->
@@ -38,81 +42,222 @@
   <div *ngIf="viewMode() === 'host'">
 
     <!-- Step 1: Select Module -->
-    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'select'">
-      <div class="card-header bg-white border-0 pt-4 pb-2">
-        <h4 class="card-title fw-bold">Étape 1 : Sélectionner une fiche de cours</h4>
-        <p class="text-muted small m-0">Choisissez le module pédagogique à partir duquel l'IA va générer la grille de critères.</p>
-      </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-6 col-lg-4" *ngFor="let a of analyses()">
-            <div class="module-card p-3 rounded border h-100 cursor-pointer" [class.selected]="selectedAnalysis()?.id === a.id" (click)="selectAnalysis(a)">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <h5 class="fw-bold m-0 text-truncate me-2">{{ a.module_title }}</h5>
-                <span class="badge bg-light-primary text-primary">Module #{{ a.id }}</span>
-              </div>
-              <p class="text-muted small mb-2 line-clamp-2">{{ a.key_concepts?.join(', ') || 'Aucun concept' }}</p>
-              <div class="d-flex justify-content-between align-items-center mt-auto">
-                <span class="badge bg-soft-secondary text-secondary small">{{ a.learning_outcomes?.length || 0 }} AA</span>
-                <i class="feather icon-check-circle text-success" *ngIf="selectedAnalysis()?.id === a.id"></i>
-              </div>
+    <div *ngIf="hostState() === 'select'">
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+
+        <!-- Grid Column: List of Modules -->
+        <div class="game-config-grid-col">
+          <div class="config-card">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Étape 1 : Choisir une fiche module analysée</h4>
             </div>
+
+            <!-- Loading State -->
+            <div class="text-center py-5" *ngIf="isLoadingModules()">
+              <div class="spinner-border text-danger mb-2" role="status"></div>
+              <p class="text-muted small">Chargement des fiches modules...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="!isLoadingModules() && analyses().length === 0">
+              <i class="feather icon-file-text" aria-hidden="true"></i>
+              <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+              <a routerLink="/import-module" class="btn-primary">
+                <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+              </a>
+            </div>
+
+            <!-- Unified Challenge Cards Grid -->
+            <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles" *ngIf="!isLoadingModules() && analyses().length > 0">
+              @for (item of analyses(); track item.id) {
+                <div class="unified-challenge-card"
+                     role="option"
+                     tabindex="0"
+                     [attr.aria-selected]="selectedAnalysis()?.id === item.id ? 'true' : 'false'"
+                     [attr.aria-label]="'Sélectionner la fiche module ' + item.module_title"
+                     [class.selected]="selectedAnalysis()?.id === item.id"
+                     (click)="selectAnalysis(item)">
+                  
+                  <div class="ucc-header">
+                    <div class="ucc-icon-badge" aria-hidden="true">
+                      <i class="feather icon-user-check"></i>
+                    </div>
+                    <div class="ucc-header-actions">
+                      <span class="ucc-badge primary">Module #{{ item.id }}</span>
+                    </div>
+                  </div>
+
+                  <h4 class="ucc-title">{{ item.module_title }}</h4>
+
+                  <div class="ucc-meta-row">
+                    <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ item.learning_outcomes?.length || 0 }} AA</span>
+                    <span class="ucc-meta-pill" style="background-color: #06b6d4;"><i class="feather icon-layers text-white"></i> {{ item.key_concepts?.length || 0 }} concepts</span>
+                  </div>
+
+                  <div class="categories" *ngIf="item.key_concepts?.length">
+                    @for (concept of item.key_concepts.slice(0, 3); track concept) {
+                      <span>{{ concept }}</span>
+                    }
+                    @if (item.key_concepts.length > 3) {
+                      <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                    }
+                  </div>
+
+                  <div class="ucc-meta-row mt-auto pt-2" *ngIf="item.learning_outcomes?.length">
+                    @for (lo of item.learning_outcomes.slice(0, 4); track lo) {
+                      <span class="ucc-bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
+                        {{ getBloomLabel(lo.bloom_level) }}
+                      </span>
+                    }
+                    @if (item.learning_outcomes.length > 4) {
+                      <span class="ucc-bloom-tag more">+{{ item.learning_outcomes.length - 4 }}</span>
+                    }
+                  </div>
+
+                  <div class="ucc-footer">
+                    <span class="text-muted small fw-medium">
+                      <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === item.id"></i>
+                      {{ selectedAnalysis()?.id === item.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                    </span>
+                    <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(item); $event.stopPropagation()">
+                      <i class="feather icon-zap"></i> Choisir
+                    </button>
+                  </div>
+
+                </div>
+              }
+            </div>
+
           </div>
         </div>
 
-        <div class="mt-4 border-top pt-3 d-flex justify-content-between align-items-center" *ngIf="selectedAnalysis()">
-          <div>
-            <label class="form-label fw-bold mb-1">Nombre de critères d'évaluation :</label>
-            <input type="number" class="form-control form-control-sm w-auto d-inline-block ms-2" [(ngModel)]="nbCriteres" min="2" max="8">
+        <!-- Panel Column: Step 2 Parameters -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <h4>Paramètres de l'Atelier</h4>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <!-- Selected Summary Chip -->
+              <div class="selected-summary">
+                <h5><i class="feather icon-info"></i> Fiche sélectionnée</h5>
+                <div class="outcomes-preview">
+                  <div class="outcome-chip">
+                    <span><strong>{{ selectedAnalysis()!.module_title }}</strong></span>
+                  </div>
+                  @for (concept of selectedAnalysis()!.key_concepts?.slice(0, 3); track concept) {
+                    <div class="outcome-chip">
+                      <span class="bloom-dot" style="background: #c51414;"></span>
+                      <span>{{ concept }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Parameters Grid -->
+              <div class="params-grid">
+                
+                <!-- Criteria Count -->
+                <div class="param-group">
+                  <label>Nombre de critères</label>
+                  <div class="param-control">
+                    <button class="btn-sm" (click)="nbCriteres = (nbCriteres > 2 ? nbCriteres - 1 : 2)">-</button>
+                    <span class="param-value">{{ nbCriteres }} critères</span>
+                    <button class="btn-sm" (click)="nbCriteres = (nbCriteres < 8 ? nbCriteres + 1 : 8)">+</button>
+                  </div>
+                </div>
+
+                <!-- AI Model Selector -->
+                <div class="param-group">
+                  <label><i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur</label>
+                  <select class="form-select form-select-sm" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                    <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                    <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (GitHub Models)</option>
+                    <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                    <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (Instantané)</option>
+                    <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intel)</option>
+                    <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                    <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google AI)</option>
+                  </select>
+                </div>
+
+                <!-- Anonymity Option -->
+                <div class="param-group">
+                  <label>Confidentialité</label>
+                  <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="anonymeCheck" [(ngModel)]="anonyme">
+                    <label class="form-check-label fw-semibold small" for="anonymeCheck">Évaluation Anonyme</label>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Generate Button -->
+              <div class="action-bar">
+                <button type="button" class="btn-generate" (click)="generateAtelierGrid()" [disabled]="isLoading()">
+                  <i class="feather icon-zap"></i>
+                  <span>Générer Grille IA</span>
+                </button>
+              </div>
+
+            </div>
           </div>
-          <div class="form-check form-switch me-3">
-            <input class="form-check-input" type="checkbox" id="anonymeCheck" [(ngModel)]="anonyme">
-            <label class="form-check-label fw-semibold" for="anonymeCheck">Évaluation Anonyme</label>
-          </div>
-          <button class="btn btn-primary px-4" (click)="generateAtelierGrid()">
-            <i class="feather icon-cpu me-2"></i>Générer Grille IA
-          </button>
-        </div>
+        }
+
       </div>
     </div>
 
     <!-- Generating Loader -->
-    <div class="card shadow-sm border-0 mb-4 text-center py-5" *ngIf="hostState() === 'generating'">
-      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-      <h4 class="fw-bold">Génération de la grille de feedback en cours...</h4>
-      <p class="text-muted">Analyse des acquis d'apprentissage et création des critères formateurs par l'IA.</p>
+    <div class="generating-state" *ngIf="hostState() === 'generating'" role="status" aria-live="polite">
+      <div class="spinner-large" aria-hidden="true"></div>
+      <h3>Génération de la grille de feedback en cours...</h3>
+      <p>Analyse des acquis d'apprentissage et création des critères formateurs par l'IA.</p>
+      <span class="generating-sub">Cela ne prend que quelques secondes...</span>
     </div>
 
     <!-- Step 2: Result & Grid Preview -->
-    <div class="card shadow-sm border-0 mb-4" *ngIf="hostState() === 'result' && atelier()">
-      <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="config-card result-config-card" *ngIf="hostState() === 'result' && atelier()">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-3 border-bottom">
         <div>
-          <h4 class="card-title fw-bold m-0">{{ atelier()!.titre }}</h4>
-          <span class="badge bg-primary me-2 mt-1">Grille IA Générée</span>
-          <span class="badge" [class.bg-success]="atelier()!.anonyme" [class.bg-warning]="!atelier()!.anonyme">
-            {{ atelier()!.anonyme ? 'Anonymat Activé' : 'Nominatif' }}
-          </span>
+          <h3 class="fw-bold m-0 text-white">{{ atelier()!.titre }}</h3>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <span class="badge bg-danger text-white px-3 py-1 fw-bold">Grille IA Générée</span>
+            <span class="badge px-3 py-1 fw-bold" [class.bg-success]="atelier()!.anonyme" [class.bg-warning]="!atelier()!.anonyme">
+              {{ atelier()!.anonyme ? 'Anonymat Activé' : 'Nominatif' }}
+            </span>
+          </div>
         </div>
-        <button class="btn btn-success" (click)="openLobby()">
-          <i class="feather icon-play me-2"></i>Préparer Session Live
+        <button class="btn btn-success px-4 py-2 fw-bold d-inline-flex align-items-center gap-2" (click)="openLobby()">
+          <i class="feather icon-play"></i> Préparer Session Live
         </button>
       </div>
 
-      <div class="card-body">
-        <h5 class="fw-bold mb-3">Critères d'Évaluation des Pairs :</h5>
-        <div class="list-group mb-4">
-          <div class="list-group-item p-3 border-0 bg-light rounded mb-2" *ngFor="let c of atelier()!.criteres; let i = index">
-            <div class="d-flex justify-content-between align-items-center">
-              <h6 class="fw-bold m-0 text-primary">{{ i + 1 }}. {{ c.nom }}</h6>
-              <span class="badge bg-secondary">Échelle 1 à 5</span>
+      <div class="result-body">
+        <h5 class="criteria-heading fw-bold mb-3">Critères d'Évaluation des Pairs :</h5>
+        
+        <div class="criteria-list mb-4">
+          <div class="criterion-item p-3 rounded mb-3" *ngFor="let c of atelier()!.criteres; let i = index">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <h6 class="fw-bold m-0 text-danger">{{ i + 1 }}. {{ c.nom }}</h6>
+              <span class="badge bg-dark-subtle text-white-50 border border-secondary-subtle">Échelle 1 à 5</span>
             </div>
-            <p class="text-muted small mb-0 mt-1">{{ c.description }}</p>
+            <p class="criterion-desc mb-0 small">{{ c.description }}</p>
           </div>
         </div>
 
-        <div class="p-3 bg-soft-primary rounded">
-          <h6 class="fw-bold text-dark mb-1"><i class="feather icon-info me-2"></i>Structure de Feedback Formatif :</h6>
-          <ul class="mb-0 text-muted small">
+        <div class="info-banner p-3 rounded">
+          <h6 class="fw-bold mb-2 d-flex align-items-center gap-2">
+            <i class="feather icon-info text-info"></i> Structure de Feedback Formatif :
+          </h6>
+          <ul class="mb-0 small ps-3">
             <li>Note globale de synthèse (/5)</li>
             <li>Commentaires qualitatifs : Points Forts & Appréciations</li>
             <li>Commentaires qualitatifs : Axes d'Amélioration & Progrès</li>
@@ -267,6 +412,95 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- History View -->
+    <div class="history-section" *ngIf="hostState() === 'history'">
+      <div class="section-header">
+        <div class="header-icon">
+          <i class="feather icon-archive"></i>
+        </div>
+        <div>
+          <h2>Mes Anciens Ateliers de Feedback</h2>
+          <p class="subtitle">Consultez, réutilisez ou supprimez vos grilles et sessions d'ateliers enregistrés.</p>
+        </div>
+      </div>
+
+      <!-- Loading History -->
+      <div class="text-center py-5" *ngIf="isLoadingHistory()">
+        <div class="spinner-border text-danger mb-2" role="status"></div>
+        <p class="text-muted small">Chargement de vos anciens ateliers...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoadingHistory() && historyList().length === 0">
+        <i class="feather icon-inbox"></i>
+        <p>Aucun atelier enregistré pour le moment.</p>
+        <button class="btn-primary" (click)="hostState.set('select')">
+          <i class="feather icon-plus"></i> Créer un Atelier
+        </button>
+      </div>
+
+      <!-- History List with Unified Cards -->
+      <div *ngIf="!isLoadingHistory() && historyList().length > 0">
+        <div class="history-search-box mb-4">
+          <i class="feather icon-search search-icon"></i>
+          <input type="text"
+                 class="form-control history-search-input"
+                 [(ngModel)]="historySearch"
+                 placeholder="Rechercher par titre d'atelier ou de module...">
+        </div>
+
+        <div class="unified-challenge-card-grid">
+          <div *ngFor="let item of filteredHistory"
+               class="unified-challenge-card"
+               (click)="consultAtelier(item.id)">
+            
+            <div class="ucc-header">
+              <div class="ucc-icon-badge" aria-hidden="true">
+                <i class="feather icon-user-check"></i>
+              </div>
+              <div class="ucc-header-actions">
+                <span class="ucc-badge primary">Atelier Feedback</span>
+                <button type="button" class="ucc-btn-icon" (click)="deleteAtelier(item.id, $event)" title="Supprimer l'atelier">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </div>
+            </div>
+
+            <h4 class="ucc-title">{{ item.titre }}</h4>
+
+            <div class="ucc-meta-row">
+              <span class="ucc-meta-pill" *ngIf="item.module_title">
+                <i class="feather icon-book text-danger"></i> {{ item.module_title }}
+              </span>
+              <span class="ucc-meta-pill">
+                <i class="feather icon-check-square text-info"></i> {{ item.criteres_count || item.criteres?.length || 0 }} critères
+              </span>
+              <span class="ucc-meta-pill">
+                <i class="feather icon-calendar text-muted"></i> {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="ucc-meta-row mt-auto pt-2" *ngIf="item.learning_outcomes?.length">
+              <span *ngFor="let lo of item.learning_outcomes.slice(0, 3)" class="ucc-bloom-tag"
+                    [style.background]="getBloomColor(lo.bloom_level) + '18'"
+                    [style.color]="getBloomColor(lo.bloom_level)">
+                {{ getBloomLabel(lo.bloom_level) }}
+              </span>
+            </div>
+
+            <div class="ucc-footer">
+              <span class="text-muted small">ID: #{{ item.id }}</span>
+              <button type="button" class="ucc-btn-primary" (click)="consultAtelier(item.id); $event.stopPropagation()">
+                <i class="feather icon-eye"></i> Consulter
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>

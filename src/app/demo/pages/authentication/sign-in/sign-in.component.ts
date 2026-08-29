@@ -1,5 +1,5 @@
 // angular import
-import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal, OnInit } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
 import { email, Field, form, minLength, required } from '@angular/forms/signals';
@@ -14,7 +14,7 @@ import { AuthService } from 'src/app/theme/shared/service/auth.service';
   templateUrl: './sign-in.component.html',
   styleUrls: ['./sign-in.component.scss']
 })
-export class SignInComponent {
+export class SignInComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -23,6 +23,8 @@ export class SignInComponent {
   isLoading = signal(false);
   error = signal('');
   showPassword = signal(false);
+
+  isDarkMode = signal<boolean>(localStorage.getItem('sidebar_theme') !== 'light');
 
   loginModal = signal<{ email: string; password: string }>({
     email: '',
@@ -35,6 +37,25 @@ export class SignInComponent {
     required(schemaPath.password, { message: 'Password is required' });
     minLength(schemaPath.password, 8, { message: 'Password must be at least 8 characters' });
   });
+
+  ngOnInit(): void {
+    if (this.isDarkMode()) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }
+
+  toggleTheme(): void {
+    const nextVal = !this.isDarkMode();
+    this.isDarkMode.set(nextVal);
+    localStorage.setItem('sidebar_theme', nextVal ? 'dark' : 'light');
+    if (nextVal) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }
 
   onSubmit(event: Event) {
     this.submitted.set(true);
@@ -61,15 +82,5 @@ export class SignInComponent {
 
   togglePasswordVisibility() {
     this.showPassword.set(!this.showPassword());
-  }
-
-  loginWithGoogle() {
-    console.log('Login with Google initiated');
-    // TODO: Implement Google OAuth flow
-  }
-
-  loginWithGithub() {
-    console.log('Login with GitHub initiated');
-    // TODO: Implement GitHub OAuth flow
   }
 }
