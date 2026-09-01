@@ -126,13 +126,13 @@ export class PitchingChallengeComponent implements OnInit {
 
     this.http.get<any[]>(`${this.apiUrl}/modules/history`).subscribe({
       next: (data) => {
-        const mapped: ModuleAnalysis[] = data.map((d: any) => ({
+        const mapped: ModuleAnalysis[] = (data || []).map((d: any) => ({
           id: d.id,
           module_title: d.module_title,
-          learning_outcomes: d.learning_outcomes || [],
-          key_concepts: d.key_concepts || [],
-          keywords: d.keywords || [],
-          central_notions: d.central_notions || [],
+          learning_outcomes: Array.isArray(d.learning_outcomes) ? d.learning_outcomes : [],
+          key_concepts: Array.isArray(d.key_concepts) ? d.key_concepts : [],
+          keywords: Array.isArray(d.keywords) ? d.keywords : [],
+          central_notions: Array.isArray(d.central_notions) ? d.central_notions : [],
           created_at: d.created_at
         }));
         this.analyses.set(mapped);

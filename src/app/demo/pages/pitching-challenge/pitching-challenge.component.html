@@ -95,18 +95,18 @@
                   <h4 class="ucc-title">{{ a.module_title }}</h4>
 
                   <div class="ucc-meta-row">
-                    <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ a.learning_outcomes.length }} AA</span>
-                    <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ a.key_concepts.length }} concepts</span>
+                    <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ a.learning_outcomes?.length || 0 }} AA</span>
+                    <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ a.key_concepts?.length || 0 }} concepts</span>
                   </div>
 
                   <div class="ucc-meta-row mt-auto pt-2">
-                    @for (lo of a.learning_outcomes.slice(0, 4); track lo) {
+                    @for (lo of (a.learning_outcomes || []).slice(0, 4); track lo) {
                       <span class="ucc-bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
                         {{ getBloomLabel(lo.bloom_level) }}
                       </span>
                     }
-                    @if (a.learning_outcomes.length > 4) {
-                      <span class="ucc-bloom-tag more">+{{ a.learning_outcomes.length - 4 }}</span>
+                    @if ((a.learning_outcomes?.length || 0) > 4) {
+                      <span class="ucc-bloom-tag more">+{{ (a.learning_outcomes?.length || 0) - 4 }}</span>
                     }
                   </div>
 

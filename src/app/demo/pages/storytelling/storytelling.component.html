@@ -118,8 +118,8 @@
                       @for (concept of (a.key_concepts || []).slice(0, 3); track concept) {
                         <span class="ucc-meta-pill">{{ concept }}</span>
                       }
-                      @if ((a.key_concepts || []).length > 3) {
-                        <span class="ucc-bloom-tag more">+{{ a.key_concepts.length - 3 }}</span>
+                      @if ((a.key_concepts?.length || 0) > 3) {
+                        <span class="ucc-bloom-tag more">+{{ (a.key_concepts?.length || 0) - 3 }}</span>
                       }
                     </div>
 

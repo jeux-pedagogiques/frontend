@@ -106,16 +106,16 @@
                     <h4 class="ucc-title">{{ analysis.module_title }}</h4>
 
                     <div class="ucc-meta-row">
-                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ analysis.learning_outcomes.length }} AA</span>
-                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ analysis.key_concepts.length }} concepts</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ analysis.learning_outcomes?.length || 0 }} AA</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ analysis.key_concepts?.length || 0 }} concepts</span>
                     </div>
 
                     <div class="categories">
-                      @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
+                      @for (concept of (analysis.key_concepts || []).slice(0, 3); track concept) {
                         <span>{{ concept }}</span>
                       }
-                      @if (analysis.key_concepts.length > 3) {
-                        <span class="more">+{{ analysis.key_concepts.length - 3 }}</span>
+                      @if ((analysis.key_concepts?.length || 0) > 3) {
+                        <span class="more">+{{ (analysis.key_concepts?.length || 0) - 3 }}</span>
                       }
                     </div>
 

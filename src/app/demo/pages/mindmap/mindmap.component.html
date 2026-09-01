@@ -88,16 +88,16 @@
                     <h4 class="ucc-title">{{ item.module_title }}</h4>
 
                     <div class="ucc-meta-row">
-                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ item.key_concepts.length }} concepts</span>
-                      <span class="ucc-meta-pill"><i class="feather icon-key text-danger"></i> {{ item.keywords.length }} mots-clés</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ item.key_concepts?.length || 0 }} concepts</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-key text-danger"></i> {{ item.keywords?.length || 0 }} mots-clés</span>
                     </div>
 
                     <div class="categories">
-                      @for (concept of item.key_concepts.slice(0, 3); track concept) {
+                      @for (concept of (item.key_concepts || []).slice(0, 3); track concept) {
                         <span>{{ concept }}</span>
                       }
-                      @if (item.key_concepts.length > 3) {
-                        <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                      @if ((item.key_concepts?.length || 0) > 3) {
+                        <span class="more">+{{ (item.key_concepts?.length || 0) - 3 }}</span>
                       }
                     </div>
 

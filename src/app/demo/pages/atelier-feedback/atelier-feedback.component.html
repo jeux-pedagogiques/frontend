@@ -96,22 +96,22 @@
                   </div>
 
                   <div class="categories" *ngIf="item.key_concepts?.length">
-                    @for (concept of item.key_concepts.slice(0, 3); track concept) {
+                    @for (concept of (item.key_concepts || []).slice(0, 3); track concept) {
                       <span>{{ concept }}</span>
                     }
-                    @if (item.key_concepts.length > 3) {
-                      <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                    @if ((item.key_concepts?.length || 0) > 3) {
+                      <span class="more">+{{ (item.key_concepts?.length || 0) - 3 }}</span>
                     }
                   </div>
 
                   <div class="ucc-meta-row mt-auto pt-2" *ngIf="item.learning_outcomes?.length">
-                    @for (lo of item.learning_outcomes.slice(0, 4); track lo) {
+                    @for (lo of (item.learning_outcomes || []).slice(0, 4); track lo) {
                       <span class="ucc-bloom-tag" [style.background]="getBloomColor(lo.bloom_level) + '18'" [style.color]="getBloomColor(lo.bloom_level)">
                         {{ getBloomLabel(lo.bloom_level) }}
                       </span>
                     }
-                    @if (item.learning_outcomes.length > 4) {
-                      <span class="ucc-bloom-tag more">+{{ item.learning_outcomes.length - 4 }}</span>
+                    @if ((item.learning_outcomes?.length || 0) > 4) {
+                      <span class="ucc-bloom-tag more">+{{ (item.learning_outcomes?.length || 0) - 4 }}</span>
                     }
                   </div>
 

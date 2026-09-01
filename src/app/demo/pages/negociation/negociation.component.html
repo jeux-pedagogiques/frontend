@@ -93,11 +93,11 @@
                     </div>
 
                     <div class="categories">
-                      @for (concept of item.key_concepts?.slice(0, 3); track concept) {
+                      @for (concept of (item.key_concepts || []).slice(0, 3); track concept) {
                         <span>{{ concept }}</span>
                       }
-                      @if (item.key_concepts?.length > 3) {
-                        <span class="more">+{{ item.key_concepts.length - 3 }}</span>
+                      @if ((item.key_concepts?.length || 0) > 3) {
+                        <span class="more">+{{ (item.key_concepts?.length || 0) - 3 }}</span>
                       }
                     </div>
 

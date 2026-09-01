@@ -90,7 +90,13 @@ export class CasEtudeComponent implements OnInit {
     this.isLoading.set(true);
     this.http.get<ModuleAnalysis[]>(`${this.apiUrl}/modules/history`).subscribe({
       next: (data) => {
-        this.analyses.set(data);
+        const normalized = (data || []).map(a => ({
+          ...a,
+          learning_outcomes: Array.isArray(a.learning_outcomes) ? a.learning_outcomes : [],
+          key_concepts: Array.isArray(a.key_concepts) ? a.key_concepts : [],
+          keywords: Array.isArray(a.keywords) ? a.keywords : []
+        }));
+        this.analyses.set(normalized);
         this.isLoading.set(false);
       },
       error: () => {

@@ -93,7 +93,7 @@
                         <i class="feather icon-lock"></i>
                       </div>
                       <div class="ucc-header-actions">
-                        <span class="ucc-badge emerald">{{ analysis.learning_outcomes.length }} AA</span>
+                        <span class="ucc-badge emerald">{{ analysis.learning_outcomes?.length || 0 }} AA</span>
                         <button type="button" class="ucc-btn-icon" (click)="viewAnalysis(analysis, $event)" [attr.aria-label]="'Voir les résultats du scan pour ' + analysis.module_title" title="Voir les résultats du scan">
                           <i class="feather icon-eye" aria-hidden="true"></i>
                         </button>
@@ -103,11 +103,11 @@
                     <h5 class="ucc-title">{{ analysis.module_title }}</h5>
 
                     <div class="ucc-meta-row">
-                      @for (concept of analysis.key_concepts.slice(0, 3); track concept) {
+                      @for (concept of (analysis.key_concepts || []).slice(0, 3); track concept) {
                         <span class="ucc-meta-pill">{{ concept }}</span>
                       }
-                      @if (analysis.key_concepts.length > 3) {
-                        <span class="ucc-bloom-tag more">+{{ analysis.key_concepts.length - 3 }}</span>
+                      @if ((analysis.key_concepts?.length || 0) > 3) {
+                        <span class="ucc-bloom-tag more">+{{ (analysis.key_concepts?.length || 0) - 3 }}</span>
                       }
                     </div>
 

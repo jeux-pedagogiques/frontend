@@ -95,7 +95,13 @@ export class LibraryComponent implements OnInit {
   loadModules() {
     this.http.get<any[]>(`${environment.apiUrl}/api/modules/history`).subscribe({
       next: (data) => {
-        this.modules.set(data);
+        const normalized = (data || []).map(m => ({
+          ...m,
+          learning_outcomes: Array.isArray(m.learning_outcomes) ? m.learning_outcomes : [],
+          key_concepts: Array.isArray(m.key_concepts) ? m.key_concepts : [],
+          keywords: Array.isArray(m.keywords) ? m.keywords : []
+        }));
+        this.modules.set(normalized);
       },
       error: (err) => console.error('Error loading modules', err)
     });

@@ -136,12 +136,20 @@ export class NegociationComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.http.get<any[]>(`${this.apiUrl}/modules/history`).subscribe({
       next: (data) => {
-        this.analyses.set(data || []);
+        const normalized = (data || []).map(a => ({
+          ...a,
+          learning_outcomes: Array.isArray(a.learning_outcomes) ? a.learning_outcomes : [],
+          key_concepts: Array.isArray(a.key_concepts) ? a.key_concepts : [],
+          keywords: Array.isArray(a.keywords) ? a.keywords : []
+        }));
+        this.analyses.set(normalized);
         this.isLoading.set(false);
+        this.cd.detectChanges();
       },
-      error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Erreur lors du chargement des modules.');
+      error: () => {
+        this.errorMessage.set('Erreur lors du chargement des modules.');
         this.isLoading.set(false);
+        this.cd.detectChanges();
       }
     });
   }
