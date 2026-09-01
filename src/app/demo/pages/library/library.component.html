@@ -498,6 +498,268 @@
         </div>
       }
 
+      <!-- ================= STORYTELLING ================= -->
+      @if (selectedConsultGame().game_type === 'storytelling') {
+        <div class="storytelling-consult-container">
+          <div class="p-3 bg-light rounded-3 mb-4 border">
+            <h6 class="fw-bold text-danger mb-2"><i class="feather icon-feather me-1"></i> Contexte de départ & Synopsis</h6>
+            <p class="text-dark small mb-0" style="white-space: pre-line;">{{ selectedConsultGame().contexte_depart }}</p>
+          </div>
+
+          @if (selectedConsultGame().mots_cles_obligatoires?.length) {
+            <div class="mb-4">
+              <h6 class="fw-bold text-dark mb-2"><i class="feather icon-key me-1 text-danger"></i> Mots-clés / Notions obligatoires à intégrer</h6>
+              <div class="d-flex flex-wrap gap-2">
+                @for (kw of selectedConsultGame().mots_cles_obligatoires; track $index) {
+                  <span class="badge bg-danger-subtle text-danger border border-danger p-2">{{ kw }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (selectedConsultGame().etapes_narratives?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-layers me-1 text-primary"></i> Arc Narratif — Étapes de Rédaction</h6>
+            <div class="d-flex flex-column gap-3 mb-4">
+              @for (etape of selectedConsultGame().etapes_narratives; track $index) {
+                <div class="card border-1 shadow-sm">
+                  <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-bold text-primary">Étape {{ etape.numero_etape || etape.etape || ($index + 1) }} : {{ etape.titre }}</span>
+                    @if (etape.temps_alloue_minutes || etape.temps_minutes) {
+                      <span class="badge bg-secondary"><i class="feather icon-clock me-1"></i> {{ etape.temps_alloue_minutes || etape.temps_minutes }} min</span>
+                    }
+                  </div>
+                  <div class="card-body py-2">
+                    <p class="small text-dark mb-0">{{ etape.consigne || etape.description }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedConsultGame().roles_narratifs?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-users me-1 text-success"></i> Rôles Narratifs au sein de l'Équipe</h6>
+            <div class="row g-2 mb-4">
+              @for (role of selectedConsultGame().roles_narratifs; track $index) {
+                <div class="col-12 col-md-4">
+                  <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
+                    <span class="badge bg-success mb-2">{{ role.nom_role }}</span>
+                    <p class="small text-muted mb-1"><strong>Mission :</strong> {{ role.mission || role.missions || role.description }}</p>
+                    @if (role.conseil_redaction) {
+                      <p class="small text-info mb-0"><strong>Conseil :</strong> {{ role.conseil_redaction }}</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedConsultGame().criteres_evaluation?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-check-circle me-1 text-warning"></i> Critères d'Évaluation</h6>
+            <div class="row g-2 mb-3">
+              @for (crit of selectedConsultGame().criteres_evaluation; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="p-2 border rounded-3 bg-light">
+                    <strong class="text-dark">{{ crit.critere }}</strong>
+                    <p class="text-muted small mb-0">{{ crit.description }} <span *ngIf="crit.bareme" class="badge bg-secondary ms-1">{{ crit.bareme }} pts</span></p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= DÉBAT STRUCTURÉ ================= -->
+      @if (selectedConsultGame().game_type === 'debat' || selectedConsultGame().game_type === 'debat_structure') {
+        <div class="debat-consult-container">
+          <div class="p-3 text-white rounded-3 mb-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #3730a3);">
+            <h6 class="text-warning fw-bold mb-1"><i class="feather icon-help-circle me-1"></i> Problématique Centrale</h6>
+            <h5 class="text-white fw-bold mb-0">{{ selectedConsultGame().problematique || selectedConsultGame().titre }}</h5>
+          </div>
+
+          <!-- Camp Pour vs Contre -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <div class="card border-success h-100 shadow-sm">
+                <div class="card-header bg-success-subtle text-success fw-bold py-2">
+                  <i class="feather icon-check-circle me-1"></i> Camp POUR
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled mb-0 small">
+                    @for (arg of (selectedConsultGame().camp_pour || []); track $index) {
+                      <li class="mb-2 d-flex align-items-start">
+                        <i class="feather icon-arrow-right text-success me-2 mt-1"></i>
+                        <span>{{ arg }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="card border-danger h-100 shadow-sm">
+                <div class="card-header bg-danger-subtle text-danger fw-bold py-2">
+                  <i class="feather icon-x-circle me-1"></i> Camp CONTRE
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled mb-0 small">
+                    @for (arg of (selectedConsultGame().camp_contre || []); track $index) {
+                      <li class="mb-2 d-flex align-items-start">
+                        <i class="feather icon-arrow-right text-danger me-2 mt-1"></i>
+                        <span>{{ arg }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roles -->
+          @if (selectedConsultGame().roles?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-users me-1 text-primary"></i> Rôles Attribués</h6>
+            <div class="row g-2 mb-4">
+              @for (r of selectedConsultGame().roles; track $index) {
+                <div class="col-12 col-md-4">
+                  <div class="p-3 border rounded-3 bg-light h-100">
+                    <span class="badge bg-primary mb-2">{{ r.nom_role }}</span>
+                    <p class="small text-muted mb-0">{{ r.description || r.missions }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Questions de relance -->
+          @if (selectedConsultGame().questions_relance?.length) {
+            <h6 class="fw-bold text-dark mb-2"><i class="feather icon-message-circle me-1 text-info"></i> Questions de Relance (Modérateur)</h6>
+            <div class="d-flex flex-column gap-2 mb-3">
+              @for (qr of selectedConsultGame().questions_relance; track $index) {
+                <div class="p-2 border rounded-3 bg-light small">
+                  <i class="feather icon-help-circle text-info me-1"></i> {{ qr }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= NÉGOCIATION ================= -->
+      @if (selectedConsultGame().game_type === 'negociation') {
+        <div class="negociation-consult-container">
+          <div class="p-3 bg-light rounded-3 mb-4 border">
+            <h6 class="fw-bold mb-2" style="color: #8b5cf6;"><i class="feather icon-shuffle me-1"></i> Contexte du Scénario</h6>
+            <p class="text-dark small mb-0" style="white-space: pre-line;">{{ selectedConsultGame().contexte_scenario }}</p>
+          </div>
+
+          @if (selectedConsultGame().personnages?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-users me-1 text-primary"></i> Personnages & Objectifs Secrets</h6>
+            <div class="row g-3 mb-4">
+              @for (perso of selectedConsultGame().personnages; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-1 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                      <span class="fw-bold text-dark">{{ perso.nom_personnage || perso.nom }}</span>
+                      <span class="badge bg-primary">{{ perso.role_description || perso.role }}</span>
+                    </div>
+                    <div class="card-body">
+                      <p class="small text-muted mb-2"><strong>Objectifs secrets :</strong> {{ perso.objectifs_secrets || perso.objectifs }}</p>
+                      @if (perso.lignes_rouges_et_compromis || perso.contraintes) {
+                        <p class="small text-danger mb-0"><strong>Lignes rouges :</strong> {{ perso.lignes_rouges_et_compromis || perso.contraintes }}</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedConsultGame().points_passage?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-flag me-1 text-warning"></i> Points de Passage & Étapes</h6>
+            <div class="d-flex flex-column gap-2 mb-4">
+              @for (pt of selectedConsultGame().points_passage; track $index) {
+                <div class="p-2 border rounded-3 bg-light small">
+                  <strong>Étape {{ pt.etape || ($index + 1) }} : {{ pt.titre }}</strong>
+                  <p class="text-muted mb-0 mt-1">{{ pt.instruction || pt.description }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= MIND MAP ================= -->
+      @if (selectedConsultGame().game_type === 'mindmap') {
+        <div class="mindmap-consult-container">
+          <div class="p-3 rounded-3 mb-4 text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+            <small class="badge bg-white text-info mb-1">Concept Central</small>
+            <h4 class="text-white fw-bold mb-0">{{ selectedConsultGame().concept_central || selectedConsultGame().titre }}</h4>
+          </div>
+
+          @if (selectedConsultGame().branches_suggerees?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-share-2 me-1 text-info"></i> Branches Directrices Suggérées</h6>
+            <div class="row g-3 mb-4">
+              @for (branch of selectedConsultGame().branches_suggerees; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-1 shadow-sm">
+                    <div class="card-header bg-light py-2">
+                      <span class="fw-bold text-dark"><i class="feather icon-corner-down-right text-info me-1"></i> {{ branch.titre }}</span>
+                    </div>
+                    <div class="card-body">
+                      <p class="small text-muted mb-2">{{ branch.description }}</p>
+                      @if (branch.questions_guidantes?.length) {
+                        <ul class="list-unstyled mb-0 small">
+                          @for (q of branch.questions_guidantes; track $index) {
+                            <li class="text-info mb-1"><i class="feather icon-help-circle me-1"></i> {{ q }}</li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedConsultGame().nodes?.length) {
+            <h6 class="fw-bold text-dark mb-2"><i class="feather icon-grid me-1 text-primary"></i> Noeuds & Concepts Construits ({{ selectedConsultGame().nodes.length }})</h6>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              @for (node of selectedConsultGame().nodes; track $index) {
+                <span class="badge bg-info-subtle text-info border border-info p-2">{{ node.titre }}</span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= ATELIER FEEDBACK ================= -->
+      @if (selectedConsultGame().game_type === 'atelier_feedback') {
+        <div class="feedback-consult-container">
+          <div class="p-3 bg-light rounded-3 mb-4 border">
+            <h6 class="fw-bold text-success mb-2"><i class="feather icon-message-circle me-1"></i> Grille d'Évaluation par les Pairs</h6>
+            <p class="text-dark small mb-0">{{ selectedConsultGame().description || selectedConsultGame().consignes || 'Atelier d\'évaluation formative et d\'analyse critique entre étudiants.' }}</p>
+          </div>
+
+          @if (selectedConsultGame().criteres?.length) {
+            <h6 class="fw-bold text-dark mb-3"><i class="feather icon-check-square me-1 text-success"></i> Critères de la Grille</h6>
+            <div class="row g-3 mb-4">
+              @for (crit of selectedConsultGame().criteres; track $index) {
+                <div class="col-12 col-md-6">
+                  <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong class="text-dark">{{ crit.nom || crit.critere }}</strong>
+                      <span *ngIf="crit.poids" class="badge bg-secondary">Poids : {{ crit.poids }}</span>
+                    </div>
+                    <p class="text-muted small mb-0">{{ crit.description }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
     }
   </div>
 
