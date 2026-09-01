@@ -423,11 +423,14 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Render local user stream in local video tag
-      const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;
-      if (localVideoElement) {
-        localVideoElement.srcObject = this.localStream;
-      }
+      // Render local user stream in local video tag after DOM insertion
+      setTimeout(() => {
+        const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;
+        if (localVideoElement && this.localStream) {
+          localVideoElement.srcObject = this.localStream;
+          localVideoElement.play().catch(() => {});
+        }
+      }, 150);
 
       // 2. Connect to WebSocket Signaling Server
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1025,11 +1028,6 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
           this.localStream.getVideoTracks().forEach(t => this.localStream!.removeTrack(t));
           this.localStream.addTrack(newTrack);
           cameraTrack = newTrack;
-          
-          const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;
-          if (localVideoElement) {
-            localVideoElement.srcObject = this.localStream;
-          }
         } catch (err) {
           console.error("Failed to acquire camera:", err);
           this.mediaWarning.set("Impossible d'accéder à la caméra. Veuillez vérifier les permissions.");
@@ -1040,6 +1038,14 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       
       if (cameraTrack) {
         cameraTrack.enabled = true;
+
+        setTimeout(() => {
+          const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;
+          if (localVideoElement && this.localStream) {
+            localVideoElement.srcObject = this.localStream;
+            localVideoElement.play().catch(() => {});
+          }
+        }, 100);
         
         // Replace the video track on all peer connections so remote peers see the camera
         for (const [peerId, peer] of this.peers.entries()) {
