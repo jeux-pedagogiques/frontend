@@ -575,8 +575,25 @@
         </div>
       }
 
+      <!-- Empty or Loading State -->
+      @if (isLoading()) {
+        <div class="empty-state">
+          <div class="spinner-large"></div>
+          <p class="mt-3">Chargement de vos flashcards...</p>
+        </div>
+      }
+      @if (!isLoading() && !sessionComplete() && getTotalCards() === 0) {
+        <div class="empty-state">
+          <i class="feather icon-layers" style="font-size: 2.5rem; color: #c51414; opacity: 0.5;"></i>
+          <p class="mt-3 fw-bold">Aucune carte trouvée pour cette session.</p>
+          <button class="btn btn-primary btn-sm px-4 mt-2" (click)="backToHistory()" style="background: linear-gradient(135deg, #c51414 0%, #9e0f0f 100%); border: none; border-radius: 9999px;">
+            <i class="feather icon-arrow-left me-1"></i> Retour aux flashcards
+          </button>
+        </div>
+      }
+
       <!-- Card Display -->
-      @if (!sessionComplete() && getCurrentCard()) {
+      @if (!isLoading() && !sessionComplete() && getCurrentCard()) {
         <div class="card-container">
           <div class="flashcard" [class.flipped]="isFlipped()" (click)="flipCard()">
             <!-- Recto (front) -->

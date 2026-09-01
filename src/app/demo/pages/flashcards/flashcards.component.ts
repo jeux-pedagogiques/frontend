@@ -516,17 +516,21 @@ export class FlashcardsComponent implements OnInit {
   getCurrentCard(): FlashcardResponse | null {
     const session = this.sessionData();
     if (!session) return null;
-    return session.cartes[this.currentCardIndex()] || null;
+    const cards = session.cartes || (session as any).cards || [];
+    return cards[this.currentCardIndex()] || null;
   }
 
   getProgressPercent(): number {
-    const session = this.sessionData();
-    if (!session || session.cartes.length === 0) return 0;
-    return ((this.currentCardIndex() + 1) / session.cartes.length) * 100;
+    const total = this.getTotalCards();
+    if (total === 0) return 0;
+    return Math.min(100, Math.round(((this.currentCardIndex() + 1) / total) * 100));
   }
 
   getTotalCards(): number {
-    return this.sessionData()?.cartes.length || 0;
+    const session = this.sessionData();
+    if (!session) return 0;
+    const cards = session.cartes || (session as any).cards || [];
+    return cards.length;
   }
 
   // ─── Share & Results ───
