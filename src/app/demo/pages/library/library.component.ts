@@ -8,6 +8,7 @@ import { NgbPaginationModule, NgbDropdownModule, NgbModalModule, NgbModal } from
 import { environment } from 'src/environments/environment';
 import { RamCacheService } from 'src/app/theme/shared/service/ram-cache.service';
 import { ShareService } from 'src/app/theme/shared/service/share.service';
+import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-library',
@@ -485,21 +486,73 @@ export class LibraryComponent implements OnInit {
     });
   }
 
+  // ─── QR Code & Share Modal ───
+  showQrModal = signal(false);
+  qrTargetGame = signal<any | null>(null);
+  qrDataUrl = signal<string>('');
+  isGeneratingQr = signal(false);
+
   shareGame(item: any): void {
     if (!item) return;
+    this.openShareQrModal(item);
+  }
+
+  openShareQrModal(item: any): void {
+    if (!item) return;
+    this.qrTargetGame.set(item);
+    this.showQrModal.set(true);
+    this.isGeneratingQr.set(true);
+    this.qrDataUrl.set('');
+    this.shareLink.set('');
+
     const gameType = item.game_type;
     const gameId = item.game_id;
+
     this.shareService.createShare(gameType, gameId).subscribe({
-      next: (res) => {
+      next: async (res) => {
         const url = `${window.location.origin}/play/${gameType}/${res.share_token}`;
         this.shareLink.set(url);
-        navigator.clipboard.writeText(url).then(() => {
-          this.shareCopied.set(true);
-          setTimeout(() => this.shareCopied.set(false), 3000);
-        });
+        try {
+          const qr = await QRCode.toDataURL(url, {
+            width: 320,
+            margin: 2,
+            color: {
+              dark: '#15162b',
+              light: '#ffffff'
+            }
+          });
+          this.qrDataUrl.set(qr);
+        } catch (e) {
+          console.error('Failed to generate QR code data URL', e);
+        }
+        this.isGeneratingQr.set(false);
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error sharing game', err)
+      error: (err) => {
+        console.error('Error sharing game', err);
+        this.isGeneratingQr.set(false);
+        this.cdr.detectChanges();
+      }
     });
+  }
+
+  closeQrModal(): void {
+    this.showQrModal.set(false);
+    this.qrTargetGame.set(null);
+    this.qrDataUrl.set('');
+    this.isGeneratingQr.set(false);
+  }
+
+  downloadQrCode(): void {
+    const dataUrl = this.qrDataUrl();
+    if (!dataUrl) return;
+    const game = this.qrTargetGame();
+    const gameName = this.cleanTitle(game?.titre || game?.title || game?.game_type || 'jeu').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `qrcode_${gameName}.png`;
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
   }
 
   copyShareLink(): void {

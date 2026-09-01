@@ -772,3 +772,85 @@
     </div>
   </div>
 }
+
+<!-- Interactive QR Code & Game Share Modal -->
+@if (showQrModal()) {
+  <div class="custom-modal-overlay animate__animated animate__fadeIn" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1070;">
+    <div class="custom-modal-card animate__animated animate__zoomIn bg-white rounded-4 p-4 shadow-lg text-center" style="max-width: 520px; width: 92%;">
+      
+      <div class="custom-modal-header border-bottom pb-3 mb-3 d-flex align-items-center justify-content-between text-start">
+        <div class="d-flex align-items-center gap-2">
+          <div class="modal-icon-circle bg-light-danger" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(197, 20, 20, 0.1);">
+            <i class="feather icon-maximize text-danger" style="font-size: 20px;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0 text-dark">Partage & QR Code du Jeu</h6>
+            <small class="text-muted">Accès instantané sans inscription pour les étudiants</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="closeQrModal()"></button>
+      </div>
+
+      <div class="custom-modal-body">
+        @if (qrTargetGame()) {
+          <div class="p-3 mb-3 rounded-3 bg-light border border-light text-start">
+            <div class="fw-bold text-dark mb-1">
+              <i class="feather icon-award text-danger me-1"></i> {{ cleanTitle(qrTargetGame().titre || qrTargetGame().title) }}
+            </div>
+            <div class="small text-muted d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <span><i class="feather icon-layers me-1"></i> Type : <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill">{{ qrTargetGame().game_type }}</span></span>
+              @if (qrTargetGame().module_title) {
+                <span><i class="feather icon-book me-1"></i> {{ qrTargetGame().module_title }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- QR Code Container Box with Frame -->
+        <div class="qr-preview-box d-flex flex-column align-items-center justify-content-center p-4 my-3 rounded-4" style="background: #f8fafc; border: 2px dashed #cbd5e1; min-height: 260px;">
+          @if (isGeneratingQr()) {
+            <div class="spinner-border text-danger" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="text-muted mt-3 mb-0 small">Génération du QR Code en cours...</p>
+          } @else if (qrDataUrl()) {
+            <div class="qr-image-wrapper p-2 bg-white rounded-3 shadow-sm" style="border: 1px solid #e2e8f0; display: inline-block;">
+              <img [src]="qrDataUrl()" alt="QR Code du jeu" class="img-fluid rounded-2" style="width: 220px; height: 220px; display: block;" />
+            </div>
+            <p class="text-dark fw-semibold mt-3 mb-1" style="font-size: 0.9rem;">
+              📷 Scannez ce code avec votre smartphone
+            </p>
+            <small class="text-muted" style="font-size: 0.78rem;">
+              Les étudiants rejoignent directement la partie sans avoir besoin de créer un compte.
+            </small>
+          }
+        </div>
+
+        <!-- Direct Share Link Input with Copy Button -->
+        @if (shareLink()) {
+          <div class="input-group mb-3">
+            <input type="text" class="form-control text-muted font-monospace" [value]="shareLink()" readonly style="font-size: 0.82rem; background: #f1f5f9;">
+            <button class="btn btn-primary px-3 fw-semibold" type="button" [class.btn-success]="shareCopied()" (click)="copyShareLink()" style="background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
+              <i class="feather me-1" [class.icon-check]="shareCopied()" [class.icon-copy]="!shareCopied()"></i>
+              {{ shareCopied() ? 'Copié !' : 'Copier' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons in Footer -->
+      <div class="custom-modal-actions d-flex flex-wrap justify-content-between align-items-center gap-2 border-top pt-3 mt-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-3" (click)="openGameEmailModal(qrTargetGame()); closeQrModal()">
+          <i class="feather icon-mail me-1"></i> Inviter par Email
+        </button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-danger btn-sm px-3 rounded-3" [disabled]="!qrDataUrl()" (click)="downloadQrCode()">
+            <i class="feather icon-download me-1"></i> Télécharger QR (PNG)
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm px-4 rounded-3" (click)="closeQrModal()">
+            Fermer
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
