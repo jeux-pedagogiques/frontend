@@ -49,11 +49,15 @@ export class MindMapComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
   private shareService = inject(ShareService);
 
-  pageState = signal<'select' | 'generating' | 'result'>('select');
+  pageState = signal<'select' | 'generating' | 'result' | 'history'>('select');
   isLoading = signal(false);
   isGenerating = signal(false);
+  isLoadingHistory = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
+
+  historyList = signal<any[]>([]);
+  historySearch = '';
 
   analyses = signal<ModuleAnalysis[]>([]);
   selectedAnalysis = signal<ModuleAnalysis | null>(null);
@@ -77,6 +81,80 @@ export class MindMapComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAnalyses();
+    this.loadHistory(false);
+  }
+
+  loadHistory(switchState = true): void {
+    if (switchState) {
+      this.pageState.set('history');
+    }
+    this.isLoadingHistory.set(true);
+    this.http.get<any[]>(`${this.apiUrl}/mindmap/history`).subscribe({
+      next: (data) => {
+        this.historyList.set(data || []);
+        this.isLoadingHistory.set(false);
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement historique mindmaps:', err);
+        this.isLoadingHistory.set(false);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  loadSavedMindmap(item: any): void {
+    this.mindmapResult.set({
+      id: item.id,
+      concept_central: item.concept_central,
+      branches_suggerees: item.branches_suggerees || [],
+      module_title: item.module_title
+    });
+    this.pageState.set('result');
+    this.showCompleteness.set(false);
+    this.shareLink.set('');
+
+    // Fetch existing nodes
+    this.http.get<any>(`${this.apiUrl}/mindmap/${item.id}/export`).subscribe({
+      next: (res) => {
+        this.nodes.set(res.nodes || []);
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.nodes.set([]);
+      }
+    });
+  }
+
+  deleteMindmap(id: number, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Voulez-vous vraiment supprimer cette carte mentale ?')) return;
+
+    this.http.delete(`${this.apiUrl}/mindmap/${id}`).subscribe({
+      next: () => {
+        this.historyList.update(prev => prev.filter(m => m.id !== id));
+        this.successMessage.set('Carte mentale supprimée avec succès.');
+        if (this.mindmapResult()?.id === id) {
+          this.mindmapResult.set(null);
+          this.pageState.set('history');
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Erreur lors de la suppression.');
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  formatDate(d?: string): string {
+    if (!d) return '';
+    try {
+      const dt = new Date(d);
+      return dt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return d;
+    }
   }
 
   loadAnalyses(): void {

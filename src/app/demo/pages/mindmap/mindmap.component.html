@@ -5,6 +5,12 @@
     <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
       <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer une Carte Mentale
     </button>
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'history'" (click)="loadHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Cartes Mentales
+      @if (historyList().length > 0) {
+        <span class="count-badge" aria-label="{{ historyList().length }} cartes enregistrées">{{ historyList().length }}</span>
+      }
+    </button>
     @if (mindmapResult()) {
       <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'result'" (click)="pageState.set('result')">
         <i class="feather icon-cpu" aria-hidden="true"></i> Consultation Mind Map
@@ -204,6 +210,92 @@
         <p>L'IA analyse la fiche module sélectionnée et génère l'arborescence Mind Map avec questions d'incitation.</p>
         <p class="subtle">Veuillez patienter quelques instants.</p>
       </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: HISTORY (Saved Mind Maps)                                  -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'history') {
+    <div class="config-section" id="mm-history-panel" role="tabpanel">
+
+      <div class="section-header">
+        <div class="header-icon" aria-hidden="true">
+          <i class="feather icon-clock"></i>
+        </div>
+        <div>
+          <h2>Mes Cartes Mentales</h2>
+          <p class="subtitle">{{ historyList().length }} carte(s) mentale(s) générée(s) et enregistrée(s).</p>
+        </div>
+      </div>
+
+      @if (isLoadingHistory()) {
+        <div class="empty-state" role="status" aria-live="polite">
+          <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+          <p style="margin-top: 12px; font-size: 14px;">Chargement de vos cartes mentales...</p>
+        </div>
+      }
+
+      @if (!isLoadingHistory() && historyList().length === 0) {
+        <div class="empty-state" role="status">
+          <i class="feather icon-cpu" style="font-size: 2.5rem; color: #c51414; opacity: 0.5;" aria-hidden="true"></i>
+          <p style="margin-top: 12px; font-size: 15px; font-weight: 600;">Aucune carte mentale générée pour le moment.</p>
+          <p class="text-muted small">Sélectionnez un module de cours pour générer votre première carte collaborative !</p>
+          <button type="button" class="btn btn-primary btn-sm mt-3 px-4" (click)="backToSelect()" style="background: linear-gradient(135deg, #c51414 0%, #9e0f0f 100%); border: none; border-radius: 9999px; font-weight: 600;">
+            <i class="feather icon-plus-circle me-1"></i> Créer une carte mentale
+          </button>
+        </div>
+      }
+
+      @if (!isLoadingHistory() && historyList().length > 0) {
+        <div class="unified-challenge-card-grid" role="listbox" aria-label="Cartes mentales enregistrées">
+          @for (item of historyList(); track item.id) {
+            <div class="unified-challenge-card"
+                 role="option"
+                 tabindex="0"
+                 (click)="loadSavedMindmap(item)">
+              <div class="ucc-header">
+                <div class="ucc-icon-badge" aria-hidden="true">
+                  <i class="feather icon-cpu"></i>
+                </div>
+                <div class="ucc-header-actions">
+                  <span class="ucc-badge emerald">{{ item.branches_suggerees?.length || 0 }} branches</span>
+                  <button type="button" class="ucc-btn-icon text-danger" (click)="deleteMindmap(item.id, $event)" title="Supprimer la carte mentale">
+                    <i class="feather icon-trash-2" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+
+              <h4 class="ucc-title">{{ item.concept_central }}</h4>
+
+              <div class="ucc-meta-row">
+                <span class="ucc-meta-pill"><i class="feather icon-book text-primary"></i> {{ item.module_title || 'Module de cours' }}</span>
+                <span class="ucc-meta-pill"><i class="feather icon-git-branch text-info"></i> {{ item.branches_suggerees?.length || 0 }} branches</span>
+              </div>
+
+              <div class="categories">
+                @for (branch of (item.branches_suggerees || []).slice(0, 3); track branch.titre) {
+                  <span>{{ branch.titre }}</span>
+                }
+                @if ((item.branches_suggerees?.length || 0) > 3) {
+                  <span class="more">+{{ (item.branches_suggerees?.length || 0) - 3 }}</span>
+                }
+              </div>
+
+              <div class="ucc-meta-row mt-2">
+                <span class="ucc-meta-pill text-muted ms-auto"><i class="feather icon-calendar"></i> {{ formatDate(item.created_at) }}</span>
+              </div>
+
+              <div class="ucc-footer">
+                <span class="text-muted small fw-medium">ID: #{{ item.id }}</span>
+                <button type="button" class="ucc-btn-primary" (click)="loadSavedMindmap(item); $event.stopPropagation()">
+                  <i class="feather icon-eye"></i> Consulter
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 
