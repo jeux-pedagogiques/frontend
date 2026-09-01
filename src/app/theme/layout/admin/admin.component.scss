@@ -124,30 +124,24 @@
 
   .sidebar-body {
     flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
+    display: block;
     min-height: 0;
-    max-height: calc(100dvh - 120px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    overscroll-behavior-y: contain;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: contain !important;
 
     app-navigation {
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 auto;
-      min-height: 0;
-      height: 100%;
+      display: block;
       width: 100%;
     }
 
-    scrollbar-width: thin !important;
-    -ms-overflow-style: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 
     &::-webkit-scrollbar {
-      width: 4px;
+      width: 5px;
     }
 
     &::-webkit-scrollbar-track {
@@ -157,36 +151,24 @@
     &::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.15);
       border-radius: 4px;
-    }
 
-    ::ng-deep .ng-scroll-viewport {
-      scrollbar-width: thin !important;
-      -ms-overflow-style: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-      touch-action: pan-y !important;
-      overscroll-behavior-y: contain !important;
-
-      &::-webkit-scrollbar {
-        width: 4px;
-      }
-      &::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 4px;
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
       }
     }
   }
 
   .sidebar-footer {
     flex-shrink: 0;
-    height: 60px;
-    padding: 10px 12px;
+    height: 64px;
+    min-height: 64px;
+    padding: 10px 14px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
+    background: inherit;
+    z-index: 10;
     transition: padding 0.25s ease, border-color 0.25s ease;
   }
 
@@ -1061,16 +1043,19 @@
     .sidebar-body {
       flex: 1 1 auto;
       min-height: 0;
-      max-height: calc(100dvh - 120px);
       overflow-y: auto !important;
+      overflow-x: hidden !important;
       -webkit-overflow-scrolling: touch !important;
       touch-action: pan-y !important;
       overscroll-behavior-y: contain !important;
+      padding-bottom: 2rem;
     }
 
     .sidebar-footer {
       flex-shrink: 0;
-      height: 60px;
+      height: 64px;
+      min-height: 64px;
+      background: inherit;
     }
   }
 
