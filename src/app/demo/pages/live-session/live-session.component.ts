@@ -1038,6 +1038,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       
       if (cameraTrack) {
         cameraTrack.enabled = true;
+        this.localStream = new MediaStream(this.localStream ? this.localStream.getTracks() : [cameraTrack]);
 
         setTimeout(() => {
           const localVideoElement = document.getElementById('localVideo') as HTMLVideoElement;

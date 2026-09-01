@@ -346,7 +346,7 @@
         <!-- Local User Video stream -->
         <div class="video-card-wrapper local-stream-card" [style.order]="isProf() ? 2 : 1">
           <div class="video-card">
-            <video id="localVideo" autoplay [muted]="true" playsinline></video>
+            <video id="localVideo" [appSrcObject]="isScreenSharing ? screenStream : localStream" autoplay [muted]="true" playsinline></video>
             <div class="stream-info">
               <span class="user-name">Vous ({{ displayName || 'Invité' }})</span>
               <div class="user-indicators">
@@ -369,7 +369,7 @@
           </div>
         </div>
         <!-- Remote Participants Video Streams -->
-        @for (peer of peerList(); track peer) {
+        @for (peer of peerList(); track peer.id) {
           <div class="video-card-wrapper remote-stream-card" [style.order]="peer.isProf ? 2 : 1">
             <div class="video-card">
               <!-- Bind stream dynamically -->
