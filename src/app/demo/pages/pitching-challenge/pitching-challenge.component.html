@@ -1,32 +1,5 @@
 <div class="pitching-page">
 
-  <!-- Success -->
-  @if (successMessage()) {
-    <div class="pc-alert success" role="status" aria-live="polite" aria-atomic="true">
-      <i class="feather icon-check-circle" aria-hidden="true"></i>
-      <span>{{ successMessage() }}</span>
-      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
-    </div>
-  }
-
-  <!-- Loading -->
-  @if (errorMessage()) {
-    <div class="pc-alert error" role="alert" aria-live="assertive" aria-atomic="true">
-      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
-      <span>{{ errorMessage() }}</span>
-      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
-    </div>
-  }
-
-  <!-- Loading -->
-  @if (isLoading() && pageState() === 'generating') {
-    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
-      <div class="spinner-large" aria-hidden="true"></div>
-      <p>Génération du pitching challenge en cours...</p>
-      <span class="generating-sub">L'IA prépare les sujets, critères et grilles de feedback</span>
-    </div>
-  }
-
   <!-- Top Navigation Tabs -->
   <nav class="pc-top-nav mb-4" aria-label="Navigation Pitching Challenge" role="tablist">
     <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" [attr.aria-selected]="pageState() === 'select' || pageState() === 'generating'" (click)="pageState.set('select')">
@@ -39,6 +12,33 @@
       }
     </button>
   </nav>
+
+  <!-- Success -->
+  @if (successMessage()) {
+    <div class="pc-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (errorMessage()) {
+    <div class="pc-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading() && pageState() === 'generating') {
+    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
+      <div class="spinner-large" aria-hidden="true"></div>
+      <p>Génération du pitching challenge en cours...</p>
+      <span class="generating-sub">L'IA prépare les sujets, critères et grilles de feedback</span>
+    </div>
+  }
 
   <!-- ================================================================== -->
   <!-- SELECT MODULE                                                       -->
