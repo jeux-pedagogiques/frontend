@@ -21,8 +21,11 @@
   top: 0;
   left: 0;
   height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   z-index: 1000;
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease;
+  overflow: hidden !important;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease;
 
   &.collapsed {
     width: 76px;
@@ -120,32 +123,66 @@
   }
 
   .sidebar-body {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+
+    app-navigation {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
 
     &::-webkit-scrollbar {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
     }
 
     ::ng-deep .ng-scroll-viewport {
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
+      scrollbar-width: thin !important;
+      -ms-overflow-style: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-y !important;
+      overscroll-behavior-y: contain !important;
 
       &::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
+        width: 4px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
       }
     }
   }
 
   .sidebar-footer {
-    padding: 12px;
+    flex-shrink: 0;
+    height: 60px;
+    padding: 10px 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
@@ -1000,11 +1037,40 @@
 
 @media (max-width: 991px) {
   .sidebar {
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     transform: translateX(-100%);
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.12);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+    z-index: 1001;
 
     &.mobile-open {
       transform: translateX(0);
+    }
+
+    .sidebar-header {
+      flex-shrink: 0;
+      height: 60px;
+    }
+
+    .sidebar-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: calc(100dvh - 120px);
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-y !important;
+      overscroll-behavior-y: contain !important;
+    }
+
+    .sidebar-footer {
+      flex-shrink: 0;
+      height: 60px;
     }
   }
 
