@@ -100,7 +100,7 @@ export class EscapeRoomComponent implements OnInit {
   mode = 'collaboratif';
   dureeTotale = 45;
   nbEquipes = 3;
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
 
   // Quiz generation parameters
   quizQuestionsCount = 5;

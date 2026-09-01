@@ -83,7 +83,7 @@ export class AtelierFeedbackComponent implements OnInit, OnDestroy {
 
   nbCriteres = 4;
   anonyme = true;
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
 
   atelier = signal<AtelierData | null>(null);
 

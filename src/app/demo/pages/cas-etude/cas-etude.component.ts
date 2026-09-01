@@ -70,7 +70,7 @@ export class CasEtudeComponent implements OnInit {
 
   nbRoles = 3;
   formatRestitution = 'oral';
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
 
   casResult = signal<CasEtudeData | null>(null);
   activeTab = signal<'scenario' | 'roles' | 'questions' | 'grille'>('scenario');

@@ -80,7 +80,7 @@ export class FlashcardsComponent implements OnInit {
   viewingAnalysis = signal<ModuleAnalysis | null>(null);
 
   nbCartes = 20;
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
   participantName = '';
 
   generatedSet = signal<FlashcardSetResponse | null>(null);

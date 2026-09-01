@@ -169,6 +169,22 @@ export const NavigationItems: NavigationItem[] = [
             classes: 'nav-item'
           }
         ]
+      },
+      {
+        id: 'creative-storytelling',
+        title: '7. Co-Creation & Storytelling',
+        type: 'collapse',
+        icon: 'feather icon-feather',
+        children: [
+          {
+            id: 'storytelling',
+            title: 'Storytelling Collaboratif',
+            type: 'item',
+            url: '/storytelling',
+            icon: 'feather icon-feather',
+            classes: 'nav-item'
+          }
+        ]
       }
     ]
   },

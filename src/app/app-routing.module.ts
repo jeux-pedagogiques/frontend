@@ -129,6 +129,11 @@ const routes: Routes = [
       {
         path: 'atelier-feedback',
         loadComponent: () => import('./demo/pages/atelier-feedback/atelier-feedback.component').then((c) => c.AtelierFeedbackComponent)
+      },
+      {
+        path: 'storytelling',
+        canActivate: [authGuard],
+        loadComponent: () => import('./demo/pages/storytelling/storytelling.component').then((c) => c.StorytellingComponent)
       }
     ]
   }

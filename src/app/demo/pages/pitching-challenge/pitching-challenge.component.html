@@ -180,6 +180,9 @@
                   <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
                 </label>
                 <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="bai/glm-5.3-flash">BAI GLM 5.3 Flash (Recommandé - Pitch & Évaluation)</option>
+                  <option value="bai/deepseek-v4-flash">BAI DeepSeek V4 Flash (Critères & Scénarios)</option>
+                  <option value="bai/qwen3.8-flash">BAI Qwen 3.8 Flash (Alibaba Rapide)</option>
                   <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
                   <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
                   <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>

@@ -89,6 +89,9 @@ export class ImportModuleComponent implements OnInit {
   selectedModel = signal('groq/llama-3.3-70b-versatile');
 
   availableModels = [
+    { value: 'bai/glm-5.3-flash', label: 'BAI GLM 5.3 Flash (Z.ai CoT Raisonnement)', provider: 'BAI' },
+    { value: 'bai/deepseek-v4-flash', label: 'BAI DeepSeek V4 Flash (Logique & Code)', provider: 'BAI' },
+    { value: 'bai/qwen3.8-flash', label: 'BAI Qwen 3.8 Flash (Alibaba Rapide)', provider: 'BAI' },
     { value: 'groq/llama-3.3-70b-versatile', label: 'Groq Llama 3.3 70B (0.2s - Ultra Rapide)', provider: 'Groq' },
     { value: 'github/Llama-3.3-70B-Instruct', label: 'GitHub Llama 3.3 70B (0.4s - GitHub Models)', provider: 'GitHub' },
     { value: 'github/gpt-4o', label: 'GitHub GPT-4o (Azure High Intel)', provider: 'GitHub' },

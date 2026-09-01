@@ -60,7 +60,12 @@ export class LibraryComponent implements OnInit {
     {value: 'escape_room', label: 'Escape Room', icon: 'feather icon-lock', color: '#ef4444'},
     {value: 'pitching', label: 'Pitching', icon: 'feather icon-mic', color: '#f97316'},
     {value: 'flashcards', label: 'Flashcards', icon: 'feather icon-layers', color: '#22c55e'},
-    {value: 'cas_etude', label: 'Étude de cas', icon: 'feather icon-briefcase', color: '#9f1010'}
+    {value: 'cas_etude', label: 'Étude de cas', icon: 'feather icon-briefcase', color: '#9f1010'},
+    {value: 'storytelling', label: 'Storytelling', icon: 'feather icon-feather', color: '#dc2626'},
+    {value: 'debat', label: 'Débat Structuré', icon: 'feather icon-users', color: '#6366f1'},
+    {value: 'negociation', label: 'Négociation', icon: 'feather icon-shuffle', color: '#8b5cf6'},
+    {value: 'mindmap', label: 'Mindmap', icon: 'feather icon-share-2', color: '#0ea5e9'},
+    {value: 'atelier_feedback', label: 'Atelier Feedback', icon: 'feather icon-message-circle', color: '#10b981'}
   ];
 
   bloomLevels = [

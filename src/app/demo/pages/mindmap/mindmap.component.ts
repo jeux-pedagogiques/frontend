@@ -59,7 +59,7 @@ export class MindMapComponent implements OnInit {
   selectedNodeId = signal<number | null>(null);
 
   nbBranches = 4;
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
   mindmapResult = signal<MindMapData | null>(null);
 
   // Student nodes / preview

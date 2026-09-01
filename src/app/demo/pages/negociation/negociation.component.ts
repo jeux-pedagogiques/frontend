@@ -57,7 +57,7 @@ export class NegociationComponent implements OnInit, OnDestroy {
 
   analyses = signal<any[]>([]);
   selectedAnalysis = signal<any | null>(null);
-  selectedModel = signal<string>('gemini-3.6-flash');
+  selectedModel = signal<string>('bai/glm-5.3-flash');
 
   // Form parameters
   nbPersonnages = 2;

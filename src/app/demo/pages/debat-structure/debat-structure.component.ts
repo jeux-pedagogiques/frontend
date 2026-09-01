@@ -65,7 +65,7 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
   viewingAnalysis = signal<any | null>(null);
 
   // Formulaire prof
-  selectedModel = signal<string>('groq/llama-3.3-70b-versatile');
+  selectedModel = signal<string>('bai/glm-5.3-flash');
   nbArguments = 3;
   dureeIntervention = 120;
 

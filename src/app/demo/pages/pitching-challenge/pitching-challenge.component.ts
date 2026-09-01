@@ -76,7 +76,7 @@ export class PitchingChallengeComponent implements OnInit {
 
   nbEquipes = 4;
   dureePreparation = 10;
-  selectedModel = signal('groq/llama-3.3-70b-versatile');
+  selectedModel = signal('bai/glm-5.3-flash');
   dureePitch = 3;
   dureeFeedback = 5;
 

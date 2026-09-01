@@ -8,7 +8,7 @@ import { environment } from 'src/environments/environment';
 import { AudioAlertService } from 'src/app/theme/shared/service/audio-alert.service';
 
 type PageState = 'loading' | 'name-entry' | 'playing' | 'completed' | 'error';
-type GameType = 'quiz' | 'escape_room' | 'flashcards' | 'pitching' | 'cas_etude' | 'mindmap' | 'debat' | 'negociation';
+type GameType = 'quiz' | 'escape_room' | 'flashcards' | 'pitching' | 'cas_etude' | 'mindmap' | 'debat' | 'negociation' | 'storytelling';
 
 @Component({
   selector: 'app-play',
@@ -78,6 +78,16 @@ export class PlayComponent implements OnInit, OnDestroy {
   casEtudeQuestions = signal<any[]>([]);
   casEtudeDecisions = signal<Record<string, { decision: string; justification: string }>>({});
 
+  // ─── Storytelling State ───
+  storytellingContext = signal<string>('');
+  storytellingKeywords = signal<string[]>([]);
+  storytellingSteps = signal<any[]>([]);
+  storytellingRoles = signal<any[]>([]);
+  storytellingCurrentStepIndex = signal<number>(0);
+  storytellingDrafts = signal<Record<number, string>>({});
+  storytellingCurrentText = '';
+  storytellingSelectedRole = signal<string>('');
+
   // Computed
   quizProgress = computed(() => {
     const total = this.quizQuestions().length;
@@ -92,6 +102,11 @@ export class PlayComponent implements OnInit, OnDestroy {
   enigmaProgress = computed(() => {
     const total = this.enigmas().length;
     return total > 0 ? ((this.enigmaIndex() + 1) / total) * 100 : 0;
+  });
+
+  storytellingProgress = computed(() => {
+    const total = this.storytellingSteps().length;
+    return total > 0 ? ((this.storytellingCurrentStepIndex() + 1) / total) * 100 : 0;
   });
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
@@ -162,6 +177,12 @@ export class PlayComponent implements OnInit, OnDestroy {
         break;
       case 'mindmap':
         this.mindmapBranches.set(data?.branches_suggerees || []);
+        break;
+      case 'storytelling':
+        this.storytellingContext.set(data?.contexte_depart || '');
+        this.storytellingKeywords.set(data?.mots_cles_obligatoires || []);
+        this.storytellingSteps.set(data?.etapes_narratives || []);
+        this.storytellingRoles.set(data?.roles_narratifs || []);
         break;
       case 'debat':
         break;
@@ -402,6 +423,17 @@ export class PlayComponent implements OnInit, OnDestroy {
         maxScore = 1;
         resultData = { consulted: true };
         break;
+      case 'storytelling':
+        const usedCount = this.storytellingKeywords().filter((kw) => this.isKeywordUsed(kw)).length;
+        score = usedCount;
+        maxScore = this.storytellingKeywords().length || 1;
+        resultData = {
+          role: this.storytellingSelectedRole(),
+          story_steps: this.storytellingDrafts(),
+          keywords_used_count: usedCount,
+          keywords_total: this.storytellingKeywords().length,
+        };
+        break;
     }
 
     this.http.post(`${this.apiUrl}/${this.shareToken()}/results`, {
@@ -414,6 +446,40 @@ export class PlayComponent implements OnInit, OnDestroy {
       next: () => this.pageState.set('completed'),
       error: () => this.pageState.set('completed'),
     });
+  }
+
+  // ─── Storytelling Student Methods ───
+  isKeywordUsed(keyword: string): boolean {
+    const drafts = Object.values(this.storytellingDrafts()).join(' ') + ' ' + this.storytellingCurrentText;
+    return drafts.toLowerCase().includes(keyword.toLowerCase());
+  }
+
+  saveStorytellingStep() {
+    if (!this.storytellingCurrentText.trim()) return;
+    const currentIdx = this.storytellingCurrentStepIndex();
+    this.storytellingDrafts.update((prev) => ({
+      ...prev,
+      [currentIdx]: this.storytellingCurrentText.trim()
+    }));
+
+    if (currentIdx + 1 < this.storytellingSteps().length) {
+      this.storytellingCurrentStepIndex.set(currentIdx + 1);
+      this.storytellingCurrentText = this.storytellingDrafts()[currentIdx + 1] || '';
+    } else {
+      this.completeGame();
+    }
+  }
+
+  previousStorytellingStep() {
+    const currentIdx = this.storytellingCurrentStepIndex();
+    if (currentIdx > 0) {
+      this.storytellingDrafts.update((prev) => ({
+        ...prev,
+        [currentIdx]: this.storytellingCurrentText.trim()
+      }));
+      this.storytellingCurrentStepIndex.set(currentIdx - 1);
+      this.storytellingCurrentText = this.storytellingDrafts()[currentIdx - 1] || '';
+    }
   }
 
   // ─── Cas Etude Student Methods ───
@@ -468,12 +534,16 @@ export class PlayComponent implements OnInit, OnDestroy {
       case 'cas_etude': score = Object.keys(this.casEtudeAnswers()).length; max = this.casEtudeQuestions().length || 1; break;
       case 'mindmap': score = this.mindmapNodes().length; max = this.mindmapBranches().length || 1; break;
       case 'debat': score = 1; max = 1; break;
+      case 'storytelling':
+        score = this.storytellingKeywords().filter((kw) => this.isKeywordUsed(kw)).length;
+        max = this.storytellingKeywords().length || 1;
+        break;
     }
     return Math.round((score / max) * 100);
   }
 
   isQualitativeGame(): boolean {
-    return this.gameType() === 'cas_etude' || this.gameType() === 'pitching' || this.gameType() === 'mindmap' || this.gameType() === 'debat';
+    return this.gameType() === 'cas_etude' || this.gameType() === 'pitching' || this.gameType() === 'mindmap' || this.gameType() === 'debat' || this.gameType() === 'storytelling';
   }
 
   getGameTypeLabel(): string {
@@ -485,6 +555,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       cas_etude: "Étude de Cas Gamifiée",
       mindmap: "Mind Map Collaboratif",
       debat: "Débat Structuré",
+      storytelling: "Storytelling Collaboratif",
     };
     return map[this.gameType()] || this.gameType();
   }

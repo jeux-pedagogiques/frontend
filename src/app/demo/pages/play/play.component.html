@@ -418,6 +418,95 @@
       <i class="feather icon-check me-1"></i> J'ai pris connaissance du sujet
     </button>
   </div>
+
+  <!-- ── STORYTELLING COLLABORATIF ── -->
+  <div class="play-card game-card mt-5" *ngIf="gameType() === 'storytelling'">
+    
+    <!-- Progress -->
+    <div class="progress mb-3" style="height: 6px;" *ngIf="storytellingSteps().length > 0">
+      <div class="progress-bar bg-gradient-primary" [style.width.%]="storytellingProgress()"></div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span class="game-badge">
+        <i class="feather icon-feather me-1"></i> Storytelling Collaboratif
+      </span>
+      <span class="text-light-50 small" *ngIf="storytellingSteps().length > 0">
+        Étape {{ storytellingCurrentStepIndex() + 1 }} / {{ storytellingSteps().length }}
+      </span>
+    </div>
+
+    <h3 class="text-light fw-bold mb-3">{{ gameTitle() }}</h3>
+
+    <!-- Amorce Narrative -->
+    <div class="narrative-premise p-3 rounded-3 mb-3 bg-dark border border-secondary text-start">
+      <div class="small text-danger fw-bold mb-1"><i class="feather icon-compass me-1"></i> Amorce de l'histoire :</div>
+      <p class="text-light-50 fst-italic m-0 small">{{ storytellingContext() }}</p>
+    </div>
+
+    <!-- Mots-clés obligatoires chips -->
+    <div class="mb-4 text-start">
+      <label class="text-light-50 small fw-bold mb-2 d-block">
+        Concepts à mobiliser obligatoirement dans votre récit :
+      </label>
+      <div class="d-flex flex-wrap gap-2">
+        <span 
+          class="badge px-3 py-2 rounded-pill d-inline-flex align-items-center"
+          *ngFor="let kw of storytellingKeywords()"
+          [ngClass]="isKeywordUsed(kw) ? 'bg-success text-white' : 'bg-dark border border-secondary text-light-50'">
+          <i class="feather me-1" [ngClass]="isKeywordUsed(kw) ? 'icon-check-circle' : 'icon-circle'"></i>
+          {{ kw }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Step Card -->
+    <div class="step-writing-card p-3 rounded-3 mb-4 bg-dark border border-danger text-start" *ngIf="storytellingSteps().length > 0">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="text-light fw-bold m-0">
+          {{ storytellingSteps()[storytellingCurrentStepIndex()]?.titre }}
+        </h5>
+        <span class="badge bg-danger">
+          <i class="feather icon-clock me-1"></i> {{ storytellingSteps()[storytellingCurrentStepIndex()]?.temps_minutes }} min
+        </span>
+      </div>
+
+      <p class="text-light-50 small mb-2">
+        {{ storytellingSteps()[storytellingCurrentStepIndex()]?.description }}
+      </p>
+
+      <div class="p-2 rounded bg-black mb-3 border border-secondary">
+        <small class="text-danger fw-bold d-block"><i class="feather icon-alert-circle me-1"></i> Consigne :</small>
+        <small class="text-light">{{ storytellingSteps()[storytellingCurrentStepIndex()]?.consigne }}</small>
+      </div>
+
+      <label class="text-light small fw-bold mb-1">Votre paragraphe pour cette étape :</label>
+      <textarea 
+        class="form-control glass-input mb-3" 
+        rows="4" 
+        placeholder="Rédigez la suite de l'histoire en mobilisant les concepts clés requis..."
+        [(ngModel)]="storytellingCurrentText">
+      </textarea>
+
+      <div class="d-flex justify-content-between gap-2">
+        <button 
+          class="btn btn-outline-light btn-sm"
+          (click)="previousStorytellingStep()"
+          [disabled]="storytellingCurrentStepIndex() === 0">
+          <i class="feather icon-arrow-left me-1"></i> Étape Précédente
+        </button>
+
+        <button 
+          class="btn btn-danger btn-sm px-4 fw-bold shadow-sm"
+          (click)="saveStorytellingStep()"
+          [disabled]="!storytellingCurrentText.trim()">
+          {{ storytellingCurrentStepIndex() + 1 === storytellingSteps().length ? 'Finaliser et Soumettre' : 'Étape Suivante' }}
+          <i class="feather ms-1" [ngClass]="storytellingCurrentStepIndex() + 1 === storytellingSteps().length ? 'icon-send' : 'icon-arrow-right'"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ─── COMPLETED STATE ─── -->

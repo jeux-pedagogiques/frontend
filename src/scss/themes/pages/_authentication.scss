@@ -54,8 +54,68 @@
 .brand-content {
   position: relative;
   z-index: 2;
-  padding: 60px 50px;
-  max-width: 500px;
+  padding: 50px 45px;
+  max-width: 520px;
+}
+
+.brand-illustration-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 16px 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:last-child {
+    margin-bottom: 0;
+    padding: 24px 28px;
+
+    .brand-illustration-img {
+      max-width: 440px;
+      max-height: 320px;
+    }
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(197, 20, 20, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 48px rgba(197, 20, 20, 0.2);
+
+    .brand-illustration-img {
+      transform: scale(1.02);
+    }
+  }
+
+  .brand-illustration-img {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    max-height: 220px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3));
+    transition: transform 0.35s ease;
+  }
+}
+
+.auth-mobile-illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+
+  .auth-mobile-img {
+    max-width: 240px;
+    height: auto;
+    max-height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.15));
+  }
 }
 
 .brand-logo {
@@ -66,8 +126,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 36px;
-  box-shadow: 0 8px 32px rgba(64, 153, 255, 0.35);
+  margin-bottom: 28px;
+  box-shadow: 0 8px 32px rgba(197, 20, 20, 0.35);
 
   i {
     font-size: 1.75rem;

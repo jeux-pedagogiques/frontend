@@ -1,0 +1,831 @@
+<div class="storytelling-container">
+
+  <!-- Main Top Navigation Tabs -->
+  <nav class="pc-top-nav mb-4" aria-label="Navigation Storytelling" role="tablist">
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'select' || pageState() === 'generating'" [attr.aria-selected]="pageState() === 'select' || pageState() === 'generating'" (click)="backToSelect()">
+      <i class="feather icon-plus-circle" aria-hidden="true"></i> Générer un Storytelling
+    </button>
+    <button type="button" class="nav-tab" role="tab" [class.active]="pageState() === 'history'" [attr.aria-selected]="pageState() === 'history'" (click)="switchToHistory()">
+      <i class="feather icon-clock" aria-hidden="true"></i> Mes Storytellings
+      @if (historyList().length > 0) {
+        <span class="count-badge" aria-label="{{ historyList().length }} scénarios enregistrés">{{ historyList().length }}</span>
+      }
+    </button>
+  </nav>
+
+  <!-- Alerts -->
+  @if (successMessage()) {
+    <div class="pc-alert success" role="status" aria-live="polite" aria-atomic="true">
+      <i class="feather icon-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+      <button type="button" class="alert-close" (click)="successMessage.set('')" aria-label="Fermer le message"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="pc-alert error" role="alert" aria-live="assertive" aria-atomic="true">
+      <i class="feather icon-alert-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="alert-close" (click)="errorMessage.set('')" aria-label="Fermer l'erreur"><i class="feather icon-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: GENERATING (Loading)                                       -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'generating') {
+    <div class="generating-state" role="status" aria-live="polite" aria-atomic="true">
+      <div class="generating-content">
+        <div class="spinner-large" aria-hidden="true"></div>
+        <h3>Conception du scénario de storytelling...</h3>
+        <p>L'IA structure l'intrigue, extrait les concepts clés obligatoires et conçoit les fiches de rôles.</p>
+        <p class="subtle">Cela peut prendre jusqu'à 30 secondes.</p>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: SELECT (Configuration & Module Selection)                  -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'select') {
+    <div class="select-section">
+      
+      <!-- Section Header -->
+      <div class="section-header">
+        <div class="header-icon" aria-hidden="true">
+          <i class="feather icon-feather"></i>
+        </div>
+        <div>
+          <h2>Storytelling Collaboratif</h2>
+          <p class="subtitle">Co-construction d'un récit contextualisé mobilisant les concepts clés du cours (15–20 min).</p>
+        </div>
+      </div>
+
+      <!-- Layout: Grid + Side Panel -->
+      <div class="game-config-layout" [class.has-selection]="!!selectedAnalysis()">
+        
+        <!-- Left Column: Module Selection -->
+        <div class="game-config-grid-col">
+          <div class="config-card mb-4">
+            <div class="card-header">
+              <span class="step-badge">1</span>
+              <h4>Étape 1 : Choisir une fiche module analysée</h4>
+            </div>
+
+            @if (isLoading() && analyses().length === 0) {
+              <div class="empty-state" role="status">
+                <div class="spinner-large" style="width: 32px; height: 32px;" aria-hidden="true"></div>
+                <p style="margin-top: 12px; font-size: 14px;">Chargement des fiches modules...</p>
+              </div>
+            } @else if (analyses().length === 0) {
+              <div class="empty-state">
+                <i class="feather icon-file-text" aria-hidden="true"></i>
+                <p>Aucune fiche module trouvée. Importez et analysez une fiche d'abord.</p>
+                <a routerLink="/import-module" class="btn btn-primary" aria-label="Accéder à la page d'import">
+                  <i class="feather icon-upload-cloud" aria-hidden="true"></i> Importer une fiche
+                </a>
+              </div>
+            } @else {
+              <div class="unified-challenge-card-grid" role="listbox" aria-label="Fiches modules disponibles">
+                @for (a of analyses(); track a.id) {
+                  <div class="unified-challenge-card"
+                       role="option"
+                       tabindex="0"
+                       [attr.aria-selected]="selectedAnalysis()?.id === a.id ? 'true' : 'false'"
+                       [attr.aria-label]="'Sélectionner le module ' + a.module_title"
+                       [class.selected]="selectedAnalysis()?.id === a.id"
+                       (click)="selectAnalysis(a)"
+                       (keydown.enter)="selectAnalysis(a)">
+                    <div class="ucc-header">
+                      <div class="ucc-icon-badge" aria-hidden="true">
+                        <i class="feather icon-feather"></i>
+                      </div>
+                      <div class="ucc-header-actions">
+                        <span class="ucc-badge primary">Fiche Module</span>
+                        <button type="button" class="ucc-btn-icon" (click)="openOverlay(a); $event.stopPropagation()" [attr.aria-label]="'Voir les détails du scan pour ' + a.module_title" title="Voir les détails du scan">
+                          <i class="feather icon-eye" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h4 class="ucc-title">{{ a.module_title }}</h4>
+
+                    <div class="ucc-meta-row">
+                      <span class="ucc-meta-pill"><i class="feather icon-target text-danger"></i> {{ a.learning_outcomes?.length || 0 }} AA</span>
+                      <span class="ucc-meta-pill"><i class="feather icon-layers text-info"></i> {{ a.key_concepts?.length || 0 }} concepts</span>
+                    </div>
+
+                    <div class="ucc-meta-row mt-auto pt-2">
+                      @for (concept of (a.key_concepts || []).slice(0, 3); track concept) {
+                        <span class="ucc-meta-pill">{{ concept }}</span>
+                      }
+                      @if ((a.key_concepts || []).length > 3) {
+                        <span class="ucc-bloom-tag more">+{{ a.key_concepts.length - 3 }}</span>
+                      }
+                    </div>
+
+                    <div class="ucc-footer">
+                      <span class="text-muted small fw-medium">
+                        <i class="feather icon-check-circle me-1" [class.text-danger]="selectedAnalysis()?.id === a.id"></i>
+                        {{ selectedAnalysis()?.id === a.id ? 'Sélectionné' : 'Cliquer pour choisir' }}
+                      </span>
+                      <button type="button" class="ucc-btn-primary" (click)="selectAnalysis(a); $event.stopPropagation()">
+                        <i class="feather icon-check"></i> Choisir
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Column: Step 2 Parameters Sidebar (shown on selection) -->
+        @if (selectedAnalysis()) {
+          <div class="game-config-panel-col">
+            <div class="config-card config-panel-sticky">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="step-badge">2</span>
+                  <div class="gen-panel-info">
+                    <h4>Paramètres du Storytelling</h4>
+                    <small class="text-muted text-truncate d-block" style="max-width: 240px;">{{ selectedAnalysis()?.module_title }}</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-close-panel" (click)="selectedAnalysis.set(null)" aria-label="Fermer la configuration" title="Fermer la configuration">
+                  <i class="feather icon-x" aria-hidden="true"></i> Fermer
+                </button>
+              </div>
+
+              <div class="params-grid p-3">
+                
+                <!-- Model selector -->
+                <div class="param-group mb-3">
+                  <label class="form-label fw-semibold small">Modèle d'Intelligence Artificielle</label>
+                  <select class="form-select form-select-sm story-select" [(ngModel)]="selectedModel">
+                    @for (m of availableModels; track m.value) {
+                      <option [value]="m.value">{{ m.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Steps count -->
+                <div class="param-group mb-3">
+                  <label class="form-label fw-semibold small">Nombre d'Étapes de l'Arc Narratif</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text story-input-addon"><i class="feather icon-git-commit"></i></span>
+                    <input type="number" class="form-control story-input" [(ngModel)]="nbEtapes" min="3" max="6" />
+                  </div>
+                  <small class="text-muted" style="font-size: 11px;">Idéal : 4 étapes (Amorce, Défi, Résolution, Épilogue)</small>
+                </div>
+
+                <!-- Duration -->
+                <div class="param-group mb-3">
+                  <label class="form-label fw-semibold small">Durée Totale de l'Atelier</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text story-input-addon"><i class="feather icon-clock"></i></span>
+                    <input type="number" class="form-control story-input" [(ngModel)]="dureeMinutes" min="10" max="45" step="5" />
+                    <span class="input-group-text story-input-addon">min</span>
+                  </div>
+                </div>
+
+                <!-- Style -->
+                <div class="param-group mb-3">
+                  <label class="form-label fw-semibold small">Style & Intensité Créative</label>
+                  <select class="form-select form-select-sm story-select" [(ngModel)]="difficulteCreative">
+                    <option value="standard">Standard (Scénario Métier / Réaliste)</option>
+                    <option value="audacieuse">Audacieuse (Scénario d'Aventure / Fiction)</option>
+                    <option value="guidée">Guidée (Étapes très encadrées)</option>
+                  </select>
+                </div>
+
+                <!-- Generate Action Button -->
+                <div class="pt-2 border-top">
+                  <button type="button"
+                          class="btn btn-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                          (click)="generateStorytelling()"
+                          [disabled]="isLoading() || !selectedAnalysis()">
+                    @if (isLoading()) {
+                      <span class="spinner-border spinner-border-sm" role="status"></span>
+                      <span>Génération...</span>
+                    } @else {
+                      <i class="feather icon-zap"></i>
+                      <span>Générer le Storytelling</span>
+                    }
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: HISTORY (Saved Storytellings)                              -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'history') {
+    <div class="history-section">
+      <div class="section-header d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="header-icon"><i class="feather icon-clock"></i></div>
+          <div>
+            <h2>Mes Ateliers de Storytelling</h2>
+            <p class="subtitle">Consultez, partagez ou réutilisez vos scénarios narratifs enregistrés.</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" (click)="backToSelect()">
+          <i class="feather icon-plus"></i> Nouveau Storytelling
+        </button>
+      </div>
+
+      @if (historyList().length === 0) {
+        <div class="empty-state py-5 text-center">
+          <i class="feather icon-inbox display-3 text-muted mb-3 d-block"></i>
+          <h5>Aucun atelier de storytelling trouvé</h5>
+          <p class="text-muted">Générez votre premier atelier narratif en sélectionnant une fiche module.</p>
+          <button type="button" class="btn btn-danger mt-2" (click)="backToSelect()">
+            <i class="feather icon-zap me-1"></i> Créer un Storytelling
+          </button>
+        </div>
+      } @else {
+        <div class="unified-challenge-card-grid" role="listbox" aria-label="Historique des storytellings">
+          @for (item of historyList(); track item.id) {
+            <div class="unified-challenge-card cursor-pointer"
+                 role="option"
+                 tabindex="0"
+                 (click)="consultStory(item)"
+                 (keydown.enter)="consultStory(item)">
+              <div class="ucc-header">
+                <div class="ucc-icon-badge" aria-hidden="true">
+                  <i class="feather icon-feather"></i>
+                </div>
+                <div class="ucc-header-actions">
+                  <span class="ucc-badge primary">{{ item.etapes_narratives.length || 4 }} Étapes</span>
+                  <button type="button" class="ucc-btn-icon text-danger" (click)="deleteStory(item.id, $event)" title="Supprimer ce scénario" aria-label="Supprimer ce scénario">
+                    <i class="feather icon-trash-2" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+
+              <h4 class="ucc-title">{{ item.titre }}</h4>
+
+              <div class="ucc-meta-row">
+                <span class="ucc-meta-pill"><i class="feather icon-tag text-danger"></i> {{ item.mots_cles_obligatoires.length || 0 }} mots-clés</span>
+                <span class="ucc-meta-pill"><i class="feather icon-users text-info"></i> {{ item.roles_narratifs.length || 0 }} rôles</span>
+              </div>
+
+              <div class="ucc-meta-row mt-auto pt-2">
+                @for (kw of (item.mots_cles_obligatoires || []).slice(0, 3); track kw) {
+                  <span class="ucc-meta-pill">{{ kw }}</span>
+                }
+              </div>
+
+              <div class="ucc-footer">
+                <span class="text-muted small fw-medium">
+                  {{ item.created_at | date:'dd/MM/yyyy' }}
+                </span>
+                <button type="button" class="ucc-btn-primary" (click)="consultStory(item); $event.stopPropagation()">
+                  <i class="feather icon-eye"></i> Consulter
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- STATE: RESULT (Dashboard & Tabs)                                  -->
+  <!-- ================================================================= -->
+  @if (pageState() === 'result' && storytelling()) {
+    <div class="story-result-wrapper">
+
+      <!-- Header Action Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" (click)="backToSelect()">
+          <i class="feather icon-arrow-left"></i> Retour aux Modules
+        </button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" (click)="resetConfig()">
+            <i class="feather icon-refresh-cw"></i> Nouveau Scénario
+          </button>
+          <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-1 shadow-sm" (click)="shareGame()">
+            <i class="feather icon-share-2"></i> Partager aux Étudiants
+          </button>
+        </div>
+      </div>
+
+      <!-- Hero Banner -->
+      <div class="story-hero-banner p-4 rounded-4 mb-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <span class="hero-badge badge text-uppercase px-3 py-1 mb-2">
+              <i class="feather icon-book-open me-1"></i> Quête Pédagogique
+            </span>
+            <h2 class="hero-title fw-bold mb-2">{{ storytelling()?.titre }}</h2>
+            <p class="hero-meta m-0">
+              <i class="feather icon-clock me-1 text-danger"></i> {{ dureeMinutes }} minutes • 
+              <i class="feather icon-layers me-1 text-danger"></i> {{ storytelling()?.etapes_narratives?.length }} étapes • 
+              <i class="feather icon-target me-1 text-danger"></i> {{ storytelling()?.mots_cles_obligatoires?.length }} concepts obligatoires
+            </p>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn hero-share-btn btn-sm fw-semibold d-flex align-items-center gap-1 shadow-sm" (click)="shareGame()">
+              <i class="feather icon-share-2"></i> Lien Étudiants
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-pills story-tabs mb-4 p-2 rounded-3 shadow-sm border" role="tablist">
+        <li class="nav-item">
+          <button type="button" class="nav-link" [class.active]="activeTab() === 'amorce'" (click)="activeTab.set('amorce')" role="tab">
+            <i class="feather icon-bookmark me-1"></i> 1. Scénario & Mots-Clés
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" [class.active]="activeTab() === 'etapes'" (click)="activeTab.set('etapes')" role="tab">
+            <i class="feather icon-git-branch me-1"></i> 2. Arc Narratif & Rôles
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" [class.active]="activeTab() === 'fiches'" (click)="activeTab.set('fiches')" role="tab">
+            <i class="feather icon-file-text me-1"></i> 3. Fiches Animateur & Participant
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" [class.active]="activeTab() === 'debriefing'" (click)="activeTab.set('debriefing')" role="tab">
+            <i class="feather icon-award me-1"></i> 4. Grille de Débriefing
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" [class.active]="activeTab() === 'contributions'" (click)="activeTab.set('contributions'); loadContributions()" role="tab">
+            <i class="feather icon-message-square me-1"></i> 5. Suivi Live & Évaluation IA
+          </button>
+        </li>
+      </ul>
+
+      <!-- TAB 1: SCENARIO & MOTS-CLÉS -->
+      @if (activeTab() === 'amorce') {
+        <div class="tab-pane-content">
+          <div class="row g-4">
+            
+            <!-- Contexte de départ -->
+            <div class="col-lg-8">
+              <div class="card story-card h-100">
+                <div class="card-header story-card-header py-3 d-flex align-items-center gap-2">
+                  <i class="feather icon-compass text-danger fs-5"></i>
+                  <h5 class="m-0 fw-bold">Amorce Narrative (Point de Départ)</h5>
+                </div>
+                <div class="card-body p-4">
+                  <div class="narrative-box p-4 rounded-3 mb-4">
+                    <p class="fs-5 lh-lg fst-italic m-0">
+                      "{{ storytelling()?.contexte_depart }}"
+                    </p>
+                  </div>
+                  <div class="alert story-info-alert border-0 d-flex align-items-center gap-2">
+                    <i class="feather icon-info fs-5"></i>
+                    <small>Cette amorce pose le décor et le défi initial. Les étudiants doivent poursuivre cette trame en intégrant les notions du cours.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mots-clés obligatoires -->
+            <div class="col-lg-4">
+              <div class="card story-card h-100">
+                <div class="card-header story-card-header py-3 d-flex align-items-center gap-2">
+                  <i class="feather icon-tag text-danger fs-5"></i>
+                  <h5 class="m-0 fw-bold">Concepts Obligatoires</h5>
+                </div>
+                <div class="card-body p-4">
+                  <p class="text-muted small mb-3">
+                    Chaque équipe doit obligatoirement mobiliser et intégrer ces termes dans leur récit :
+                  </p>
+                  <div class="d-flex flex-wrap gap-2">
+                    @for (kw of storytelling()?.mots_cles_obligatoires; track kw) {
+                      <span class="keyword-chip">
+                        <i class="feather icon-check-circle me-1 text-danger"></i> {{ kw }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      }
+
+      <!-- TAB 2: ETAPES & ROLES -->
+      @if (activeTab() === 'etapes') {
+        <div class="tab-pane-content">
+          
+          <!-- Timeline des étapes -->
+          <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="feather icon-git-commit text-danger"></i> Les Étapes de l'Arc Narratif
+          </h5>
+          <div class="row g-3 mb-4">
+            @for (etape of storytelling()?.etapes_narratives; track $index; let i = $index) {
+              <div class="col-md-6 col-lg-3">
+                <div class="card story-card h-100 step-card">
+                  <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="step-badge">Étape {{ etape.etape || (i + 1) }}</span>
+                      <span class="badge step-time-badge border">
+                        <i class="feather icon-clock me-1"></i> {{ etape.temps_minutes }} min
+                      </span>
+                    </div>
+                    <h6 class="fw-bold mb-2">{{ etape.titre }}</h6>
+                    <p class="text-muted small mb-2">{{ etape.description }}</p>
+                    <div class="step-consigne p-2 rounded border">
+                      <strong class="text-danger small d-block mb-1"><i class="feather icon-alert-circle"></i> Consigne :</strong>
+                      <small>{{ etape.consigne }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Rôles narratifs -->
+          <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="feather icon-users text-danger"></i> Rôles d'Équipe Narratifs
+          </h5>
+          <div class="row g-3">
+            @for (role of storytelling()?.roles_narratifs; track role.nom_role) {
+              <div class="col-md-6 col-lg-3">
+                <div class="card story-card h-100 role-card">
+                  <div class="card-body p-3">
+                    <div class="role-icon mb-2">
+                      <i class="feather icon-user-check text-danger fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{{ role.nom_role }}</h6>
+                    <p class="text-muted small mb-2">{{ role.description }}</p>
+                    <div class="mt-2">
+                      <strong class="small text-secondary d-block mb-1">Missions clés :</strong>
+                      <ul class="role-missions-list m-0 ps-3 small text-muted">
+                        @for (m of role.missions; track m) {
+                          <li>{{ m }}</li>
+                        }
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      <!-- TAB 3: FICHES PEDAGOGIQUES -->
+      @if (activeTab() === 'fiches') {
+        <div class="tab-pane-content">
+          <div class="row g-4">
+            
+            <!-- Fiche Animateur -->
+            <div class="col-lg-6">
+              <div class="card story-card h-100">
+                <div class="card-header story-card-header py-3 d-flex align-items-center gap-2">
+                  <i class="feather icon-user-check text-danger fs-5"></i>
+                  <h5 class="m-0 fw-bold">Fiche Animateur (Enseignant)</h5>
+                </div>
+                <div class="card-body p-4">
+                  
+                  <h6 class="fw-bold text-danger mb-2">Objectifs Pédagogiques :</h6>
+                  <ul class="mb-4 ps-3 small text-muted">
+                    @for (obj of storytelling()?.fiche_animateur?.objectifs_pedagogiques; track obj) {
+                      <li>{{ obj }}</li>
+                    }
+                  </ul>
+
+                  <h6 class="fw-bold text-danger mb-2">Déroulement Pas-à-Pas :</h6>
+                  <ul class="mb-4 ps-3 small text-muted">
+                    @for (step of storytelling()?.fiche_animateur?.deroulement_pas_a_pas; track step) {
+                      <li>{{ step }}</li>
+                    }
+                  </ul>
+
+                  <h6 class="fw-bold text-danger mb-2">Conseils d'Animation & Relance :</h6>
+                  <ul class="m-0 ps-3 small text-muted">
+                    @for (tip of storytelling()?.fiche_animateur?.conseils_animation; track tip) {
+                      <li>{{ tip }}</li>
+                    }
+                  </ul>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche Participant -->
+            <div class="col-lg-6">
+              <div class="card story-card h-100">
+                <div class="card-header story-card-header py-3 d-flex align-items-center gap-2">
+                  <i class="feather icon-users text-danger fs-5"></i>
+                  <h5 class="m-0 fw-bold">Fiche Participant (Étudiant)</h5>
+                </div>
+                <div class="card-body p-4">
+                  
+                  <h6 class="fw-bold text-danger mb-2">Règles du Jeu Collaboratif :</h6>
+                  <ul class="mb-4 ps-3 small text-muted">
+                    @for (rule of storytelling()?.fiche_participant?.regles_du_jeu; track rule) {
+                      <li>{{ rule }}</li>
+                    }
+                  </ul>
+
+                  <h6 class="fw-bold text-danger mb-2">Conseils de Rédaction & d'Écriture :</h6>
+                  <ul class="m-0 ps-3 small text-muted">
+                    @for (tip of storytelling()?.fiche_participant?.conseils_redaction; track tip) {
+                      <li>{{ tip }}</li>
+                    }
+                  </ul>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      }
+
+      <!-- TAB 4: DEBRIEFING -->
+      @if (activeTab() === 'debriefing') {
+        <div class="tab-pane-content">
+          <div class="card story-card">
+            <div class="card-header story-card-header py-3 d-flex align-items-center gap-2">
+              <i class="feather icon-check-square text-danger fs-5"></i>
+              <h5 class="m-0 fw-bold">Grille d'Évaluation & Débriefing Collectif</h5>
+            </div>
+            <div class="card-body p-4">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 25%;">Critère Évalué</th>
+                      <th style="width: 50%;">Description / Attendus</th>
+                      <th style="width: 25%;">Barème Recommandé</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (crit of storytelling()?.criteres_evaluation; track crit.critere) {
+                      <tr>
+                        <td class="fw-bold text-danger">{{ crit.critere }}</td>
+                        <td class="small text-muted">{{ crit.description }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary border">{{ crit.bareme }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 5: SUIVI LIVE & EVALUATION IA -->
+      @if (activeTab() === 'contributions') {
+        <div class="tab-pane-content">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h5 class="m-0 fw-bold d-flex align-items-center gap-2">
+              <i class="feather icon-activity text-danger"></i> Contributions des Étudiants en Direct
+            </h5>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadContributions()" [disabled]="isLoadingContribs()">
+                <i class="feather icon-refresh-cw" [class.spin]="isLoadingContribs()"></i> Actualiser
+              </button>
+              <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-1 shadow-sm" (click)="evaluateConsolidatedStory()" [disabled]="isEvaluating() || contributions().length === 0">
+                <i class="feather icon-cpu"></i>
+                <span>{{ isEvaluating() ? 'Évaluation IA en cours...' : 'Évaluer l\'Histoire avec l\'IA' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Evaluation IA Card (if evaluated) -->
+          @if (evaluationResult()) {
+            <div class="card story-card border-danger mb-4 shadow-sm">
+              <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold d-flex align-items-center gap-2">
+                  <i class="feather icon-award"></i> Rapport d'Évaluation Didactique de l'IA
+                </h5>
+                <span class="badge bg-white text-danger fs-6 px-3 py-1">
+                  Note : {{ evaluationResult()?.note_globale_sur_20 }}/20
+                </span>
+              </div>
+              <div class="card-body p-4">
+                <div class="row g-4 mb-4">
+                  <div class="col-md-4">
+                    <div class="p-3 bg-light rounded-3 text-center border">
+                      <div class="text-muted small mb-1">Mots-clés mobilisés</div>
+                      <div class="fw-bold fs-4 text-danger">
+                        {{ evaluationResult()?.mots_cles_detectes?.length || 0 }} / {{ storytelling()?.mots_cles_obligatoires?.length || 0 }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="p-3 bg-light rounded-3 border">
+                      <div class="text-muted small mb-2">Concepts repérés dans l'histoire :</div>
+                      <div class="d-flex flex-wrap gap-1">
+                        @for (kw of evaluationResult()?.mots_cles_detectes; track kw) {
+                          <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            ✓ {{ kw }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <h6 class="fw-bold text-success"><i class="feather icon-thumbs-up me-1"></i> Points Forts du Récit :</h6>
+                  <ul class="small text-muted ps-3">
+                    @for (pf of evaluationResult()?.points_forts; track pf) {
+                      <li>{{ pf }}</li>
+                    }
+                  </ul>
+                </div>
+
+                <div class="mb-3">
+                  <h6 class="fw-bold text-warning"><i class="feather icon-alert-triangle me-1"></i> Axes d'Amélioration :</h6>
+                  <ul class="small text-muted ps-3">
+                    @for (axe of evaluationResult()?.axes_amelioration; track axe) {
+                      <li>{{ axe }}</li>
+                    }
+                  </ul>
+                </div>
+
+                <div>
+                  <h6 class="fw-bold text-info"><i class="feather icon-message-circle me-1"></i> Commentaire Synthétique :</h6>
+                  <p class="small text-muted p-3 bg-light rounded border m-0">
+                    {{ evaluationResult()?.commentaire_global }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Contributions Table / List -->
+          @if (contributions().length === 0) {
+            <div class="card story-card p-5 text-center">
+              <i class="feather icon-clock display-4 text-muted mb-3"></i>
+              <h5 class="text-muted">En attente des contributions des étudiants...</h5>
+              <p class="text-muted small max-w-500 mx-auto">
+                Partagez le lien du jeu aux participants. Leurs textes s'afficheront ici en temps réel au fil des étapes.
+              </p>
+              <button type="button" class="btn btn-outline-danger btn-sm mx-auto d-flex align-items-center gap-1" (click)="shareGame()">
+                <i class="feather icon-share-2"></i> Obtenir le lien de partage
+              </button>
+            </div>
+          } @else {
+            <div class="row g-3">
+              @for (c of contributions(); track c.id) {
+                <div class="col-12">
+                  <div class="card story-card">
+                    <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                      <span class="fw-bold small text-danger">
+                        <i class="feather icon-user me-1"></i> {{ c.pseudo }} • Étape {{ c.etape_index + 1 }}
+                      </span>
+                      <small class="text-muted">{{ c.timestamp | date:'shortTime' }}</small>
+                    </div>
+                    <div class="card-body p-3">
+                      <p class="m-0 fs-6">{{ c.texte_contribution }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ================================================================== -->
+  <!-- ANALYSIS OVERLAY SCAN PREVIEW                                       -->
+  <!-- ================================================================== -->
+  @if (viewingAnalysis()) {
+    <div class="overlay-backdrop" (click)="closeOverlay()">
+      <div class="overlay-panel" (click)="$event.stopPropagation()">
+        <div class="overlay-header">
+          <h2>{{ viewingAnalysis()!.module_title }}</h2>
+          <button type="button" class="btn-close" (click)="closeOverlay()" aria-label="Fermer"><i class="feather icon-x" aria-hidden="true"></i></button>
+        </div>
+        <div class="overlay-body">
+          <div class="overlay-section">
+            <h4>Acquis d'apprentissage ({{ viewingAnalysis()!.learning_outcomes?.length || 0 }} AA)</h4>
+            @for (lo of viewingAnalysis()!.learning_outcomes; track lo) {
+              <div class="lo-row">
+                <span class="bloom-badge" [style.background]="getBloomColor(lo.bloom_level)">
+                  {{ getBloomLabel(lo.bloom_level) }}
+                </span>
+                <span class="lo-desc">AA{{ lo.id || '' }}: {{ lo.description }}</span>
+              </div>
+            }
+          </div>
+          <div class="overlay-section">
+            <h4>Concepts clés</h4>
+            <div class="tag-list">
+              @for (c of viewingAnalysis()!.key_concepts; track c) {
+                <span class="concept-tag">{{ c }}</span>
+              }
+            </div>
+          </div>
+          <div class="overlay-section">
+            <h4>Mots-clés</h4>
+            <div class="tag-list">
+              @for (k of viewingAnalysis()!.keywords; track k) {
+                <span class="keyword-tag">{{ k }}</span>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="overlay-footer">
+          <button type="button" class="btn-use" (click)="useAnalysisFromOverlay()">
+            <i class="feather icon-check"></i> Utiliser cette fiche pour le Storytelling
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================== -->
+  <!-- SHARE & EMAIL INVITATION MODAL                                     -->
+  <!-- ================================================================== -->
+  @if (showShareModal()) {
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold">Partager l'Atelier de Storytelling</h5>
+            <button type="button" class="btn-close" (click)="closeShareModal()" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body p-4">
+            
+            <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-3">
+              <li class="nav-item">
+                <button type="button" class="nav-link btn-sm" [class.active]="shareModalTab() === 'link'" (click)="shareModalTab.set('link')">
+                  <i class="feather icon-link me-1"></i> Lien Public
+                </button>
+              </li>
+              <li class="nav-item">
+                <button type="button" class="nav-link btn-sm" [class.active]="shareModalTab() === 'email'" (click)="shareModalTab.set('email')">
+                  <i class="feather icon-mail me-1"></i> Envoyer par Email
+                </button>
+              </li>
+            </ul>
+
+            @if (shareModalTab() === 'link') {
+              <div>
+                <p class="text-muted small mb-2">Transmettez ce lien à vos étudiants pour qu'ils rejoignent directement l'histoire :</p>
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" [value]="shareLink()" readonly />
+                  <button type="button" class="btn btn-danger" (click)="copyShareUrl()">
+                    <i class="feather icon-copy me-1"></i> {{ shareCopied() ? 'Copié !' : 'Copier' }}
+                  </button>
+                </div>
+                <div class="alert alert-info py-2 px-3 small border-0 m-0">
+                  <i class="feather icon-info me-1"></i> Les étudiants rejoignent sans inscription, saisissent leur prénom et collaborent en direct.
+                </div>
+              </div>
+            }
+
+            @if (shareModalTab() === 'email') {
+              <div>
+                <p class="text-muted small mb-2">Saisissez les adresses emails des étudiants (séparées par une virgule ou un saut de ligne) :</p>
+                <textarea class="form-control mb-3" rows="4" [(ngModel)]="emailInput" placeholder="etudiant1@esprit.tn, etudiant2@esprit.tn..."></textarea>
+                
+                @if (emailErrorMessage()) {
+                  <div class="alert alert-danger py-2 small mb-2">{{ emailErrorMessage() }}</div>
+                }
+                @if (emailSuccessMessage()) {
+                  <div class="alert alert-success py-2 small mb-2">{{ emailSuccessMessage() }}</div>
+                }
+
+                <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2" (click)="sendInvitationEmails()" [disabled]="isSendingEmail()">
+                  @if (isSendingEmail()) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>Envoi en cours...</span>
+                  } @else {
+                    <i class="feather icon-send"></i>
+                    <span>Envoyer les invitations</span>
+                  }
+                </button>
+              </div>
+            }
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

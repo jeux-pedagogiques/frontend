@@ -12,26 +12,8 @@
     <div class="auth-brand-panel" aria-hidden="true">
       <div class="brand-overlay"></div>
       <div class="brand-content">
-        <div class="brand-logo">
-          <i class="feather" [class.icon-user-plus]="step() === 'form'" [class.icon-mail]="step() === 'verify'" aria-hidden="true"></i>
-        </div>
-        <h1 class="brand-title">{{ step() === 'form' ? 'Join Us Today' : 'Verify Your Email' }}</h1>
-        <p class="brand-subtitle">
-          {{ step() === 'form' ? 'Create your account and unlock powerful pedagogical AI tools to manage, evaluate, and gamify your classes.' : 'We sent a 6-digit confirmation code to your inbox to protect your security.' }}
-        </p>
-        <div class="brand-features">
-          <div class="brand-feature-item">
-            <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>Secure Email Verification</span>
-          </div>
-          <div class="brand-feature-item">
-            <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>Access 8 Pedagogical Game Modes</span>
-          </div>
-          <div class="brand-feature-item">
-            <i class="feather icon-check-circle" aria-hidden="true"></i>
-            <span>Instant Bloom's Taxonomy Analytics</span>
-          </div>
+        <div class="brand-illustration-container">
+          <img src="assets/images/auth/esprit-auth-illustration.png" alt="ESPRIT Campus & Étudiants" class="brand-illustration-img" />
         </div>
       </div>
       <div class="brand-shapes">
@@ -45,6 +27,9 @@
     <div class="auth-form-panel">
       <div class="auth-form-wrapper">
         <div class="auth-form-header">
+          <div class="auth-mobile-illustration d-lg-none text-center mb-3">
+            <img src="assets/images/auth/esprit-auth-illustration.png" alt="ESPRIT Campus" class="auth-mobile-img" />
+          </div>
           <img src="assets/images/logo-dark.png" alt="" aria-hidden="true" class="auth-logo" />
           <h2 class="auth-title">{{ step() === 'form' ? 'Create Account' : 'Check Your Inbox' }}</h2>
           <p class="auth-subtitle">

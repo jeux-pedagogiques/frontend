@@ -139,6 +139,25 @@
                 </div>
               </div>
 
+              <!-- Model Selector -->
+              <div class="config-group mt-3 mb-3">
+                <label class="group-label">
+                  <i class="feather icon-cpu me-1 text-danger"></i> Modèle IA Générateur
+                </label>
+                <select class="form-select model-dropdown-select mt-1" [ngModel]="selectedModel()" (ngModelChange)="selectedModel.set($event)">
+                  <option value="bai/glm-5.3-flash">BAI GLM 5.3 Flash (Recommandé - Argumentation & Éloquence)</option>
+                  <option value="bai/deepseek-v4-flash">BAI DeepSeek V4 Flash (Logique & Contre-arguments)</option>
+                  <option value="bai/qwen3.8-flash">BAI Qwen 3.8 Flash (Alibaba Rapide)</option>
+                  <option value="groq/llama-3.3-70b-versatile">Groq Llama 3.3 70B (0.2s - Ultra Rapide)</option>
+                  <option value="github/Llama-3.3-70B-Instruct">GitHub Llama 3.3 70B (0.4s - GitHub Models)</option>
+                  <option value="github/gpt-4o">GitHub GPT-4o (Azure High Intel)</option>
+                  <option value="groq/llama-3.1-8b-instant">Groq Llama 3.1 8B (0.17s - Instantané)</option>
+                  <option value="openrouter/openai/gpt-4o">OpenRouter GPT-4o (Pro Intelligence)</option>
+                  <option value="openrouter/openai/gpt-4o-mini">OpenRouter GPT-4o Mini (Rapide)</option>
+                  <option value="gemini/gemma-4-26b-a4b-it">Google Gemma 4 26B (Google Gemini)</option>
+                </select>
+              </div>
+
               <!-- Selected Analysis Summary -->
               <div class="selected-summary">
                 <h5><i class="feather icon-info"></i> Résumé de la fiche sélectionnée</h5>
