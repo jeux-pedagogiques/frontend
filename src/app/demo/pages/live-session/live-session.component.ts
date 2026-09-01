@@ -83,14 +83,18 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     return id;
   })();
   private ws: WebSocket | null = null;
+  private pendingCandidates = new Map<string, RTCIceCandidateInit[]>();
 
   // RTC configuration with public STUN servers
   private rtcConfig: RTCConfiguration = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' }
-    ]
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' }
+    ],
+    iceCandidatePoolSize: 10
   };
 
   // Recent Session History
@@ -638,6 +642,14 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
                 this.updatePeerListSignal();
               }
 
+              // Symmetrical initiation: if my client ID is smaller, initiate the WebRTC connection
+              if (this.clientId < senderId) {
+                const currentPeer = this.peers.get(senderId);
+                if (!currentPeer || !currentPeer.connection || currentPeer.connection.signalingState === 'closed') {
+                  await this.initiatePeerConnection(senderId, payload.displayName || 'Peer');
+                }
+              }
+
               // Apply host restrictions if sent (only for students/guests)
               if (!this.isProf()) {
                 if (payload.chatRestricted !== undefined) {
@@ -759,10 +771,24 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
 
     // Handle remote tracks joining
     peerConnection.ontrack = (event) => {
-      if (!peerStream.getTracks().includes(event.track)) {
-        peerStream.addTrack(event.track);
+      if (event.streams && event.streams[0]) {
+        event.streams[0].getTracks().forEach((track) => {
+          if (!peerStream.getTracks().includes(track)) {
+            peerStream.addTrack(track);
+          }
+        });
+      } else if (event.track) {
+        if (!peerStream.getTracks().includes(event.track)) {
+          peerStream.addTrack(event.track);
+        }
       }
       this.updatePeerListSignal();
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      if (peerConnection.connectionState === 'connected') {
+        this.updatePeerListSignal();
+      }
     };
 
     // Gather and send ICE candidates
@@ -796,15 +822,26 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     } else {
       peerConnection = new RTCPeerConnection(this.rtcConfig);
 
-      // Add local tracks only for new connections
-      this.addLocalTracksToConnection(peerConnection);
-
       // Receive remote tracks
       peerConnection.ontrack = (event) => {
-        if (!peerStream.getTracks().includes(event.track)) {
-          peerStream.addTrack(event.track);
+        if (event.streams && event.streams[0]) {
+          event.streams[0].getTracks().forEach((track) => {
+            if (!peerStream.getTracks().includes(track)) {
+              peerStream.addTrack(track);
+            }
+          });
+        } else if (event.track) {
+          if (!peerStream.getTracks().includes(event.track)) {
+            peerStream.addTrack(event.track);
+          }
         }
         this.updatePeerListSignal();
+      };
+
+      peerConnection.onconnectionstatechange = () => {
+        if (peerConnection.connectionState === 'connected') {
+          this.updatePeerListSignal();
+        }
       };
 
       peerConnection.onicecandidate = (event) => {
@@ -813,6 +850,9 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
         }
       };
     }
+
+    // Add local tracks to ensure bidirectional audio/video
+    this.addLocalTracksToConnection(peerConnection);
 
     this.peers.set(peerId, {
       connection: peerConnection,
@@ -825,6 +865,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
 
     // Set remote offer & generate answer
     await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpOffer));
+    await this.drainPendingCandidates(peerId, peerConnection);
+
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     this.sendSignalingMessage('answer', peerId, answer);
@@ -836,17 +878,38 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
     const peer = this.peers.get(peerId);
     if (peer && peer.connection) {
       await peer.connection.setRemoteDescription(new RTCSessionDescription(sdpAnswer));
+      await this.drainPendingCandidates(peerId, peer.connection);
     }
   }
 
   private async handleIceCandidateMessage(peerId: string, candidate: RTCIceCandidateInit): Promise<void> {
     const peer = this.peers.get(peerId);
-    if (peer && peer.connection) {
-      try {
-        await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (e) {
-        console.error('Error adding ICE candidate:', e);
+    if (!peer || !peer.connection || !peer.connection.remoteDescription) {
+      // Queue candidate until setRemoteDescription completes
+      const queue = this.pendingCandidates.get(peerId) || [];
+      queue.push(candidate);
+      this.pendingCandidates.set(peerId, queue);
+      return;
+    }
+
+    try {
+      await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) {
+      console.error('Error adding ICE candidate:', e);
+    }
+  }
+
+  private async drainPendingCandidates(peerId: string, peerConnection: RTCPeerConnection): Promise<void> {
+    const queue = this.pendingCandidates.get(peerId);
+    if (queue && queue.length > 0) {
+      for (const candidate of queue) {
+        try {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error('Error applying queued ICE candidate:', e);
+        }
       }
+      this.pendingCandidates.delete(peerId);
     }
   }
 

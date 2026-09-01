@@ -1,39 +1,39 @@
-import { Directive, ElementRef, Input, inject } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
 
 /**
- * Directive that allows binding a MediaStream to a <video> element's srcObject property.
+ * Directive that binds a MediaStream to a <video> element's srcObject property.
  * Usage: <video [appSrcObject]="myMediaStream" autoplay playsinline></video>
  */
 @Directive({
   selector: '[appSrcObject]',
   standalone: true
 })
-export class SrcObjectDirective {
+export class SrcObjectDirective implements OnChanges {
   private elementRef = inject(ElementRef);
-  private _stream: MediaStream | null = null;
+  @Input('appSrcObject') stream: MediaStream | null = null;
 
-  @Input() set appSrcObject(stream: MediaStream | null) {
+  ngOnChanges(changes: SimpleChanges): void {
     const el = this.elementRef.nativeElement as HTMLVideoElement;
-    if (this._stream !== stream) {
-      if (this._stream) {
-        this._stream.onaddtrack = null;
-        this._stream.onremovetrack = null;
-      }
-      this._stream = stream;
-      el.srcObject = stream;
-      
-      if (stream) {
-        stream.onaddtrack = () => {
-          el.srcObject = stream;
-          el.play().catch(() => {});
-        };
-        stream.onremovetrack = () => {
-          el.srcObject = stream;
-          el.play().catch(() => {});
-        };
+    if (!el) return;
+
+    if (el.srcObject !== this.stream) {
+      el.srcObject = this.stream;
+    }
+
+    if (this.stream) {
+      this.stream.onaddtrack = () => {
+        if (el.srcObject !== this.stream) {
+          el.srcObject = this.stream;
+        }
         el.play().catch(() => {});
-      }
+      };
+      this.stream.onremovetrack = () => {
+        el.play().catch(() => {});
+      };
+      // Try playing immediately
+      el.play().catch(() => {});
     }
   }
 }
+
 
