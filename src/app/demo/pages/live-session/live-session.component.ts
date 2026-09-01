@@ -259,7 +259,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   }
 
   private buildShareLink(room: string): string {
-    return `${window.location.origin}/live-session?room=${room}`;
+    return `${window.location.origin}/#/live-session?room=${room}`;
   }
 
   async joinAsGuest(): Promise<void> {

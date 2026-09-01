@@ -482,7 +482,7 @@ export class AtelierFeedbackComponent implements OnInit, OnDestroy {
   }
 
   shareSession(): void {
-    const url = `${window.location.origin}/atelier-feedback?code=${this.sessionCode()}`;
+    const url = `${window.location.origin}/#/atelier-feedback?code=${this.sessionCode()}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
       this.successMessage.set('Lien de la session copié dans le presse-papier !');

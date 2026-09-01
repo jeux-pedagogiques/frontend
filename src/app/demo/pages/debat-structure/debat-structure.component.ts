@@ -257,7 +257,7 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
         if (res?.status === 'success') {
           this.sessionId = res.session_id;
           this.codeSession.set(res.code_session);
-          this.joinUrl.set(`${window.location.origin}/debat-structure?code=${res.code_session}`);
+          this.joinUrl.set(`${window.location.origin}/#/debat-structure?code=${res.code_session}`);
           this.hostState.set('lobby');
           this.cd.detectChanges();
         } else {
