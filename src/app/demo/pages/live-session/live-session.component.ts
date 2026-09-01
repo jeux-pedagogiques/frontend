@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/theme/shared/service/auth.service';
 import { SrcObjectDirective } from './src-object.directive';
 import { environment } from 'src/environments/environment';
 import { io, Socket } from 'socket.io-client';
+import * as QRCode from 'qrcode';
 
 interface PeerDetail {
   id: string;
@@ -119,6 +120,15 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
   isSendingEmail = signal(false);
   emailSendStatus = signal<{ success?: boolean; message?: string } | null>(null);
   csvImportMessage = signal('');
+
+  // QR Code Sharing properties
+  showQrModal = signal(false);
+  qrDataUrl = signal('');
+  qrTitle = signal('Séance en direct');
+  qrRoomCode = signal('');
+  qrSessionUrl = signal('');
+  isGeneratingQr = signal(false);
+  qrCopied = signal(false);
 
   screenStream: MediaStream | null = null;
   isScreenSharing = false;
@@ -1345,6 +1355,69 @@ export class LiveSessionComponent implements OnInit, OnDestroy {
       }, 2000);
       this.cd.detectChanges();
     });
+  }
+
+  async openQrModal(roomId?: string, sessionTitle?: string): Promise<void> {
+    const targetRoom = roomId || this.roomId() || this.joinRoomId;
+    if (!targetRoom) {
+      this.mediaWarning.set('Aucun identifiant de séance disponible pour le QR Code.');
+      return;
+    }
+    const url = this.buildShareLink(targetRoom);
+    this.qrSessionUrl.set(url);
+    this.qrRoomCode.set(targetRoom);
+    this.qrTitle.set(sessionTitle || this.sessionName || 'Séance en direct ESPRIT');
+    this.isGeneratingQr.set(true);
+    this.showQrModal.set(true);
+    this.qrCopied.set(false);
+    this.cd.detectChanges();
+
+    try {
+      const qr = await QRCode.toDataURL(url, {
+        width: 360,
+        margin: 2,
+        color: {
+          dark: '#0f172a',
+          light: '#ffffff'
+        }
+      });
+      this.qrDataUrl.set(qr);
+    } catch (err) {
+      console.error('Failed to generate session QR code:', err);
+      this.mediaWarning.set('Erreur lors de la génération du QR Code.');
+    } finally {
+      this.isGeneratingQr.set(false);
+      this.cd.detectChanges();
+    }
+  }
+
+  closeQrModal(): void {
+    this.showQrModal.set(false);
+    this.qrDataUrl.set('');
+    this.qrCopied.set(false);
+  }
+
+  copyQrLink(): void {
+    if (!this.qrSessionUrl()) return;
+    navigator.clipboard.writeText(this.qrSessionUrl()).then(() => {
+      this.qrCopied.set(true);
+      setTimeout(() => {
+        this.qrCopied.set(false);
+        this.cd.detectChanges();
+      }, 2500);
+      this.cd.detectChanges();
+    });
+  }
+
+  downloadQrCode(): void {
+    const dataUrl = this.qrDataUrl();
+    if (!dataUrl) return;
+    const code = this.qrRoomCode() || 'seance';
+    const filename = `qrcode_seance_${code}.png`;
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
   }
 
   loadScheduledMeetings(): void {

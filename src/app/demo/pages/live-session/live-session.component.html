@@ -223,6 +223,9 @@
                                 <button class="btn btn-sm btn-success px-3" (click)="startScheduledMeeting(meeting)">
                                   <i class="feather icon-play-circle me-1"></i> Démarrer
                                 </button>
+                                <button class="btn btn-sm btn-outline-dark px-2" (click)="openQrModal(meeting.room_id, meeting.title)" title="Afficher le QR Code">
+                                  <i class="feather icon-grid me-1"></i> QR Code
+                                </button>
                                 <button class="btn btn-sm btn-info px-3" (click)="openEmailModal(meeting)">
                                   <i class="feather icon-mail me-1"></i> Partager
                                 </button>
@@ -685,6 +688,9 @@
         <button class="control-btn" [class.active-share]="showQuizPanel()" (click)="toggleQuizPanel()" title="Jeu & Quiz en direct">
           <i class="feather icon-play"></i>
         </button>
+        <button class="control-btn" (click)="openQrModal()" title="Partager par QR Code">
+          <i class="feather icon-grid"></i>
+        </button>
         @if (!isProf()) {
           <button class="control-btn" [class.active-share]="isHandRaised" (click)="toggleHandRaise()" title="Lever/Baisser la main">
             <span style="font-size: 18px;">🖐️</span>
@@ -706,10 +712,15 @@
             <span class="fw-bold text-white-50" style="font-size: 13px;">Lien d'invitation :</span>
             <span class="text-white fw-medium ms-2" style="font-size: 13px; font-family: monospace;">{{ shareLink() }}</span>
           </div>
-          <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
-            <i class="feather" [class.icon-copy]="!copied()" [class.icon-check]="copied()"></i>
-            {{ copied() ? ' Copié !' : ' Copier' }}
-          </button>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-light btn-sm px-3" (click)="openQrModal()" style="border-radius: 10px; font-weight: 600; border-color: rgba(255,255,255,0.3);">
+              <i class="feather icon-grid me-1"></i> QR Code
+            </button>
+            <button class="btn btn-primary btn-sm px-4" (click)="copyLink()" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #C51414, #9f1010); border: none;">
+              <i class="feather" [class.icon-copy]="!copied()" [class.icon-check]="copied()"></i>
+              {{ copied() ? ' Copié !' : ' Copier' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -959,3 +970,76 @@
     </div>
   </div>
 }
+
+<!-- ===================================================================== -->
+<!-- QR CODE SHARING MODAL                                                 -->
+<!-- ===================================================================== -->
+@if (showQrModal()) {
+  <div class="custom-modal-overlay animate__animated animate__fadeIn" (click)="closeQrModal()">
+    <div class="custom-modal-card qr-modal-card animate__animated animate__zoomIn" (click)="$event.stopPropagation()">
+      <!-- Header with Icon and Title -->
+      <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+        <div class="d-flex align-items-center gap-2">
+          <div class="qr-modal-icon-badge">
+            <i class="feather icon-grid text-danger"></i>
+          </div>
+          <div class="text-start">
+            <h5 class="mb-0 fw-bold text-dark">Scanner pour rejoindre</h5>
+            <small class="text-muted d-block text-truncate" style="max-width: 260px;">{{ qrTitle() }}</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="closeQrModal()"></button>
+      </div>
+
+      <!-- Room Code Badge -->
+      <div class="mb-3 text-center">
+        <span class="badge bg-light text-dark border px-3 py-2" style="font-size: 13px; font-family: monospace; border-radius: 8px;">
+          <i class="feather icon-hash text-danger me-1"></i> Code Room : <strong>{{ qrRoomCode() }}</strong>
+        </span>
+      </div>
+
+      <!-- QR Code Image Render Card -->
+      <div class="qr-code-frame-wrapper mb-3 p-3 bg-light rounded-4 text-center border">
+        @if (isGeneratingQr()) {
+          <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="spinner-border text-danger mb-2" role="status"></div>
+            <span class="text-muted small">Génération du QR Code en cours...</span>
+          </div>
+        } @else if (qrDataUrl()) {
+          <div class="qr-image-container bg-white p-2 d-inline-block rounded-3 shadow-sm">
+            <img [src]="qrDataUrl()" alt="QR Code de la séance" class="img-fluid qr-rendered-img" style="max-width: 240px; height: auto;" />
+          </div>
+          <p class="text-muted small mt-2 mb-0" style="font-size: 12px; line-height: 1.4;">
+            <i class="feather icon-smartphone me-1 text-danger"></i> Les étudiants scannent ce QR code avec l'appareil photo de leur téléphone pour rejoindre directement la séance.
+          </p>
+        }
+      </div>
+
+      <!-- Share Link with Copy Button -->
+      <div class="input-group mb-3">
+        <input type="text" class="form-control font-monospace small bg-light" [value]="qrSessionUrl()" readonly />
+        <button class="btn btn-outline-danger" type="button" (click)="copyQrLink()">
+          <i class="feather" [class.icon-copy]="!qrCopied()" [class.icon-check]="qrCopied()"></i>
+          {{ qrCopied() ? ' Copié' : ' Copier' }}
+        </button>
+      </div>
+
+      <!-- Modal Action Buttons -->
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-light flex-grow-1" (click)="closeQrModal()" style="border-radius: 10px; font-weight: 600;">
+          Fermer
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger flex-grow-1" 
+          (click)="downloadQrCode()" 
+          [disabled]="!qrDataUrl() || isGeneratingQr()" 
+          style="border-radius: 10px; background: linear-gradient(135deg, #C51414, #9f1010); border: none; font-weight: 600; color: #ffffff;"
+        >
+          <i class="feather icon-download me-1"></i> Télécharger PNG
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
