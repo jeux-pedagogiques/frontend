@@ -167,7 +167,7 @@ export class CasEtudeComponent implements OnInit {
     if (!cas || !cas.id) return;
     this.shareService.createShare('cas_etude', cas.id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/cas_etude/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/cas_etude/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

@@ -510,7 +510,7 @@ export class LibraryComponent implements OnInit {
 
     this.shareService.createShare(gameType, gameId).subscribe({
       next: async (res) => {
-        const url = `${window.location.origin}/play/${gameType}/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/${gameType}/${res.share_token}`;
         this.shareLink.set(url);
         try {
           const qr = await QRCode.toDataURL(url, {

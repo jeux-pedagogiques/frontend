@@ -423,7 +423,7 @@ export class EscapeRoomComponent implements OnInit {
   shareGame(roomId: number): void {
     this.shareService.createShare('escape_room', roomId).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/escape_room/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/escape_room/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

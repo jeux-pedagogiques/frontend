@@ -224,7 +224,7 @@ export class ImportModuleComponent implements OnInit {
     if (!quiz || !quiz.id) return;
     this.shareService.createShare('quiz', quiz.id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/quiz/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/quiz/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

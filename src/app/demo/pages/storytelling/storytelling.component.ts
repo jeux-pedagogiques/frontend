@@ -293,7 +293,7 @@ export class StorytellingComponent implements OnInit {
 
     this.shareService.createShare('storytelling', story.id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/storytelling/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/storytelling/${res.share_token}`;
         this.shareLink.set(url);
         this.showShareModal.set(true);
         navigator.clipboard.writeText(url).then(() => {

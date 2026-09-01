@@ -426,7 +426,7 @@ export class DebatStructureComponent implements OnInit, OnDestroy {
     if (!d) return;
     this.shareService.createShare('debat', d.id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/debat/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/debat/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

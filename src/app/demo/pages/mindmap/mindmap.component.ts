@@ -255,7 +255,7 @@ export class MindMapComponent implements OnInit {
     if (!mm || !mm.id) return;
     this.shareService.createShare('mindmap', mm.id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/mindmap/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/mindmap/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

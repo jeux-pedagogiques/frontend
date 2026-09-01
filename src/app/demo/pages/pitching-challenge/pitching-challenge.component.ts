@@ -370,7 +370,7 @@ export class PitchingChallengeComponent implements OnInit {
     if (!id) return;
     this.shareService.createShare('pitching', id).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/pitching/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/pitching/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);

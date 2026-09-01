@@ -542,7 +542,7 @@ export class FlashcardsComponent implements OnInit {
   shareGame(setId: number): void {
     this.shareService.createShare('flashcards', setId).subscribe({
       next: (res) => {
-        const url = `${window.location.origin}/play/flashcards/${res.share_token}`;
+        const url = `${window.location.origin}/#/play/flashcards/${res.share_token}`;
         this.shareLink.set(url);
         navigator.clipboard.writeText(url).then(() => {
           this.shareCopied.set(true);
